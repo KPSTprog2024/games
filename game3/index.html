@@ -13,7 +13,39 @@
   <div id="screen-start" class="screen active">
     <div class="top-container">
       <h1>かぞえんぼ</h1>
-      <div id="settings"></div>
+      <div id="settings" class="setting-area">
+      <h3>設定</h3>
+      <div class="setting-item">
+        <label for="difficultySelect">難易度</label>
+        <select id="difficultySelect">
+          <option value="初級">初級 (4～6個)</option>
+          <option value="中級">中級 (6～9個)</option>
+          <option value="上級">上級 (7～11個)</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label for="displayTimeSelect">表示時間</label>
+        <select id="displayTimeSelect">
+          <option value="0.5">0.5秒</option>
+          <option value="3">3秒</option>
+          <option value="5">5秒</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label for="gameMode">ゲームモード</label>
+        <select id="gameMode">
+          <option value="normal">ノーマル (丸だけ)</option>
+          <option value="distraction">チャレンジ (お邪魔マークあり)</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label for="soundOnOff">サウンド</label>
+        <select id="soundOnOff">
+          <option value="on">ON</option>
+          <option value="off">OFF</option>
+        </select>
+      </div>
+    </div>
       <div>
         <button class="btn btn-card" id="startBtn">ゲームスタート</button>
         <button class="btn btn-card" id="ruleBtn">ルール説明</button>
