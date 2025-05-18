@@ -1,0 +1,19 @@
+/* リセット & ボックスサイズ標準化 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+/* マージン・パディングリセット */
+body, h1, h2, h3, p, ul, ol, li, figure, figcaption, blockquote, dl, dd {
+  margin: 0;
+  padding: 0;
+}
+/* リストのスタイル除去 */
+ul, ol {
+  list-style: none;
+}
+/* 基本フォント */
+body {
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", "Varela Round", sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
