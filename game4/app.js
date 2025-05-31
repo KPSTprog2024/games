@@ -23,7 +23,7 @@ const shapes = {
   triangle:  { name: '🔺 三角形', type: 'polygon', vertices: [ {x:300,y:150},{x:250,y:250},{x:350,y:250}], difficulty:1 },
   square:    { name: '⬛ 四角形', type: 'polygon', vertices: [ {x:250,y:150},{x:350,y:150},{x:350,y:250},{x:250,y:250}], difficulty:2 },
   circle:    { name: '⚪ 円', type: 'circle', center:{x:300,y:200},radius:80,points:40,difficulty:3 },
-  spiralCW:  { name: '🌀↻ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:5,turns:2,points:300,direction:1,difficulty:4 },
+  spiralCW:  { name: '🌀↻ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:2,turns:2,points:300,direction:1,difficulty:4 },
   spiralCCW: { name: '🌀↺ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:3,turns:2,points:300,direction:-1,difficulty:4 },
 };
 
@@ -177,7 +177,7 @@ function genCircle(c,r,p){
 function genSpiral(s){
   const {center,radius:r0,turns,points,direction}=s;
   const maxTheta=2*Math.PI*turns*direction;
-  const b=(Math.min(gameConfig.canvasWidth,gameConfig.canvasHeight)/2-r0)/maxTheta;
+  const b= 5;  // (Math.min(gameConfig.canvasWidth,gameConfig.canvasHeight)/2-r0)/maxTheta;
   for(let i=0;i<=points;i++){
     const t=i/points,theta=maxTheta*t,r=r0+b*theta;
     gameState.shapePath.push({x:center.x+r*Math.cos(theta),y:center.y+r*Math.sin(theta),edge:i%12});
