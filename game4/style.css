@@ -368,3 +368,30 @@
   .end-actions { flex-direction: row; max-width: 550px; }
   .shape-selection { max-width: 500px; }
 }
+
+/* === 子ども向けボタン＆スコアテーブル === */
+.option-group { margin-block: var(--space-16); }
+.option-title { font-size: var(--font-size-lg); margin-bottom: var(--space-8); }
+.btn-row { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+.option-btn {
+  background: var(--color-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-base);
+  padding: var(--space-10) var(--space-16);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
+}
+.option-btn:hover { background: var(--color-secondary-hover); }
+.option-btn.selected { border-color: var(--color-primary); background: var(--color-primary-hover); color: var(--color-btn-primary-text); }
+
+.scoreboards table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-md);
+}
+.scoreboards th, .scoreboards td { padding: var(--space-6) var(--space-8); text-align: center; }
+.scoreboards tr:nth-child(even) { background: var(--color-surface); }
+.scoreboards tr:first-child td { font-weight: 600; }
