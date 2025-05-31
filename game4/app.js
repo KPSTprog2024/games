@@ -10,12 +10,12 @@
 const gameConfig = {
   canvasWidth: 600,
   canvasHeight: 400,
-  lineWidth: 4,
+  lineWidth: 12,
   shapeColor: '#888888',
   userTraceColor: '#0066ff',
   vertexPassedColor: '#22cc88',
-  vertexAllowableDistance: 7,
-  edgeAllowableDistance: 10,
+  vertexAllowableDistance: 12,
+  edgeAllowableDistance: 24,
 };
 
 /* ---------- 形 ---------- */
