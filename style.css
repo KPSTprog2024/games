@@ -1,7 +1,0 @@
-/* Base design tokens */
-:root {
-  color-scheme: light dark;
-  --color-background: rgba(252, 252, 249, 1);
-  /* ... (rest of the style.css content) ... */
-}
-/* For brevity, the rest of the file is identical to the version discussed */
