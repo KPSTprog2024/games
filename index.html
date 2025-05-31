@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ゲーム一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 1em;
+      background-color: #f0f4f8;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 1em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 1em;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card h2 {
+      font-size: 1.2em;
+      margin: 0 0 0.5em;
+      color: #222;
+    }
+
+    .card p {
+      font-size: 0.95em;
+      color: #666;
+      margin: 0 0 1em;
+    }
+
+    .card a {
+      display: inline-block;
+      padding: 0.5em 1em;
+      background-color: #007acc;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .card a:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ゲーム一覧</h1>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Game 1</h2>
+      <p>game1</p>
+      <a href="game1/" target="_blank">遊ぶ</a>
+    </div>
+    <div class="card">
+      <h2>Game 2</h2>
+      <p>game2</p>
+      <a href="game2/" target="_blank">遊ぶ</a>
+    </div>
+    <div class="card">
+      <h2>Game 3</h2>
+      <p>game3</p>
+      <a href="game3/" target="_blank">遊ぶ</a>
+    </div>
+    <div class="card">
+      <h2>Game 4</h2>
+      <p>game4</p>
+      <a href="game4/" target="_blank">遊ぶ</a>
+    </div>
+  </div>
+
+</body>
+</html>
