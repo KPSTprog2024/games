@@ -23,8 +23,8 @@ const shapes = {
   triangle:  { name: '🔺 三角形', type: 'polygon', vertices: [ {x:300,y:150},{x:250,y:250},{x:350,y:250}], difficulty:1 },
   square:    { name: '⬛ 四角形', type: 'polygon', vertices: [ {x:250,y:150},{x:350,y:150},{x:350,y:250},{x:250,y:250}], difficulty:2 },
   circle:    { name: '⚪ 円', type: 'circle', center:{x:300,y:200},radius:80,points:40,difficulty:3 },
-  spiralCW:  { name: '🌀↻ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:10,turns:2,points:300,direction:1,difficulty:4 },
-  spiralCCW: { name: '🌀↺ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:10,turns:2,points:300,direction:-1,difficulty:4 },
+  spiralCW:  { name: '🌀↻ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:5,turns:2,points:300,direction:1,difficulty:4 },
+  spiralCCW: { name: '🌀↺ ぐるぐる', type:'spiral',center:{x:300,y:200},radius:3,turns:2,points:300,direction:-1,difficulty:4 },
 };
 
 /* ---------- 状態 ---------- */
