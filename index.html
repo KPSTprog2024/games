@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apple Pencilなぞりゲーム</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!--
+      game-container: フルスクリーン & 中央寄せレイアウト
+      container: 幅をブレークポイントで制御（max-width）
+    -->
+    <div class="game-container">
+      <div class="container">
+        <!-- ■■■ Start Screen ■■■ -->
+        <div id="startScreen" class="screen">
+          <header class="game-header">
+            <h1 class="game-title">Apple Pencilなぞりゲーム</h1>
+            <p class="game-instruction">形をApple Pencilでなぞって得点を稼ごう！</p>
+            <p class="game-rules">制限時間: 10秒 | 1周で1点</p>
+          </header>
+
+          <section class="shape-selection">
+            <label for="shapeSelector" class="shape-label">形を選択:</label>
+            <select
+              id="shapeSelector"
+              class="form-control shape-selector"
+            ></select>
+          </section>
+
+          <section class="shape-preview">
+            <div class="preview-label">プレビュー:</div>
+            <div class="canvas-container preview-container">
+              <!-- プレビュー用は重複ID回避のため previewCanvas -->
+              <canvas id="previewCanvas" width="600" height="400"></canvas>
+            </div>
+            <p class="tip-text shape-tips">ヒント: 頂点をしっかり通過させよう！</p>
+          </section>
+
+          <button id="startButton" class="btn btn--primary btn--lg">
+            START
+          </button>
+        </div>
+
+        <!-- ■■■ Game Screen ■■■ -->
+        <div id="gameScreen" class="screen hidden">
+          <div class="game-ui">
+            <div class="timer-section">
+              <span class="timer-label">残り時間</span>
+              <span id="timer" class="timer">10</span>
+            </div>
+            <div class="score-section">
+              <span class="score-label">スコア</span>
+              <span id="score" class="score">0</span>
+            </div>
+          </div>
+          <div class="canvas-container">
+            <!-- 本番ゲーム用 Canvas は従来 ID を維持 -->
+            <canvas id="gameCanvas" width="600" height="400"></canvas>
+          </div>
+        </div>
+
+        <!-- ■■■ End Screen ■■■ -->
+        <div id="endScreen" class="screen hidden">
+          <div class="result-container">
+            <h2 class="result-title">時間切れ！</h2>
+
+            <div class="final-score-container">
+              <span class="final-score-label">最終スコア</span>
+              <span id="finalScore" class="final-score">0</span>
+            </div>
+
+            <div class="result-message">
+              <span id="resultMessage"></span>
+            </div>
+
+            <div class="end-actions">
+              <button id="playAgainButton" class="btn btn--primary btn--lg">
+                もう一度プレイ
+              </button>
+              <button
+                id="changeShapeButton"
+                class="btn btn--secondary btn--lg"
+                onclick="showStartScreen()"
+              >
+                形を変更
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
