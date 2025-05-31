@@ -1,138 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Apple Pencil なぞりゲーム</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apple Pencil なぞりゲーム</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-  <body>
-    <div class="game-container">
-      <div class="container">
-        <!-- ■■■ Start Screen ■■■ -->
-        <div id="startScreen" class="screen">
-          <header class="game-header">
-            <h1 class="game-title">Apple Pencil なぞりゲーム</h1>
-            <p class="game-instruction">
-              形を Apple Pencil または指でなぞって得点を稼ごう！
-            </p>
-            <p class="game-rules">
-              1 周で 1 点 | 制限時間は下のセレクタで選択
-            </p>
-          </header>
+<body>
+  <div class="game-container">
+    <div class="container">
 
-          <!-- 形状選択 -->
-          <section class="shape-selection form-group">
-            <label for="shapeSelector" class="form-label">形を選択:</label>
-            <select id="shapeSelector" class="form-control"></select>
-          </section>
+      <!-- ■■■ Start Screen ■■■ -->
+      <div id="startScreen" class="screen">
+        <h1 class="game-title mb-8">Apple Pencil なぞりゲーム</h1>
+        <p class="mb-16">図形をなぞって<span class="highlight">たくさん点数</span>を取ろう！</p>
 
-          <!-- 設定 (入力モード & 制限時間) -->
-          <section class="settings form-group">
-            <div class="form-group">
-              <span class="form-label">入力方法:</span>
-              <label class="mx-8"
-                ><input
-                  type="radio"
-                  name="inputMode"
-                  value="pen"
-                  checked
-                />ペン</label
-              >
-              <label
-                ><input type="radio" name="inputMode" value="any" />指でも OK</label
-              >
-            </div>
-
-            <div class="form-group mt-8">
-              <label for="timeSelector" class="form-label">制限時間:</label>
-              <select id="timeSelector" class="form-control">
-                <option value="10">10 秒</option>
-                <option value="20">20 秒</option>
-                <option value="30">30 秒</option>
-              </select>
-            </div>
-          </section>
-
-          <!-- プレビュー -->
-          <section class="shape-preview">
-            <div class="preview-label">プレビュー:</div>
-            <div class="canvas-container preview-container">
-              <canvas
-                id="previewCanvas"
-                width="600"
-                height="400"
-              ></canvas>
-            </div>
-            <p class="tip-text shape-tips">
-              ヒント: 頂点をしっかり通過させよう！
-            </p>
-            <p id="bestScore" class="best-score"></p>
-          </section>
-
-          <button id="startButton" class="btn btn--primary btn--lg mt-8">
-            START
-          </button>
-        </div>
-
-        <!-- ■■■ Game Screen ■■■ -->
-        <div id="gameScreen" class="screen hidden">
-          <div class="game-ui">
-            <div class="timer-section">
-              <span class="timer-label">残り時間</span>
-              <span id="timer" class="timer">10</span>
-            </div>
-            <div class="score-section">
-              <span class="score-label">スコア</span>
-              <span id="score" class="score">0</span>
-            </div>
+        <!-- 形ボタン -->
+        <section class="option-group">
+          <h2 class="option-title">① 形をえらぼう</h2>
+          <div id="shapeButtons" class="btn-row">
+            <button data-shape="triangle" class="option-btn">🔺 三角形</button>
+            <button data-shape="square"   class="option-btn">⬛ 四角形</button>
+            <button data-shape="circle"   class="option-btn">⚪ 円</button>
+            <button data-shape="spiralCW" class="option-btn">🌀↻ ぐるぐる</button>
+            <button data-shape="spiralCCW" class="option-btn">🌀↺ ぐるぐる</button>
           </div>
+        </section>
 
-          <div class="canvas-container">
-            <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <!-- 入力方法 -->
+        <section class="option-group">
+          <h2 class="option-title">② つかうどうぐ</h2>
+          <div id="inputButtons" class="btn-row">
+            <button data-input="pen" class="option-btn">✍️ Pencil</button>
+            <button data-input="any" class="option-btn">☝️ 指</button>
           </div>
+        </section>
 
-          <!-- 中断ボタン -->
-          <button
-            id="backToTopButton"
-            class="btn btn--secondary btn--lg mt-8"
-          >
-            トップに戻る
-          </button>
-        </div>
-
-        <!-- ■■■ End Screen ■■■ -->
-        <div id="endScreen" class="screen hidden">
-          <div class="result-container">
-            <h2 class="result-title">時間切れ！</h2>
-
-            <div class="final-score-container">
-              <span class="final-score-label">最終スコア</span>
-              <span id="finalScore" class="final-score">0</span>
-            </div>
-
-            <div class="result-message">
-              <span id="resultMessage"></span>
-            </div>
-
-            <div class="end-actions flex flex-col gap-8">
-              <button id="playAgainButton" class="btn btn--primary btn--lg">
-                もう一度プレイ
-              </button>
-              <button
-                id="changeShapeButton"
-                class="btn btn--secondary btn--lg"
-                onclick="showStartScreen()"
-              >
-                形を変更
-              </button>
-            </div>
+        <!-- 制限時間 -->
+        <section class="option-group">
+          <h2 class="option-title">③ じかんをえらぼう</h2>
+          <div id="timeButtons" class="btn-row">
+            <button data-time="10" class="option-btn">⏱️ 10秒</button>
+            <button data-time="20" class="option-btn">⏱️ 20秒</button>
+            <button data-time="30" class="option-btn">⏱️ 30秒</button>
           </div>
+        </section>
+
+        <!-- プレビュー -->
+        <canvas id="previewCanvas" width="600" height="400" class="mt-16"></canvas>
+
+        <!-- スコア表示 -->
+        <section class="scoreboards mt-16">
+          <h3 class="mb-4">🎖️ トップ3</h3>
+          <table id="topScoresTable"></table>
+
+          <h3 class="mt-16 mb-4">📜 直近10件</h3>
+          <table id="recentScoresTable"></table>
+        </section>
+
+        <button id="startButton" class="btn btn--primary btn--lg mt-24">START!</button>
+      </div>
+
+      <!-- ■■■ Game Screen ■■■ -->
+      <div id="gameScreen" class="screen hidden">
+        <div class="game-ui mb-8">
+          <span>⏳ <span id="timer">10</span> 秒</span>
+          <span class="ml-16">🏆 <span id="score">0</span> 点</span>
         </div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <button id="backToTopButton" class="btn btn--secondary btn--lg mt-16">トップにもどる</button>
+      </div>
+
+      <!-- ■■■ End Screen ■■■ -->
+      <div id="endScreen" class="screen hidden">
+        <h2 class="mb-8">おわり！</h2>
+        <p class="mb-4">あなたのスコア: <span id="finalScore">0</span> 点</p>
+        <p id="resultMessage" class="mb-16"></p>
+        <button id="playAgainButton" class="btn btn--primary btn--lg mb-8">もういちど！</button>
+        <button id="changeShapeButton" class="btn btn--secondary btn--lg" onclick="showStartScreen()">トップへ</button>
       </div>
     </div>
+  </div>
 
-    <script src="app.js"></script>
-  </body>
+  <script src="app.js"></script>
+</body>
 </html>
