@@ -33,3 +33,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Ro
   border:1px solid #ddd;border-radius:0.5rem;
   touch-action:none; /* iPad ジェスチャ無効化 */
 }
+
+/* ===== タイムスタンプ ===== */
+.timestamp{
+  margin-left:auto;       /* ボタン群の右端へ押し出す */
+  font-size:0.9rem;
+  color:#fff;
+  white-space:nowrap;
+  user-select:none;
+}
