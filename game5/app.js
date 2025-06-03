@@ -91,11 +91,11 @@ function attachDrawing(cv){
 }
 
 function toLocal(ev,cv){
+  /* 変換はオフセットのみ。ctx.scale が dpr を吸収する */
   const rect = cv.getBoundingClientRect();
-  const scale = cv.width / rect.width; // dpr 含む
   return {
-    x:(ev.clientX - rect.left)*scale,
-    y:(ev.clientY - rect.top )*scale
+    x: ev.clientX - rect.left,
+    y: ev.clientY - rect.top
   };
 }
 
