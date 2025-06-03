@@ -20,11 +20,11 @@
         <section class="option-group">
           <h2 class="option-title">① 形をえらぼう</h2>
           <div id="shapeButtons" class="btn-row">
-            <button data-shape="triangle" class="option-btn">🔺 三角形</button>
-            <button data-shape="square"   class="option-btn">⬛ 四角形</button>
-            <button data-shape="circle"   class="option-btn">⚪ 円</button>
-            <button data-shape="spiralCW" class="option-btn">🌀↻ ぐるぐる</button>
-            <button data-shape="spiralCCW" class="option-btn">🌀↺ ぐるぐる</button>
+            <button data-shape="triangle" aria-label="Triangle 三角形"  class="option-btn">🔺 三角形</button>
+            <button data-shape="square"   aria-label="Square 四角形"    class="option-btn">⬛ 四角形</button>
+            <button data-shape="circle"   aria-label="Circle 円"       class="option-btn">⚪ 円</button>
+            <button data-shape="spiralCW"  aria-label="Clockwise spiral ぐるぐる"  class="option-btn">🌀↻ ぐるぐる</button>
+            <button data-shape="spiralCCW" aria-label="Counter-clockwise spiral ぐるぐる"  class="option-btn">🌀↺ ぐるぐる</button>
           </div>
         </section>
 
@@ -32,8 +32,8 @@
         <section class="option-group">
           <h2 class="option-title">② つかうどうぐ</h2>
           <div id="inputButtons" class="btn-row">
-            <button data-input="pen" class="option-btn">✍️ Pencil</button>
-            <button data-input="any" class="option-btn">☝️ 指</button>
+            <button data-input="pen" class="option-btn" aria-label="Apple Pencil で入力">✍️ Pencil</button>
+            <button data-input="any" class="option-btn" aria-label="指で入力">☝️ 指</button>
           </div>
         </section>
 
@@ -41,14 +41,17 @@
         <section class="option-group">
           <h2 class="option-title">③ じかんをえらぼう</h2>
           <div id="timeButtons" class="btn-row">
-            <button data-time="10" class="option-btn">⏱️ 10秒</button>
-            <button data-time="20" class="option-btn">⏱️ 20秒</button>
-            <button data-time="30" class="option-btn">⏱️ 30秒</button>
+            <button data-time="10" class="option-btn" aria-label="10 秒">⏱️ 10秒</button>
+            <button data-time="20" class="option-btn" aria-label="20 秒">⏱️ 20秒</button>
+            <button data-time="30" class="option-btn" aria-label="30 秒">⏱️ 30秒</button>
           </div>
         </section>
 
         <!-- プレビュー -->
-        <canvas id="previewCanvas" width="600" height="400" class="mt-16"></canvas>
+        <canvas id="previewCanvas"
+                width="600" height="400"
+                aria-label="図形プレビュー"
+                class="mt-16"></canvas>
 
         <!-- スコア表示 -->
         <section class="scoreboards mt-16">
@@ -68,7 +71,9 @@
           <span>⏳ <span id="timer">10</span> 秒</span>
           <span class="ml-16">🏆 <span id="score">0</span> 点</span>
         </div>
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <canvas id="gameCanvas"
+                width="600" height="400"
+                aria-label="ゲームプレイエリア"></canvas>
         <button id="backToTopButton" class="btn btn--secondary btn--lg mt-16">トップにもどる</button>
       </div>
 
