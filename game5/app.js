@@ -8,6 +8,17 @@ const CANVAS_CNT = 24;     // 6×4
 
 let currentDir = 'cw';     // 'cw' | 'ccw'
 
+/* === 筆圧 → 線幅 === */
+const LINE_MIN = 2;   // px
+const LINE_MAX = 10;  // px
+function widthFromPressure(ev){
+  // Safari (iPadOS 14+) は PointerEvent.pressure (0〜1)
+  // 古い Safari は webkitForce (0〜1) を fallback
+  let p = ev.pressure ?? ev.webkitForce ?? 0;
+  // 指は 0, Pencil は 0〜1。0.5→中間幅になるよう線形補間
+  return LINE_MIN + p * (LINE_MAX - LINE_MIN);
+}
+ 
 /* ---------- 初期化 ---------- */
 createCanvases();
 attachToolbarEvents();
@@ -70,6 +81,7 @@ function attachDrawing(cv){
   cv.addEventListener('pointerdown',e=>{
     drawing = true;
     prev = toLocal(e,cv);
+    ctx.lineWidth = widthFromPressure(e);
   });
   cv.addEventListener('pointermove',e=>{
     if(!drawing) return;
@@ -78,7 +90,7 @@ function attachDrawing(cv){
     ctx.moveTo(prev.x,prev.y);
     ctx.lineTo(p.x,p.y);
     ctx.strokeStyle = '#0066ff';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = widthFromPressure(e);
     ctx.stroke();
     prev = p;
   });
