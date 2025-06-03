@@ -1,4 +1,4 @@
-/* うずまき練習帳 – 24 canvases, trace stays until reset */
+  /* うずまき練習帳 – 24 canvases, trace stays until reset */
 'use strict';
 
 const GRID_EL   = document.getElementById('grid');
@@ -103,6 +103,21 @@ function toLocal(ev,cv){
 function attachToolbarEvents(){
   BTN_CW .addEventListener('click',()=>switchDir('cw'));
   BTN_CCW.addEventListener('click',()=>switchDir('ccw'));
+
+    /* ----- タイムスタンプ ----- */
+  updateTimestamp();                       // 初期描画
+  setInterval(updateTimestamp, 60_000);    // 1 分ごとに更新
+}
+
+/* === 日時表示 === */
+function updateTimestamp(){
+  const now = new Date();
+  const w   = ['日','月','火','水','木','金','土'][now.getDay()];
+  const pad = n => String(n).padStart(2,'0');
+  const txt = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日(${w}) `
+            + `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const el = document.getElementById('timestamp');
+  if(el) el.textContent = txt;
 }
 
 function switchDir(dir){
