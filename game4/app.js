@@ -171,6 +171,8 @@ function initButtons(){
   playAgainButton .addEventListener('click',()=>showStartScreen());
   backToTopButton .addEventListener('click',()=>{
     clearInterval(gameState.gameTimer);
+    gameState.isPlaying=false;
+    gameState.isDrawing=false;
     showStartScreen();
   });
 
@@ -255,6 +257,8 @@ function drawShape(s,c){
 function startGame(){
   clearInterval(gameState.gameTimer);
 
+  gameState.isDrawing=false;  /* reset any lingering trace state */
+
   gameState.isPlaying=true;
   gameState.timeRemaining = gameState.selectedTimeLimit;
   gameState.score=0;
@@ -277,6 +281,7 @@ function startGame(){
 }
 
 function endGame(){
+  gameState.isDrawing=false;  /* stop drawing state before hiding canvas */
   gameState.isPlaying=false;
   clearInterval(gameState.gameTimer);
 
@@ -364,9 +369,19 @@ function checkLoop(){
 }
 
 /* ---------- 画面遷移 ---------- */
-function showStartScreen(){ startScreen.classList.remove('hidden'); gameScreen.classList.add('hidden'); endScreen.classList.add('hidden'); }
+function showStartScreen(){
+  gameState.isDrawing=false;              /* ensure tracing stops */
+  startScreen.classList.remove('hidden');
+  gameScreen.classList.add('hidden');
+  endScreen.classList.add('hidden');
+}
 function showGameScreen() { startScreen.classList.add   ('hidden'); gameScreen.classList.remove('hidden'); endScreen.classList.add('hidden'); }
-function showEndScreen()  { startScreen.classList.add   ('hidden'); gameScreen.classList.add   ('hidden'); endScreen.classList.remove('hidden'); }
+function showEndScreen(){
+  gameState.isDrawing=false;              /* stop tracing when game ends */
+  startScreen.classList.add('hidden');
+  gameScreen.classList.add('hidden');
+  endScreen.classList.remove('hidden');
+}
 
 /* ---------- スコア保存 ---------- */
 function saveRecord(){
