@@ -11,10 +11,10 @@
 const gameConfig = {
   canvasWidth: 600,
   canvasHeight: 400,
-  lineWidth: 8,
+  lineWidth: 4,
 
   shapeColor: '#888888',
-  userTraceColor: '#0066ff',
+  userTraceColor: 'rgba(0,102,255,0.5)',
   vertexPassedColor: '#22cc88',
 
   vertexAllowableDistance: 7,
