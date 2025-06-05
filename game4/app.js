@@ -68,7 +68,7 @@ let startButton,playAgainButton,backToTopButton;
 let startScreen,gameScreen,endScreen;
 let timerDisplay,scoreDisplay,finalScoreDisplay,resultMessage;
 let shapeBtns,inputBtns,timeBtns;
-let topTable,recentTable;
+let topTable,recentTable,clearScoresButton;
 
 /* ---------- 初期化 ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -106,6 +106,7 @@ function cacheDom(){
 
   topTable   =document.getElementById('topScoresTable');
   recentTable=document.getElementById('recentScoresTable');
+  clearScoresButton=document.getElementById('clearScoresButton');
 }
 
 /* ---------- Canvas HiDPI ---------- */
@@ -161,6 +162,9 @@ function initButtons(){
       renderTables();
     });
   });
+
+  /* 記録削除 */
+  clearScoresButton.addEventListener('click',clearScores);
 
   /* メインボタン */
   startButton     .addEventListener('click',startGame);
@@ -409,4 +413,13 @@ function toRows(arr,rank){
       <td>${r.date}</td><td>${r.time}</td><td>${r.input==='pen'?'✍️':'☝️'}</td>
       <td>${shapes[r.shape].name}</td><td>${r.timeLimit}秒</td><td>${r.score}</td>
     </tr>`).join('');
+}
+
+/* ---------- 記録削除 ---------- */
+function clearScores(){
+  if(!confirm('保存した記録をすべて削除しますか？')) return;
+  Object.keys(localStorage)
+    .filter(k=>k.startsWith('trace_'))
+    .forEach(k=>localStorage.removeItem(k));
+  renderTables();
 }
