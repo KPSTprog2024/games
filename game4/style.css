@@ -395,3 +395,9 @@
 .scoreboards th, .scoreboards td { padding: var(--space-6) var(--space-8); text-align: center; }
 .scoreboards tr:nth-child(even) { background: var(--color-surface); }
 .scoreboards tr:first-child td { font-weight: 600; }
+
+/* Start screen overflow fix */
+#startScreen {
+  overflow-y: auto;
+  justify-content: flex-start;
+}

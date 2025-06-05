@@ -11,10 +11,10 @@
 const gameConfig = {
   canvasWidth: 600,
   canvasHeight: 400,
-  lineWidth: 8,
+  lineWidth: 4,
 
   shapeColor: '#888888',
-  userTraceColor: '#0066ff',
+  userTraceColor: 'rgba(0,102,255,0.5)',
   vertexPassedColor: '#22cc88',
 
   vertexAllowableDistance: 7,
@@ -68,7 +68,7 @@ let startButton,playAgainButton,backToTopButton;
 let startScreen,gameScreen,endScreen;
 let timerDisplay,scoreDisplay,finalScoreDisplay,resultMessage;
 let shapeBtns,inputBtns,timeBtns;
-let topTable,recentTable;
+let topTable,recentTable,clearScoresButton;
 
 /* ---------- 初期化 ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -106,6 +106,7 @@ function cacheDom(){
 
   topTable   =document.getElementById('topScoresTable');
   recentTable=document.getElementById('recentScoresTable');
+  clearScoresButton=document.getElementById('clearScoresButton');
 }
 
 /* ---------- Canvas HiDPI ---------- */
@@ -162,11 +163,16 @@ function initButtons(){
     });
   });
 
+  /* 記録削除 */
+  clearScoresButton.addEventListener('click',clearScores);
+
   /* メインボタン */
   startButton     .addEventListener('click',startGame);
   playAgainButton .addEventListener('click',()=>showStartScreen());
   backToTopButton .addEventListener('click',()=>{
     clearInterval(gameState.gameTimer);
+    gameState.isPlaying=false;
+    gameState.isDrawing=false;
     showStartScreen();
   });
 
@@ -251,6 +257,8 @@ function drawShape(s,c){
 function startGame(){
   clearInterval(gameState.gameTimer);
 
+  gameState.isDrawing=false;  /* reset any lingering trace state */
+
   gameState.isPlaying=true;
   gameState.timeRemaining = gameState.selectedTimeLimit;
   gameState.score=0;
@@ -273,6 +281,7 @@ function startGame(){
 }
 
 function endGame(){
+  gameState.isDrawing=false;  /* stop drawing state before hiding canvas */
   gameState.isPlaying=false;
   clearInterval(gameState.gameTimer);
 
@@ -360,9 +369,19 @@ function checkLoop(){
 }
 
 /* ---------- 画面遷移 ---------- */
-function showStartScreen(){ startScreen.classList.remove('hidden'); gameScreen.classList.add('hidden'); endScreen.classList.add('hidden'); }
+function showStartScreen(){
+  gameState.isDrawing=false;              /* ensure tracing stops */
+  startScreen.classList.remove('hidden');
+  gameScreen.classList.add('hidden');
+  endScreen.classList.add('hidden');
+}
 function showGameScreen() { startScreen.classList.add   ('hidden'); gameScreen.classList.remove('hidden'); endScreen.classList.add('hidden'); }
-function showEndScreen()  { startScreen.classList.add   ('hidden'); gameScreen.classList.add   ('hidden'); endScreen.classList.remove('hidden'); }
+function showEndScreen(){
+  gameState.isDrawing=false;              /* stop tracing when game ends */
+  startScreen.classList.add('hidden');
+  gameScreen.classList.add('hidden');
+  endScreen.classList.remove('hidden');
+}
 
 /* ---------- スコア保存 ---------- */
 function saveRecord(){
@@ -409,4 +428,13 @@ function toRows(arr,rank){
       <td>${r.date}</td><td>${r.time}</td><td>${r.input==='pen'?'✍️':'☝️'}</td>
       <td>${shapes[r.shape].name}</td><td>${r.timeLimit}秒</td><td>${r.score}</td>
     </tr>`).join('');
+}
+
+/* ---------- 記録削除 ---------- */
+function clearScores(){
+  if(!confirm('保存した記録をすべて削除しますか？')) return;
+  Object.keys(localStorage)
+    .filter(k=>k.startsWith('trace_'))
+    .forEach(k=>localStorage.removeItem(k));
+  renderTables();
 }
