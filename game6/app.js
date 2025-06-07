@@ -161,11 +161,7 @@ class ReactionTimeGame {
             this.elements.zone1.className = 'game-zone ready pulse';
         } else {
             this.elements.gameZones.forEach((zone, i) => {
-                if (i === idx) {
-                    zone.className = 'game-zone ready pulse';
-                } else {
-                    zone.className = 'game-zone waiting';
-                }
+                zone.className = 'game-zone ready' + (i === idx ? ' pulse target' : '');
             });
         }
         this.elements.gameText.textContent = this.gameData.messages.ready;
