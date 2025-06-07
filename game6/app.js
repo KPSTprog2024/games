@@ -29,20 +29,31 @@ class ReactionTimeGame {
             isReady: false,
             isGameActive: false,
             startTime: 0,
-            waitTimeout: null
+            waitTimeout: null,
+            activeZoneIndex: null
         };
+
+        // Default mode is reaction measurement
+        this.mode = 'measure';
 
         this.initializeElements();
         this.bindEvents();
+        this.updateModeButton();
+        document.body.classList.add('mode-measure');
         this.updateUI();
     }
 
     initializeElements() {
         this.elements = {
-            gameZone: document.getElementById('gameZone'),
+            zonesContainer: document.getElementById('gameZones'),
+            gameZones: document.querySelectorAll('.game-zone'),
+            zone1: document.getElementById('zone1'),
+            zone2: document.getElementById('zone2'),
+            zone3: document.getElementById('zone3'),
             gameText: document.getElementById('gameText'),
             startBtn: document.getElementById('startBtn'),
             resetBtn: document.getElementById('resetBtn'),
+            modeSwitch: document.getElementById('modeSwitch'),
             currentTest: document.getElementById('currentTest'),
             testStatus: document.getElementById('testStatus'),
             resultsGrid: document.getElementById('resultsGrid'),
@@ -61,14 +72,32 @@ class ReactionTimeGame {
         this.elements.resetBtn.addEventListener('click', () => this.resetGame());
         
         // Game zone clicks (mouse and touch)
-        this.elements.gameZone.addEventListener('click', (e) => this.handleGameZoneClick(e));
-        this.elements.gameZone.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.handleGameZoneClick(e);
+        this.elements.gameZones.forEach(zone => {
+            zone.addEventListener('click', (e) => this.handleGameZoneClick(e));
+            zone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleGameZoneClick(e);
+            });
+            zone.addEventListener('contextmenu', (e) => e.preventDefault());
         });
 
-        // Prevent context menu on game zone
-        this.elements.gameZone.addEventListener('contextmenu', (e) => e.preventDefault());
+        // Mode switch button
+        this.elements.modeSwitch.addEventListener('click', () => this.toggleMode());
+    }
+
+    toggleMode() {
+        this.mode = this.mode === 'measure' ? 'train' : 'measure';
+        document.body.classList.toggle('mode-measure', this.mode === 'measure');
+        document.body.classList.toggle('mode-train', this.mode === 'train');
+        this.resetGame();
+    }
+
+    updateModeButton() {
+        if (this.mode === 'measure') {
+            this.elements.modeSwitch.textContent = 'トレーニングモードへ';
+        } else {
+            this.elements.modeSwitch.textContent = '測定モードへ';
+        }
     }
 
     startGame() {
@@ -97,7 +126,13 @@ class ReactionTimeGame {
         this.gameState.isWaiting = true;
         this.gameState.isReady = false;
         
-        this.elements.gameZone.className = 'game-zone waiting';
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone waiting';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone waiting';
+            });
+        }
         this.elements.gameText.textContent = this.gameData.messages.waiting;
         this.elements.testStatus.textContent = `第${this.gameState.currentTest}回目の測定中...`;
         
@@ -116,7 +151,23 @@ class ReactionTimeGame {
         this.gameState.isReady = true;
         this.gameState.startTime = performance.now();
         
-        this.elements.gameZone.className = 'game-zone ready pulse';
+        let idx = 0;
+        if (this.mode === 'train') {
+            idx = Math.floor(Math.random() * this.elements.gameZones.length);
+        }
+        this.gameState.activeZoneIndex = idx;
+
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone ready pulse';
+        } else {
+            this.elements.gameZones.forEach((zone, i) => {
+                if (i === idx) {
+                    zone.className = 'game-zone ready pulse';
+                } else {
+                    zone.className = 'game-zone waiting';
+                }
+            });
+        }
         this.elements.gameText.textContent = this.gameData.messages.ready;
         this.elements.testStatus.textContent = '今すぐクリック！';
     }
@@ -130,15 +181,27 @@ class ReactionTimeGame {
             // Flying - clicked too early
             this.handleFlying();
         } else if (this.gameState.isReady) {
-            // Valid click - measure reaction time
-            this.measureReactionTime();
+            const targetZone = this.mode === 'measure' ? this.elements.zone1 : this.elements.gameZones[this.gameState.activeZoneIndex];
+            if (event.currentTarget === targetZone) {
+                // Valid click - measure reaction time
+                this.measureReactionTime();
+            } else {
+                // Wrong zone clicked
+                this.handleFlying();
+            }
         }
     }
 
     handleFlying() {
         clearTimeout(this.gameState.waitTimeout);
         
-        this.elements.gameZone.className = 'game-zone flying';
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone flying';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone flying';
+            });
+        }
         this.elements.gameText.textContent = this.gameData.messages.tooSoon;
         this.elements.testStatus.textContent = 'フライング！次の測定に進みます...';
         
@@ -150,7 +213,10 @@ class ReactionTimeGame {
         });
         
         this.addResultToGrid(this.gameState.currentTest, null, true);
-        
+
+        this.gameState.isReady = false;
+        this.gameState.activeZoneIndex = null;
+
         // Continue to next test after delay
         setTimeout(() => {
             this.startNextTest();
@@ -160,7 +226,13 @@ class ReactionTimeGame {
     measureReactionTime() {
         const reactionTime = Math.round(performance.now() - this.gameState.startTime);
         
-        this.elements.gameZone.className = 'game-zone neutral fade-in';
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral fade-in';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral fade-in';
+            });
+        }
         this.elements.gameText.textContent = `${reactionTime}ms`;
         this.elements.testStatus.textContent = this.getRankingForTime(reactionTime).message;
         
@@ -172,8 +244,9 @@ class ReactionTimeGame {
         });
         
         this.addResultToGrid(this.gameState.currentTest, reactionTime, false);
-        
+
         this.gameState.isReady = false;
+        this.gameState.activeZoneIndex = null;
         
         // Continue to next test after delay
         setTimeout(() => {
@@ -201,7 +274,13 @@ class ReactionTimeGame {
     endGame() {
         this.gameState.isGameActive = false;
         
-        this.elements.gameZone.className = 'game-zone neutral';
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral';
+            });
+        }
         this.elements.gameText.textContent = this.gameData.messages.completed;
         this.elements.testStatus.textContent = '全ての測定が完了しました！';
         
@@ -255,7 +334,8 @@ class ReactionTimeGame {
             isReady: false,
             isGameActive: false,
             startTime: 0,
-            waitTimeout: null
+            waitTimeout: null,
+            activeZoneIndex: null
         };
         
         // Reset UI
@@ -264,8 +344,16 @@ class ReactionTimeGame {
         this.elements.finalResults.classList.add('hidden');
         this.elements.resultsGrid.innerHTML = '';
         
-        this.elements.gameZone.className = 'game-zone neutral';
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral';
+            });
+        }
         this.elements.gameText.textContent = '準備はいいですか？';
+
+        this.updateModeButton();
         
         this.updateUI();
     }
