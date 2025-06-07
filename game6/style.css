@@ -681,12 +681,15 @@ select.form-control {
     margin-bottom: var(--space-32);
 }
 
+
 body.mode-train .game-main {
+
     align-items: stretch;
 }
 
 .game-area {
     width: 100%;
+
     max-width: 500px;
     margin: 0 auto;
     position: relative;
@@ -697,6 +700,7 @@ body.mode-train .game-area {
     margin: 0;
 }
 
+
 .zones {
     display: flex;
     justify-content: space-between;
@@ -704,10 +708,12 @@ body.mode-train .game-area {
     width: 100%;
 }
 
+
 body.mode-measure #zone2,
 body.mode-measure #zone3 {
     display: none;
 }
+
 
 .game-zone {
     flex: 1;
@@ -759,6 +765,7 @@ body.mode-measure #zone3 {
     color: #333;
 }
 
+
 body.mode-measure .game-zone.waiting {
     background-color: #FF4444;
 }
@@ -770,6 +777,7 @@ body.mode-measure .game-zone.ready {
 body.mode-measure .game-zone.flying {
     background-color: #FF8888;
 }
+
 
 .game-text {
     font-size: var(--font-size-2xl);
