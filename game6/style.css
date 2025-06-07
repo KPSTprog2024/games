@@ -685,10 +685,22 @@ select.form-control {
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
+    position: relative;
+}
+
+.zones {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-8);
+}
+
+body.mode-measure #zone2,
+body.mode-measure #zone3 {
+    display: none;
 }
 
 .game-zone {
-    width: 100%;
+    flex: 1;
     height: 300px;
     border-radius: var(--radius-lg);
     display: flex;
@@ -703,13 +715,15 @@ select.form-control {
     -ms-user-select: none;
 }
 
+
 .game-zone.waiting {
-    background-color: #FF4444;
+    background-color: #ff9999;
     color: white;
 }
 
+
 .game-zone.ready {
-    background-color: #44FF44;
+    background-color: #99ff99;
     color: #333333;
 }
 
@@ -718,9 +732,22 @@ select.form-control {
     color: var(--color-text);
 }
 
+
 .game-zone.flying {
-    background-color: #FF8888;
+    background-color: #ffcccc;
     color: white;
+}
+
+body.mode-measure .game-zone.waiting {
+    background-color: #FF4444;
+}
+
+body.mode-measure .game-zone.ready {
+    background-color: #44FF44;
+}
+
+body.mode-measure .game-zone.flying {
+    background-color: #FF8888;
 }
 
 .game-text {
