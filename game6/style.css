@@ -681,23 +681,37 @@ select.form-control {
     margin-bottom: var(--space-32);
 }
 
-body.mode-train .game-main,
-body.mode-measure .game-main {
+
+body.mode-train .game-main {
+
     align-items: stretch;
 }
 
 .game-area {
     width: 100%;
-    max-width: none;
-    margin: 0;
+
+    max-width: 500px;
+    margin: 0 auto;
     position: relative;
 }
+
+body.mode-train .game-area {
+    max-width: none;
+    margin: 0;
+}
+
 
 .zones {
     display: flex;
     justify-content: space-between;
     gap: var(--space-8);
     width: 100%;
+}
+
+
+body.mode-measure #zone2,
+body.mode-measure #zone3 {
+    display: none;
 }
 
 
@@ -749,6 +763,19 @@ body.mode-measure .game-main {
     transform: translate(-50%, -50%);
     font-size: 2rem;
     color: #333;
+}
+
+
+body.mode-measure .game-zone.waiting {
+    background-color: #FF4444;
+}
+
+body.mode-measure .game-zone.ready {
+    background-color: #44FF44;
+}
+
+body.mode-measure .game-zone.flying {
+    background-color: #FF8888;
 }
 
 

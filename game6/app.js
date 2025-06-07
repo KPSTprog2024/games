@@ -126,9 +126,14 @@ class ReactionTimeGame {
         this.gameState.isWaiting = true;
         this.gameState.isReady = false;
         
-        this.elements.gameZones.forEach(zone => {
-            zone.className = 'game-zone waiting';
-        });
+
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone waiting';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone waiting';
+            });
+        }
         this.elements.gameText.textContent = this.gameData.messages.waiting;
         this.elements.testStatus.textContent = `第${this.gameState.currentTest}回目の測定中...`;
         
@@ -147,13 +152,15 @@ class ReactionTimeGame {
         this.gameState.isReady = true;
         this.gameState.startTime = performance.now();
         
-        const idx = Math.floor(Math.random() * this.elements.gameZones.length);
+        let idx = 0;
+        if (this.mode === 'train') {
+            idx = Math.floor(Math.random() * this.elements.gameZones.length);
+        }
         this.gameState.activeZoneIndex = idx;
 
         if (this.mode === 'measure') {
-            this.elements.gameZones.forEach((zone, i) => {
-                zone.className = i === idx ? 'game-zone ready pulse' : 'game-zone waiting';
-            });
+            this.elements.zone1.className = 'game-zone ready pulse';
+
         } else {
             this.elements.gameZones.forEach((zone, i) => {
                 zone.className = 'game-zone ready' + (i === idx ? ' pulse target' : '');
@@ -172,7 +179,8 @@ class ReactionTimeGame {
             // Flying - clicked too early
             this.handleFlying();
         } else if (this.gameState.isReady) {
-            const targetZone = this.elements.gameZones[this.gameState.activeZoneIndex];
+
+            const targetZone = this.mode === 'measure' ? this.elements.zone1 : this.elements.gameZones[this.gameState.activeZoneIndex];
             if (event.currentTarget === targetZone) {
                 // Valid click - measure reaction time
                 this.measureReactionTime();
@@ -186,9 +194,14 @@ class ReactionTimeGame {
     handleFlying() {
         clearTimeout(this.gameState.waitTimeout);
         
-        this.elements.gameZones.forEach(zone => {
-            zone.className = 'game-zone flying';
-        });
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone flying';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone flying';
+            });
+        }
+
         this.elements.gameText.textContent = this.gameData.messages.tooSoon;
         this.elements.testStatus.textContent = 'フライング！次の測定に進みます...';
         
@@ -213,9 +226,14 @@ class ReactionTimeGame {
     measureReactionTime() {
         const reactionTime = Math.round(performance.now() - this.gameState.startTime);
         
-        this.elements.gameZones.forEach(zone => {
-            zone.className = 'game-zone neutral fade-in';
-        });
+
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral fade-in';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral fade-in';
+            });
+        }
         this.elements.gameText.textContent = `${reactionTime}ms`;
         this.elements.testStatus.textContent = this.getRankingForTime(reactionTime).message;
         
@@ -257,9 +275,14 @@ class ReactionTimeGame {
     endGame() {
         this.gameState.isGameActive = false;
         
-        this.elements.gameZones.forEach(zone => {
-            zone.className = 'game-zone neutral';
-        });
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral';
+            });
+        }
+
         this.elements.gameText.textContent = this.gameData.messages.completed;
         this.elements.testStatus.textContent = '全ての測定が完了しました！';
         
@@ -323,9 +346,15 @@ class ReactionTimeGame {
         this.elements.finalResults.classList.add('hidden');
         this.elements.resultsGrid.innerHTML = '';
         
-        this.elements.gameZones.forEach(zone => {
-            zone.className = 'game-zone neutral';
-        });
+
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone neutral';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone neutral';
+            });
+        }
+
         this.elements.gameText.textContent = '準備はいいですか？';
 
         this.updateModeButton();
