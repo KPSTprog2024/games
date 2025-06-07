@@ -708,6 +708,10 @@ body.mode-train .game-area {
     width: 100%;
 }
 
+body.mode-train .zones {
+    gap: var(--space-32);
+}
+
 
 body.mode-measure #zone2,
 body.mode-measure #zone3 {

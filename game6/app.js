@@ -185,8 +185,12 @@ class ReactionTimeGame {
                 // Valid click - measure reaction time
                 this.measureReactionTime();
             } else {
-                // Wrong zone clicked
-                this.handleFlying();
+                // Wrong zone clicked after ready state
+                if (this.mode === 'train') {
+                    this.handleMistouch();
+                } else {
+                    this.handleFlying();
+                }
             }
         }
     }
@@ -212,12 +216,42 @@ class ReactionTimeGame {
             flying: true
         });
         
-        this.addResultToGrid(this.gameState.currentTest, null, true);
+        this.addResultToGrid(this.gameState.currentTest, null, 'フライング');
 
         this.gameState.isReady = false;
         this.gameState.activeZoneIndex = null;
 
         // Continue to next test after delay
+        setTimeout(() => {
+            this.startNextTest();
+        }, 2000);
+    }
+
+    handleMistouch() {
+        clearTimeout(this.gameState.waitTimeout);
+
+        if (this.mode === 'measure') {
+            this.elements.zone1.className = 'game-zone flying';
+        } else {
+            this.elements.gameZones.forEach(zone => {
+                zone.className = 'game-zone flying';
+            });
+        }
+
+        this.elements.gameText.textContent = 'ミスタッチ';
+        this.elements.testStatus.textContent = 'ミスタッチ！次の測定に進みます...';
+
+        this.gameState.results.push({
+            test: this.gameState.currentTest,
+            time: null,
+            flying: true
+        });
+
+        this.addResultToGrid(this.gameState.currentTest, null, 'ミスタッチ');
+
+        this.gameState.isReady = false;
+        this.gameState.activeZoneIndex = null;
+
         setTimeout(() => {
             this.startNextTest();
         }, 2000);
@@ -244,7 +278,7 @@ class ReactionTimeGame {
             flying: false
         });
         
-        this.addResultToGrid(this.gameState.currentTest, reactionTime, false);
+        this.addResultToGrid(this.gameState.currentTest, reactionTime);
 
         this.gameState.isReady = false;
         this.gameState.activeZoneIndex = null;
@@ -255,18 +289,19 @@ class ReactionTimeGame {
         }, 2000);
     }
 
-    addResultToGrid(testNumber, time, flying) {
+    addResultToGrid(testNumber, time, label = null) {
+        const invalid = label !== null;
         const resultItem = document.createElement('div');
-        resultItem.className = `result-item fade-in ${flying ? 'flying' : ''}`;
-        
+        resultItem.className = `result-item fade-in ${invalid ? 'flying' : ''}`;
+
         const resultNumber = document.createElement('div');
         resultNumber.className = 'result-number';
         resultNumber.textContent = `第${testNumber}回`;
-        
+
         const resultTime = document.createElement('div');
-        resultTime.className = `result-time ${flying ? 'flying' : ''}`;
-        resultTime.textContent = flying ? 'フライング' : `${time}ms`;
-        
+        resultTime.className = `result-time ${invalid ? 'flying' : ''}`;
+        resultTime.textContent = invalid ? label : `${time}ms`;
+
         resultItem.appendChild(resultNumber);
         resultItem.appendChild(resultTime);
         this.elements.resultsGrid.appendChild(resultItem);
