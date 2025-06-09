@@ -1,10 +1,10 @@
-  /* うずまき練習帳 – 24 canvases, trace stays until reset */
+  /* うずまき練習帳 – 40 canvases, trace stays until reset */
 'use strict';
 
 const GRID_EL   = document.getElementById('grid');
 const BTN_CW    = document.getElementById('btnCW');
 const BTN_CCW   = document.getElementById('btnCCW');
-const CANVAS_CNT = 24;     // 6×4
+const CANVAS_CNT = 40;     // 8×5
 
 let currentDir = 'cw';     // 'cw' | 'ccw'
 
@@ -68,7 +68,7 @@ function drawSpiral(ctx, w, h, clockwise=true){
     ctx.lineTo(cx + r * Math.cos(theta),
                cy + r * Math.sin(theta));
   }
-  ctx.strokeStyle = '#888';
+  ctx.strokeStyle = '#ccc';
   ctx.lineWidth = 4;
   ctx.stroke();
 }
@@ -89,7 +89,7 @@ function attachDrawing(cv){
     ctx.beginPath();
     ctx.moveTo(prev.x,prev.y);
     ctx.lineTo(p.x,p.y);
-    ctx.strokeStyle = '#0066ff';
+    ctx.strokeStyle = '#8000ff';
     ctx.lineWidth = widthFromPressure(e);
     ctx.stroke();
     prev = p;
