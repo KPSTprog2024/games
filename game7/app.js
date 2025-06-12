@@ -59,7 +59,12 @@ function spawnFruit() {
   const type = nextType;
   nextType = Math.floor(Math.random() * 3); // next is one of first three types
   nextEl.textContent = 'NEXT: ' + FRUITS[nextType].name;
-  activeFruit = createFruit(type, width / 2, 40);
+
+  // randomize spawn position so fruits don't always drop from the center
+  const radius = FRUITS[type].radius;
+  const x = radius + Math.random() * (width - radius * 2);
+
+  activeFruit = createFruit(type, x, 40);
   Body.setStatic(activeFruit, true);
 }
 
