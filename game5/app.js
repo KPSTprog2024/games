@@ -29,6 +29,7 @@ function createCanvases(){
   for(let i=0;i<CANVAS_CNT;i++){
     const cv = document.createElement('canvas');
     cv.className = 'spiral-canvas';
+    cv.dataset.row = Math.floor(i / 8);  // 8 columns
     GRID_EL.appendChild(cv);
     prepCanvas(cv);
     attachDrawing(cv);
@@ -46,7 +47,7 @@ function prepCanvas(cv){
     ctx.scale(dpr,dpr);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    drawSpiral(ctx, rect.width, rect.height, currentDir === 'cw');
+    drawSpiral(ctx, rect.width, rect.height, currentDir === 'cw', Number(cv.dataset.row));
   };
   // 初回
   resize();
@@ -55,12 +56,33 @@ function prepCanvas(cv){
 }
 
 /* ---------- Spiral 描画 ---------- */
-function drawSpiral(ctx, w, h, clockwise=true){
+function drawSpiral(ctx, w, h, clockwise=true, row=0){
   ctx.clearRect(0,0,w,h);
   const cx = w/2, cy = h/2;
   const turns = 2;
   const maxTheta = 2*Math.PI*turns*(clockwise?1:-1);
-  const growth = (Math.min(w,h)/2 - 8) / (Math.abs(maxTheta));
+  const growth = (Math.min(w,h)/2 - 8) / Math.abs(maxTheta);
+
+  // 最下段はガイド点のみ表示
+  if(row === 4){
+    const drawPoint = theta => {
+      const r = 8 + growth * Math.abs(theta);
+      ctx.beginPath();
+      ctx.arc(cx + r * Math.cos(theta),
+              cy + r * Math.sin(theta),
+              4, 0, 2*Math.PI);
+      ctx.fillStyle = '#ccc';
+      ctx.fill();
+    };
+    const dir = clockwise ? 1 : -1;
+    drawPoint(0);
+    drawPoint(Math.PI/2 * dir);
+    drawPoint(Math.PI * dir);
+    drawPoint(3*Math.PI/2 * dir);
+    drawPoint(2*Math.PI * dir);
+    return;
+  }
+
   ctx.beginPath();
   for(let t=0;t<=1;t+=0.005){
     const theta = maxTheta * t;
@@ -70,7 +92,15 @@ function drawSpiral(ctx, w, h, clockwise=true){
   }
   ctx.strokeStyle = '#ccc';
   ctx.lineWidth = 4;
+  if(row === 2){
+    ctx.setLineDash([5,5]);
+  }else if(row === 3){
+    ctx.setLineDash([5,10]);
+  }else{
+    ctx.setLineDash([]);
+  }
   ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 /* ---------- 描画イベント ---------- */
@@ -145,7 +175,7 @@ function clearAllTracesAndRedraw(){
     const ctx = cv.getContext('2d');
     const rect = cv.getBoundingClientRect();
     ctx.clearRect(0,0,rect.width,rect.height);
-    drawSpiral(ctx, rect.width, rect.height, currentDir==='cw');
+    drawSpiral(ctx, rect.width, rect.height, currentDir==='cw', Number(cv.dataset.row));
   });
 }
 
@@ -154,6 +184,6 @@ function drawAllSpirals(){
   document.querySelectorAll('.spiral-canvas').forEach(cv=>{
     const ctx = cv.getContext('2d');
     const rect = cv.getBoundingClientRect();
-    drawSpiral(ctx, rect.width, rect.height, currentDir==='cw');
+    drawSpiral(ctx, rect.width, rect.height, currentDir==='cw', Number(cv.dataset.row));
   });
 }
