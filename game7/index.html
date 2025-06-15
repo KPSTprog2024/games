@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>でてきたの、なに？</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF6B6B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="でてきたの、なに？">
+</head>
+<body>
+    <!-- Top Screen -->
+    <div id="top-screen" class="screen active">
+        <div class="game-header">
+            <h1 class="game-title">でてきたの、なに？</h1>
+            <p class="game-subtitle">〜見て、おぼえて、順番にタップ〜</p>
+        </div>
+        
+        <div class="main-menu">
+            <button id="normal-mode-btn" class="menu-btn menu-btn--primary">
+                <span class="btn-emoji">🎯</span>
+                <span class="btn-text">つうじょうモード</span>
+            </button>
+            
+            <button id="hard-mode-btn" class="menu-btn menu-btn--secondary">
+                <span class="btn-emoji">💪</span>
+                <span class="btn-text">むずかしいモード</span>
+            </button>
+            
+            <button id="settings-btn" class="menu-btn menu-btn--outline">
+                <span class="btn-emoji">⚙️</span>
+                <span class="btn-text">せってい</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <button id="back-to-menu-btn" class="back-btn">← もどる</button>
+            <div class="game-info">
+                <span id="current-level">レベル 1</span>
+                <span id="current-score">スコア: 0</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <!-- Display Area -->
+            <div id="display-area" class="display-area">
+                <div id="emoji-display-single" class="emoji-display single">
+                    <div class="emoji-square"></div>
+                </div>
+                <div id="emoji-display-dual" class="emoji-display dual hidden">
+                    <div class="emoji-square left"></div>
+                    <div class="emoji-square right"></div>
+                </div>
+            </div>
+
+            <!-- Game Status -->
+            <div id="game-status" class="game-status">
+                <p id="status-text">じゅんびちゅう...</p>
+            </div>
+
+            <!-- Choice Area -->
+            <div id="choice-area" class="choice-area hidden">
+                <h3>じゅんばんにタップしてね！</h3>
+                <div id="choice-grid" class="choice-grid"></div>
+            </div>
+
+            <!-- Game Controls -->
+            <div id="game-controls" class="game-controls">
+                <button id="start-game-btn" class="btn btn--primary btn--lg">
+                    スタート！
+                </button>
+                <button id="next-level-btn" class="btn btn--primary btn--lg hidden">
+                    つぎのレベル
+                </button>
+                <button id="replay-btn" class="btn btn--secondary btn--lg hidden">
+                    もういちど
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="game-header">
+            <button id="back-from-settings-btn" class="back-btn">← もどる</button>
+            <h2>せってい</h2>
+        </div>
+
+        <div class="settings-content">
+            <div class="setting-item">
+                <label class="form-label">音量</label>
+                <input type="range" id="volume-slider" class="form-control" min="0" max="100" value="50">
+                <span id="volume-value">50%</span>
+            </div>
+
+            <div class="setting-item">
+                <label class="form-label">効果音</label>
+                <div class="toggle-container">
+                    <button id="sound-toggle" class="toggle-btn active">オン</button>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <label class="form-label">表示速度</label>
+                <select id="display-speed" class="form-control">
+                    <option value="slow">ゆっくり</option>
+                    <option value="normal" selected>ふつう</option>
+                    <option value="fast">はやい</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <button id="reset-scores-btn" class="btn btn--outline">
+                    スコアをリセット
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <h2 id="result-title">せいかい！</h2>
+            <p id="result-message">よくできました！</p>
+            <div class="modal-actions">
+                <button id="continue-btn" class="btn btn--primary">つづける</button>
+                <button id="end-game-btn" class="btn btn--secondary">おわる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen hidden">
+        <div class="loading-content">
+            <div class="loading-emoji">🎮</div>
+            <p>よみこみちゅう...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
