@@ -30,6 +30,11 @@
                 <span class="btn-text">むずかしいモード</span>
             </button>
             
+            <button id="tutorial-btn" class="menu-btn menu-btn--outline">
+                <span class="btn-emoji">📖</span>
+                <span class="btn-text">あそびかた</span>
+            </button>
+            
             <button id="settings-btn" class="menu-btn menu-btn--outline">
                 <span class="btn-emoji">⚙️</span>
                 <span class="btn-text">せってい</span>
@@ -44,6 +49,16 @@
             <div class="game-info">
                 <span id="current-level">レベル 1</span>
                 <span id="current-score">スコア: 0</span>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div id="level-progress" class="progress-fill"></div>
+            </div>
+            <div class="progress-labels">
+                <span>レベル 1</span>
+                <span>レベル 10</span>
             </div>
         </div>
 
@@ -80,6 +95,10 @@
                 </button>
                 <button id="replay-btn" class="btn btn--secondary btn--lg hidden">
                     もういちど
+                </button>
+                <button id="hint-btn" class="btn btn--outline btn--sm hidden">
+                    <span class="btn-emoji">💡</span>
+                    <span class="btn-text">ヒント</span>
                 </button>
             </div>
         </div>
@@ -128,7 +147,7 @@
         <div class="modal-content">
             <div class="result-emoji" id="result-emoji">🎉</div>
             <h2 id="result-title">せいかい！</h2>
-            <p id="result-message">よくできました！</p>
+            <div id="result-message">よくできました！</div>
             <div class="modal-actions">
                 <button id="continue-btn" class="btn btn--primary">つづける</button>
                 <button id="end-game-btn" class="btn btn--secondary">おわる</button>
