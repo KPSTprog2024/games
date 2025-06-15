@@ -39,12 +39,24 @@ let currentGameState = {
   userSequence: [],
   isPlaying: false,
   isDisplaying: false,
+  combo: 0,
+  maxCombo: 0,
+  hasMistake: false,
   settings: {
     volume: 0.5,
     soundEnabled: true,
     displaySpeed: 'normal'
   }
 };
+
+// バッジデータ
+const badges = [
+  { id: 'first_win', name: 'はじめてのせいこう', emoji: '🎯', description: 'はじめてレベルをクリアした', unlocked: false },
+  { id: 'level5', name: 'ちゅうきゅうせい', emoji: '🏅', description: 'レベル5に到達した', unlocked: false },
+  { id: 'level10', name: 'じょうきゅうせい', emoji: '🏆', description: 'レベル10に到達した', unlocked: false },
+  { id: 'combo10', name: 'コンボマスター', emoji: '⚡', description: '10コンボを達成した', unlocked: false },
+  { id: 'perfect', name: 'パーフェクト', emoji: '✨', description: 'ミスなしでレベルをクリアした', unlocked: false }
+];
 
 // Audio Context
 let audioContext = null;
@@ -87,11 +99,13 @@ function initializeElements() {
     normalModeBtn: document.getElementById('normal-mode-btn'),
     hardModeBtn: document.getElementById('hard-mode-btn'),
     settingsBtn: document.getElementById('settings-btn'),
+    tutorialBtn: document.getElementById('tutorial-btn'),
     
     // Game screen elements
     backToMenuBtn: document.getElementById('back-to-menu-btn'),
     currentLevel: document.getElementById('current-level'),
     currentScore: document.getElementById('current-score'),
+    levelProgress: document.getElementById('level-progress'),
     emojiDisplaySingle: document.getElementById('emoji-display-single'),
     emojiDisplayDual: document.getElementById('emoji-display-dual'),
     gameStatus: document.getElementById('game-status'),
@@ -101,6 +115,7 @@ function initializeElements() {
     startGameBtn: document.getElementById('start-game-btn'),
     nextLevelBtn: document.getElementById('next-level-btn'),
     replayBtn: document.getElementById('replay-btn'),
+    hintBtn: document.getElementById('hint-btn'),
     
     // Settings screen elements
     backFromSettingsBtn: document.getElementById('back-from-settings-btn'),
@@ -145,6 +160,11 @@ function setupEventListeners() {
     showScreen('settings-screen');
   });
   
+  elements.tutorialBtn.addEventListener('click', () => {
+    console.log('Tutorial button clicked');
+    showTutorial();
+  });
+  
   // Game screen navigation
   elements.backToMenuBtn.addEventListener('click', () => {
     console.log('Back to menu button clicked');
@@ -172,6 +192,11 @@ function setupEventListeners() {
   elements.replayBtn.addEventListener('click', () => {
     console.log('Replay button clicked');
     replayLevel();
+  });
+  
+  elements.hintBtn.addEventListener('click', () => {
+    console.log('Hint button clicked');
+    showHint();
   });
   
   // Settings controls
@@ -245,6 +270,9 @@ function startGame(mode) {
   currentGameState.sequence = [];
   currentGameState.userSequence = [];
   currentGameState.isPlaying = true;
+  currentGameState.combo = 0;
+  currentGameState.maxCombo = 0;
+  currentGameState.hasMistake = false;
   
   showScreen('game-screen');
   updateGameUI();
@@ -263,6 +291,7 @@ function startGame(mode) {
   elements.nextLevelBtn.classList.add('hidden');
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
+  elements.hintBtn.classList.add('hidden');
   
   updateStatusText('スタートボタンを押してください');
 }
@@ -279,6 +308,7 @@ function startLevel() {
   elements.nextLevelBtn.classList.add('hidden');
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
+  elements.hintBtn.classList.add('hidden');
   
   updateStatusText('よく見てね！');
   
@@ -382,6 +412,7 @@ function showChoices() {
   
   updateStatusText('順番にタップしてね！');
   elements.choiceArea.classList.remove('hidden');
+  elements.hintBtn.classList.remove('hidden');
   
   // Generate choice options
   const allEmojis = [
@@ -443,15 +474,19 @@ function handleChoice(emoji) {
   
   const expectedIndex = currentGameState.userSequence.length;
   let isCorrect = false;
+  let correctEmoji = '';
   
   if (currentGameState.mode === 'normal') {
-    isCorrect = currentGameState.sequence[expectedIndex] === emoji;
+    correctEmoji = currentGameState.sequence[expectedIndex];
+    isCorrect = correctEmoji === emoji;
   } else {
     // For hard mode, check if the emoji is in the expected position
     const expectedPair = currentGameState.sequence[Math.floor(expectedIndex / 2)];
     if (expectedIndex % 2 === 0) {
+      correctEmoji = expectedPair.left;
       isCorrect = expectedPair.left === emoji;
     } else {
+      correctEmoji = expectedPair.right;
       isCorrect = expectedPair.right === emoji;
     }
   }
@@ -462,6 +497,14 @@ function handleChoice(emoji) {
   if (isCorrect) {
     clickedButton.classList.add('correct');
     currentGameState.userSequence.push(emoji);
+    currentGameState.combo++;
+    currentGameState.maxCombo = Math.max(currentGameState.maxCombo, currentGameState.combo);
+    
+    // コンボ表示
+    if (currentGameState.combo >= 3) {
+      showComboEffect(currentGameState.combo);
+    }
+    
     playCorrectSound();
     
     // Check if sequence is complete
@@ -476,12 +519,31 @@ function handleChoice(emoji) {
       }, 1000);
     }
   } else {
+    // 不正解の場合
     clickedButton.classList.add('incorrect');
+    currentGameState.hasMistake = true;
+    currentGameState.combo = 0;
     playIncorrectSound();
     
+    // 正解だったものを表示（一瞬だけ）
+    const correctButton = Array.from(elements.choiceGrid.children).find(btn => btn.textContent === correctEmoji);
+    if (correctButton) {
+      correctButton.classList.add('show-correct');
+      
+      // 「これが正解」というラベルを表示
+      const correctLabel = document.createElement('div');
+      correctLabel.className = 'correct-label';
+      correctLabel.textContent = 'これが正解！';
+      correctButton.appendChild(correctLabel);
+      
+      // ステータステキストを更新
+      updateStatusText(`${expectedIndex + 1}番目は ${correctEmoji} だったよ`);
+    }
+    
+    // 少し待ってからレベル失敗へ
     setTimeout(() => {
       levelFailed();
-    }, 1000);
+    }, 2000); // 2秒間正解を表示
   }
 }
 
@@ -492,6 +554,9 @@ function levelComplete() {
   currentGameState.score += currentGameState.level * 10;
   updateGameUI();
   
+  // バッジチェック
+  checkBadges();
+  
   showResultModal('🎉', 'せいかい！', 'よくできました！', true);
 }
 
@@ -499,17 +564,132 @@ function levelComplete() {
 function levelFailed() {
   console.log('Level failed!');
   
-  showResultModal('😢', 'ざんねん...', 'もういちど がんばろう！', false);
+  // 正解シーケンスを表示する前に少し待つ
+  setTimeout(() => {
+    showCorrectSequence(() => {
+      // 正解表示が終わったらモーダルを表示
+      showResultModal('😢', 'ざんねん...', 'もういちど がんばろう！', false);
+    });
+  }, 1000);
+}
+
+// 正解シーケンスを表示する関数
+function showCorrectSequence(callback) {
+  updateStatusText('正解はこれだったよ！');
+  
+  // 選択肢をすべて無効化
+  const choiceButtons = elements.choiceGrid.querySelectorAll('.choice-item');
+  choiceButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.remove('selected', 'correct', 'incorrect');
+  });
+  
+  let currentIndex = 0;
+  const highlightDelay = 800; // ミリ秒
+  
+  function highlightNext() {
+    if (currentGameState.mode === 'normal') {
+      // 通常モードの場合
+      if (currentIndex >= currentGameState.sequence.length) {
+        if (callback) setTimeout(callback, 500);
+        return;
+      }
+      
+      const correctEmoji = currentGameState.sequence[currentIndex];
+      const correctButton = Array.from(choiceButtons).find(btn => btn.textContent === correctEmoji);
+      
+      if (correctButton) {
+        // 正解の絵文字をハイライト
+        correctButton.classList.add('show-correct');
+        
+        // 順番を表示
+        const orderBadge = document.createElement('span');
+        orderBadge.className = 'order-badge';
+        orderBadge.textContent = currentIndex + 1;
+        correctButton.appendChild(orderBadge);
+        
+        // 次のハイライトへ
+        setTimeout(() => {
+          currentIndex++;
+          highlightNext();
+        }, highlightDelay);
+      } else {
+        currentIndex++;
+        highlightNext();
+      }
+    } else {
+      // ハードモードの場合
+      if (currentIndex >= currentGameState.sequence.length * 2) {
+        if (callback) setTimeout(callback, 500);
+        return;
+      }
+      
+      const pairIndex = Math.floor(currentIndex / 2);
+      const isLeft = currentIndex % 2 === 0;
+      
+      const correctEmoji = isLeft 
+        ? currentGameState.sequence[pairIndex].left 
+        : currentGameState.sequence[pairIndex].right;
+      
+      const correctButton = Array.from(choiceButtons).find(btn => btn.textContent === correctEmoji);
+      
+      if (correctButton) {
+        // 正解の絵文字をハイライト
+        correctButton.classList.add('show-correct');
+        
+        // 順番を表示
+        const orderBadge = document.createElement('span');
+        orderBadge.className = 'order-badge';
+        orderBadge.textContent = currentIndex + 1;
+        correctButton.appendChild(orderBadge);
+        
+        // 次のハイライトへ
+        setTimeout(() => {
+          currentIndex++;
+          highlightNext();
+        }, highlightDelay);
+      } else {
+        currentIndex++;
+        highlightNext();
+      }
+    }
+  }
+  
+  // ハイライト開始
+  highlightNext();
 }
 
 // Show result modal
 function showResultModal(emoji, title, message, success) {
   elements.resultEmoji.textContent = emoji;
   elements.resultTitle.textContent = title;
-  elements.resultMessage.textContent = message;
+  
+  // 不正解の場合、追加情報を表示
+  if (!success) {
+    // 正解の長さと実際に答えた長さを表示
+    const answeredCount = currentGameState.userSequence.length;
+    const totalCount = currentGameState.mode === 'normal' 
+      ? currentGameState.sequence.length 
+      : currentGameState.sequence.length * 2;
+    
+    message += `<div class="result-stats">
+      <p>${answeredCount}個正解 / 全${totalCount}個中</p>
+      <div class="result-progress">
+        <div class="result-progress-fill" style="width: ${(answeredCount / totalCount) * 100}%"></div>
+      </div>
+    </div>`;
+    
+    // 「もう一度挑戦」ボタンのテキストを変更
+    elements.endGameBtn.textContent = 'もういちど挑戦する';
+  } else {
+    elements.endGameBtn.textContent = 'おわる';
+  }
+  
+  elements.resultMessage.innerHTML = message;
   
   if (success) {
     elements.continueBtn.classList.remove('hidden');
+    elements.resultModal.querySelector('.modal-content').classList.add('success');
     if (currentGameState.level >= 10) {
       elements.continueBtn.textContent = 'ゲームクリア！';
     } else {
@@ -517,6 +697,7 @@ function showResultModal(emoji, title, message, success) {
     }
   } else {
     elements.continueBtn.classList.add('hidden');
+    elements.resultModal.querySelector('.modal-content').classList.remove('success');
   }
   
   elements.resultModal.classList.remove('hidden');
@@ -543,6 +724,7 @@ function nextLevel() {
   elements.nextLevelBtn.classList.add('hidden');
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
+  elements.hintBtn.classList.add('hidden');
   
   updateStatusText('つぎのレベル！スタートボタンを押してください');
 }
@@ -553,6 +735,7 @@ function replayLevel() {
   elements.nextLevelBtn.classList.add('hidden');
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
+  elements.hintBtn.classList.add('hidden');
   
   updateStatusText('スタートボタンを押してください');
 }
@@ -566,12 +749,19 @@ function resetGame() {
   currentGameState.userSequence = [];
   currentGameState.isPlaying = false;
   currentGameState.isDisplaying = false;
+  currentGameState.combo = 0;
+  currentGameState.maxCombo = 0;
+  currentGameState.hasMistake = false;
 }
 
 // Update game UI
 function updateGameUI() {
   elements.currentLevel.textContent = `レベル ${currentGameState.level}`;
   elements.currentScore.textContent = `スコア: ${currentGameState.score}`;
+  
+  // レベル進行バーを更新
+  const progressPercentage = (currentGameState.level / 10) * 100;
+  elements.levelProgress.style.width = `${progressPercentage}%`;
 }
 
 // Update status text
@@ -590,6 +780,230 @@ function getDisplayDuration() {
     case 'fast': return baseDuration * 0.7;
     default: return baseDuration;
   }
+}
+
+// ヒント機能の実装
+function showHint() {
+  if (currentGameState.userSequence.length < currentGameState.sequence.length) {
+    const nextIndex = currentGameState.userSequence.length;
+    const nextEmoji = currentGameState.mode === 'normal' 
+      ? currentGameState.sequence[nextIndex]
+      : (nextIndex % 2 === 0 
+          ? currentGameState.sequence[Math.floor(nextIndex / 2)].left 
+          : currentGameState.sequence[Math.floor(nextIndex / 2)].right);
+    
+    // 次に選ぶべき絵文字を一瞬光らせる
+    const buttons = Array.from(elements.choiceGrid.children);
+    const hintButton = buttons.find(btn => btn.textContent === nextEmoji);
+    
+    if (hintButton) {
+      hintButton.classList.add('hint-flash');
+      setTimeout(() => {
+        hintButton.classList.remove('hint-flash');
+      }, 500);
+    }
+    
+    // ヒント使用でスコア減少
+    currentGameState.score = Math.max(0, currentGameState.score - 5);
+    updateGameUI();
+  }
+}
+
+// コンボエフェクト表示関数
+function showComboEffect(combo) {
+  const comboDiv = document.createElement('div');
+  comboDiv.className = 'combo-effect';
+  comboDiv.textContent = `${combo} コンボ！ +${combo}点`;
+  
+  document.body.appendChild(comboDiv);
+  
+  // アニメーション終了後に削除
+  setTimeout(() => {
+    comboDiv.classList.add('fade-out');
+    setTimeout(() => {
+      document.body.removeChild(comboDiv);
+    }, 500);
+  }, 1000);
+  
+  // コンボボーナス加算
+  currentGameState.score += combo;
+  updateGameUI();
+}
+
+// バッジチェック関数
+function checkBadges() {
+  let newBadges = [];
+  
+  // レベルクリア
+  if (!badges[0].unlocked && currentGameState.level > 1) {
+    badges[0].unlocked = true;
+    newBadges.push(badges[0]);
+  }
+  
+  // レベル5到達
+  if (!badges[1].unlocked && currentGameState.level >= 5) {
+    badges[1].unlocked = true;
+    newBadges.push(badges[1]);
+  }
+  
+  // レベル10到達
+  if (!badges[2].unlocked && currentGameState.level >= 10) {
+    badges[2].unlocked = true;
+    newBadges.push(badges[2]);
+  }
+  
+  // 10コンボ達成
+  if (!badges[3].unlocked && currentGameState.maxCombo >= 10) {
+    badges[3].unlocked = true;
+    newBadges.push(badges[3]);
+  }
+  
+  // パーフェクト
+  if (!badges[4].unlocked && currentGameState.level > 1 && !currentGameState.hasMistake) {
+    badges[4].unlocked = true;
+    newBadges.push(badges[4]);
+  }
+  
+  // 新しいバッジを獲得した場合、表示
+  if (newBadges.length > 0) {
+    showBadgeNotification(newBadges);
+    saveBadges();
+  }
+}
+
+// バッジ通知表示
+function showBadgeNotification(newBadges) {
+  const badge = newBadges[0]; // 最初のバッジを表示
+  
+  const badgeDiv = document.createElement('div');
+  badgeDiv.className = 'badge-notification';
+  badgeDiv.innerHTML = `
+    <div class="badge-emoji">${badge.emoji}</div>
+    <div class="badge-info">
+      <h3>バッジゲット！</h3>
+      <p>${badge.name}</p>
+      <p class="badge-desc">${badge.description}</p>
+    </div>
+  `;
+  
+  document.body.appendChild(badgeDiv);
+  
+  // アニメーション終了後に削除
+  setTimeout(() => {
+    badgeDiv.classList.add('slide-out');
+    setTimeout(() => {
+      document.body.removeChild(badgeDiv);
+      
+      // 複数バッジがある場合、次を表示
+      if (newBadges.length > 1) {
+        showBadgeNotification(newBadges.slice(1));
+      }
+    }, 500);
+  }, 3000);
+}
+
+// バッジを保存
+function saveBadges() {
+  try {
+    localStorage.setItem('emojiGameBadges', JSON.stringify(badges));
+  } catch (error) {
+    console.warn('Error saving badges:', error);
+  }
+}
+
+// バッジをロード
+function loadBadges() {
+  try {
+    const savedBadges = localStorage.getItem('emojiGameBadges');
+    if (savedBadges) {
+      const loadedBadges = JSON.parse(savedBadges);
+      badges.forEach((badge, index) => {
+        if (loadedBadges[index]) {
+          badge.unlocked = loadedBadges[index].unlocked;
+        }
+      });
+    }
+  } catch (error) {
+    console.warn('Error loading badges:', error);
+  }
+}
+
+// チュートリアル画面の実装
+function showTutorial() {
+  const tutorialSteps = [
+    {
+      title: "ようこそ！",
+      content: "「でてきたの、なに？」は記憶力を鍛えるゲームだよ。表示される絵文字を覚えて、同じ順番でタップしてね！",
+      emoji: "👋"
+    },
+    {
+      title: "つうじょうモード",
+      content: "1つずつ絵文字が表示されるよ。レベルが上がるごとに覚える数が増えていくよ！",
+      emoji: "🎯"
+    },
+    {
+      title: "むずかしいモード",
+      content: "左右に2つずつ絵文字が表示されるよ。左から右の順番で覚えてね！",
+      emoji: "💪"
+    },
+    {
+      title: "コツ",
+      content: "絵文字を言葉や物語にして覚えると記憶しやすいよ！たくさん練習して記憶力をアップさせよう！",
+      emoji: "💡"
+    }
+  ];
+  
+  let currentStep = 0;
+  
+  // チュートリアルモーダル作成
+  const tutorialModal = document.createElement('div');
+  tutorialModal.className = 'modal';
+  tutorialModal.id = 'tutorial-modal';
+  
+  function updateTutorialContent() {
+    const step = tutorialSteps[currentStep];
+    tutorialModal.innerHTML = `
+      <div class="modal-content tutorial">
+        <div class="tutorial-progress">
+          ${tutorialSteps.map((_, i) => 
+            `<div class="progress-dot ${i === currentStep ? 'active' : ''}"></div>`
+          ).join('')}
+        </div>
+        <div class="tutorial-emoji">${step.emoji}</div>
+        <h2>${step.title}</h2>
+        <p>${step.content}</p>
+        <div class="modal-actions">
+          ${currentStep > 0 ? '<button id="prev-step" class="btn btn--secondary">まえへ</button>' : ''}
+          ${currentStep < tutorialSteps.length - 1 
+            ? '<button id="next-step" class="btn btn--primary">つぎへ</button>' 
+            : '<button id="finish-tutorial" class="btn btn--primary">はじめる</button>'}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(tutorialModal);
+    
+    // イベントリスナー設定
+    if (currentStep > 0) {
+      document.getElementById('prev-step').addEventListener('click', () => {
+        currentStep--;
+        updateTutorialContent();
+      });
+    }
+    
+    if (currentStep < tutorialSteps.length - 1) {
+      document.getElementById('next-step').addEventListener('click', () => {
+        currentStep++;
+        updateTutorialContent();
+      });
+    } else {
+      document.getElementById('finish-tutorial').addEventListener('click', () => {
+        document.body.removeChild(tutorialModal);
+      });
+    }
+  }
+  
+  updateTutorialContent();
 }
 
 // Audio functions
@@ -679,6 +1093,9 @@ function loadSettings() {
     if (gainNode) {
       gainNode.gain.value = currentGameState.settings.volume;
     }
+    
+    // バッジをロード
+    loadBadges();
   } catch (error) {
     console.warn('Error loading settings:', error);
   }
