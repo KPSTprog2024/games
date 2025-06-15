@@ -1,0 +1,215 @@
+/* ==================================================
+   style.css  —  Unified stylesheet (layered)
+   Generated: 2025‑06‑15
+   --------------------------------------------------
+   @layer order (highest → lowest precedence)
+   reset → tokens → theme → base → layout → components → states → utilities → overrides
+   ================================================== */
+
+@layer reset, tokens, theme, base, layout, components, states, utilities, overrides;
+
+/* -------------------- reset -------------------- */
+@layer reset {
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+}
+
+/* -------------------- tokens ------------------- */
+@layer tokens {
+  :root {
+    /*  Design tokens  –  colours / type / spacing  */
+    /*  -------- colours (light) -------- */
+    --color-background: rgba(252, 252, 249, 1);
+    --color-surface:    rgba(255, 255, 253, 1);
+    --color-text:       rgba(19, 52, 59, 1);
+    --color-text-secondary: rgba(98, 108, 113, 1);
+    --color-primary:           rgba(33, 128, 141, 1);
+    --color-primary-hover:     rgba(29, 116, 128, 1);
+    --color-primary-active:    rgba(26, 104, 115, 1);
+    --color-secondary:         rgba(94, 82, 64, 0.12);
+    --color-secondary-hover:   rgba(94, 82, 64, 0.2);
+    --color-secondary-active:  rgba(94, 82, 64, 0.25);
+    --color-border:            rgba(94, 82, 64, 0.2);
+    --color-btn-primary-text:  rgba(252, 252, 249, 1);
+    --color-card-border:       rgba(94, 82, 64, 0.12);
+    --color-card-border-inner: rgba(94, 82, 64, 0.12);
+    --color-error:   rgba(192, 21, 47, 1);
+    --color-success: rgba(33, 128, 141, 1);
+    --color-warning: rgba(168, 75, 47, 1);
+    --color-info:    rgba(98, 108, 113, 1);
+    --color-focus-ring: rgba(33, 128, 141, 0.4);
+    --color-select-caret: rgba(19, 52, 59, 0.8);
+
+    /* RGB helpers */
+    --color-success-rgb: 33, 128, 141;
+    --color-error-rgb:   192, 21, 47;
+    --color-warning-rgb: 168, 75, 47;
+    --color-info-rgb:    98, 108, 113;
+
+    /* Typography */
+    --font-family-base:"FKGroteskNeue","Geist","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --font-family-mono:"Berkeley Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+    --font-size-xs:11px;--font-size-sm:12px;--font-size-base:14px;--font-size-md:14px;--font-size-lg:16px;--font-size-xl:18px;--font-size-2xl:20px;--font-size-3xl:24px;--font-size-4xl:30px;
+    --font-weight-normal:400;--font-weight-medium:500;--font-weight-semibold:550;--font-weight-bold:600;
+    --line-height-tight:1.2;--line-height-normal:1.5;--letter-spacing-tight:-0.01em;
+
+    /* Spacing */
+    --space-0:0;--space-1:1px;--space-2:2px;--space-4:4px;--space-6:6px;--space-8:8px;--space-10:10px;--space-12:12px;--space-16:16px;--space-20:20px;--space-24:24px;--space-32:32px;
+
+    /* Radius */
+    --radius-sm:6px;--radius-base:8px;--radius-md:10px;--radius-lg:12px;--radius-full:9999px;
+
+    /* Shadow */
+    --shadow-xs:0 1px 2px rgba(0,0,0,.02);
+    --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.02);
+    --shadow-md:0 4px 6px -1px rgba(0,0,0,.04),0 2px 4px -1px rgba(0,0,0,.02);
+    --shadow-lg:0 10px 15px -3px rgba(0,0,0,.04),0 4px 6px -2px rgba(0,0,0,.02);
+    --shadow-inset-sm:inset 0 1px 0 rgba(255,255,255,.15),inset 0 -1px 0 rgba(0,0,0,.03);
+
+    /* Animation */
+    --duration-fast:150ms;--duration-normal:250ms;--ease-standard:cubic-bezier(.16,1,.3,1);
+
+    /* Layout widths */
+    --container-sm:640px;--container-md:768px;--container-lg:1024px;--container-xl:1280px;
+  }
+}
+
+/* -------------- theme (dark) -------------- */
+@layer theme {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background: rgba(31,33,33,1);
+      --color-surface:    rgba(38,40,40,1);
+      --color-text:       rgba(245,245,245,1);
+      --color-text-secondary: rgba(167,169,169,.7);
+      --color-primary:           rgba(50,184,198,1);
+      --color-primary-hover:     rgba(45,166,178,1);
+      --color-primary-active:    rgba(41,150,161,1);
+      --color-secondary:         rgba(119,124,124,.15);
+      --color-secondary-hover:   rgba(119,124,124,.25);
+      --color-secondary-active:  rgba(119,124,124,.3);
+      --color-border:            rgba(119,124,124,.3);
+      --color-error:   rgba(255,84,89,1);
+      --color-success: rgba(50,184,198,1);
+      --color-warning: rgba(230,129,97,1);
+      --color-info:    rgba(167,169,169,1);
+      --color-focus-ring: rgba(50,184,198,.4);
+      --color-btn-primary-text: rgba(19,52,59,1);
+      --color-card-border:       rgba(119,124,124,.2);
+      --color-card-border-inner: rgba(119,124,124,.15);
+      --color-select-caret: rgba(245,245,245,.8);
+      --shadow-inset-sm:inset 0 1px 0 rgba(255,255,255,.1),inset 0 -1px 0 rgba(0,0,0,.15);
+      /* RGB helpers */
+      --color-success-rgb: 50,184,198;--color-error-rgb:255,84,89;--color-warning-rgb:230,129,97;--color-info-rgb:167,169,169;
+    }
+  }
+  /* manual theme switch (data-theme) */
+  [data-theme="dark"] { color-scheme: dark; }
+  [data-theme="light"] { color-scheme: light; }
+}
+
+/* -------------------- base -------------------- */
+@layer base {
+  html {
+    font-size: var(--font-size-base);
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-normal);
+    color: var(--color-text);
+    background-color: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+  }
+  body{margin:0;padding:0;}
+  h1,h2,h3,h4,h5,h6{margin:0;font-weight:var(--font-weight-semibold);line-height:var(--line-height-tight);color:var(--color-text);letter-spacing:var(--letter-spacing-tight);}
+  h1{font-size:var(--font-size-4xl);}h2{font-size:var(--font-size-3xl);}h3{font-size:var(--font-size-2xl);}h4{font-size:var(--font-size-xl);}h5{font-size:var(--font-size-lg);}h6{font-size:var(--font-size-md);}
+  p{margin:0 0 var(--space-16);}
+  a{color:var(--color-primary);text-decoration:none;transition:color var(--duration-fast) var(--ease-standard);}a:hover{color:var(--color-primary-hover);}  
+}
+
+/* ------------------- layout ------------------- */
+@layer layout {
+  .container{width:100%;margin-inline:auto;padding-inline:var(--space-16);}  
+  @media(min-width:640px){.container{max-width:var(--container-sm);}}
+  @media(min-width:768px){.container{max-width:var(--container-md);}}
+  @media(min-width:1024px){.container{max-width:var(--container-lg);}}
+  @media(min-width:1280px){.container{max-width:var(--container-xl);}}
+
+  .screen{display:none;min-height:100vh;padding:var(--space-20);}  
+  .screen.is-active{display:flex;flex-direction:column;}
+}
+
+/* ---------------- components ------------------ */
+@layer components {
+  /* ------------ Buttons (Block: btn) ----------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:var(--space-8) var(--space-16);border-radius:var(--radius-base);font-size:var(--font-size-base);font-weight:500;line-height:1.5;cursor:pointer;transition:all var(--duration-normal) var(--ease-standard);border:none;position:relative;text-decoration:none;}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--color-focus-ring);}  
+  .btn--primary{background:var(--color-primary);color:var(--color-btn-primary-text);}  
+  .btn--primary:hover{background:var(--color-primary-hover);}  
+  .btn--primary:active{background:var(--color-primary-active);}  
+  .btn--secondary{background:var(--color-secondary);color:var(--color-text);}  
+  .btn--secondary:hover{background:var(--color-secondary-hover);}  
+  .btn--secondary:active{background:var(--color-secondary-active);}  
+  .btn--outline{background:transparent;border:1px solid var(--color-border);color:var(--color-text);}  
+  .btn--outline:hover{background:var(--color-secondary);}  
+  .btn--sm{padding:var(--space-4) var(--space-12);font-size:var(--font-size-sm);border-radius:var(--radius-sm);}  
+  .btn--lg{padding:var(--space-10) var(--space-20);font-size:var(--font-size-lg);border-radius:var(--radius-md);}  
+  .btn--full-width{width:100%;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ------------ Card (Block: card) ------------ */
+  .card{background:var(--color-surface);border-radius:var(--radius-lg);border:1px solid var(--color-card-border);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow var(--duration-normal) var(--ease-standard);}  
+  .card:hover{box-shadow:var(--shadow-md);}  
+  .card__body{padding:var(--space-16);}  
+  .card__header,.card__footer{padding:var(--space-16);border-bottom:1px solid var(--color-card-border-inner);}  
+
+  /* ---- Choice grid & items (Block: choice) --- */
+  .choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:var(--space-12);max-width:500px;margin-inline:auto;}
+  .choice-item{width:80px;height:80px;background:var(--color-surface);border:2px solid var(--color-border);border-radius:var(--radius-base);display:flex;align-items:center;justify-content:center;font-size:2.5rem;cursor:pointer;transition:all var(--duration-fast) var(--ease-standard);position:relative;z-index:1;}
+  .choice-item::before{content:"";position:absolute;inset:-2px;background:linear-gradient(45deg,#FF6B6B,#4ECDC4);border-radius:calc(var(--radius-base)+2px);z-index:-1;opacity:0;transition:opacity .3s ease;}
+  .choice-item:hover{transform:scale(1.05);}  
+  .choice-item:hover::before{opacity:1;}
+
+  /* ------ other existing component rules ------- */
+  /* (ゲーム固有の .game-header, .emoji-square など元CSSをここへコピー) */
+}
+
+/* ------------------- states ------------------- */
+@layer states {
+  /* 既存の状態クラスを is-* にエイリアスしつつ残す */
+  .screen.active, .screen.is-active{}
+  .choice-item.selected, .choice-item.is-selected{}
+  .choice-item.correct,  .choice-item.is-correct{}
+  .choice-item.incorrect,.choice-item.is-incorrect{}
+  .choice-item.show-correct, .choice-item.is-show-correct{}
+  .hint-flash, .is-hint-flash{animation:flash .5s ease-in-out;}
+  .hidden, .is-hidden{display:none !important;}
+}
+
+/* ----------------- utilities ------------------ */
+@layer utilities {
+  /* Flexbox */
+  .flex, .u-flex{display:flex;}
+  .flex-col, .u-flex-col{flex-direction:column;}
+  .items-center,.u-items-center{align-items:center;}
+  .justify-center,.u-justify-center{justify-content:center;}
+  .justify-between,.u-justify-between{justify-content:space-between;}
+  /* Gap */
+  .gap-4,.u-gap-4{gap:var(--space-4);}  
+  .gap-8,.u-gap-8{gap:var(--space-8);}  
+  .gap-16,.u-gap-16{gap:var(--space-16);} 
+  /* Margin / Padding helpers (sample) */
+  .m-0,.u-m-0{margin:0;}
+  .mt-8,.u-mt-8{margin-top:var(--space-8);}  
+  .mb-8,.u-mb-8{margin-bottom:var(--space-8);}  
+  .mx-8,.u-mx-8{margin-inline:var(--space-8);}  
+  .my-8,.u-my-8{margin-block:var(--space-8);}  
+  .p-0,.u-p-0{padding:0;}
+  .py-8,.u-py-8{padding-block:var(--space-8);}  
+  .px-8,.u-px-8{padding-inline:var(--space-8);}  
+  .py-16,.u-py-16{padding-block:var(--space-16);}  
+  .px-16,.u-px-16{padding-inline:var(--space-16);}  
+}
+
+/* ----------------- overrides ------------------ */
+@layer overrides {
+  /* 一時パッチ・デバッグ用 (空を維持) */
+}
