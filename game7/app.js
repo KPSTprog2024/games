@@ -1,72 +1,97 @@
-// Game Data
-const gameData = {
-  gameTitle: "でてきたの、なに？",
-  subtitle: "〜見て、おぼえて、順番にタップ〜",
-  emojis: {
-    animals: ["🐶", "🐱", "🐭", "🐰", "🐼", "🐸", "🐷", "🐘", "🐵", "🐥"],
-    foods: ["🍎", "🍌", "🍇", "🍓", "🍉", "🥕", "🍞", "🍚", "🍩", "🍰"],
-    toys: ["🛝", "🎈", "🧩", "🎲"],
-    vehicles: ["🚗", "🚌", "🚓", "🚑", "🚒", "🚲", "✈️", "🚤"],
-    items: ["🎒", "🛏", "🔑"]
-  },
-  gameSettings: {
-    normalMode: {
-      startLevel: 2,
-      maxLevel: 10,
-      displayDuration: 1000
-    },
-    hardMode: {
-      startPairs: 2,
-      maxPairs: 5,
-      displayDuration: 1200
-    }
-  },
-  colors: {
-    primary: "#FF6B6B",
-    accent: "#4ECDC4",
-    background: "#F8F9FA",
-    success: "#51CF66",
-    error: "#FF6B6B"
+class EventBus {
+  constructor() {
+    this.events = {};
   }
-};
+
+  on(event, handler) {
+    (this.events[event] ||= []).push(handler);
+  }
+
+  emit(event, data) {
+    (this.events[event] || []).forEach(h => h(data));
+  }
+}
+
+const eventBus = new EventBus();
+
+const Game = (() => {
+  // Game Data
+  const gameData = {
+    gameTitle: "でてきたの、なに？",
+    subtitle: "〜見て、おぼえて、順番にタップ〜",
+    emojis: {
+      animals: ["🐶", "🐱", "🐭", "🐰", "🐼", "🐸", "🐷", "🐘", "🐵", "🐥"],
+      foods: ["🍎", "🍌", "🍇", "🍓", "🍉", "🥕", "🍞", "🍚", "🍩", "🍰"],
+      toys: ["🛝", "🎈", "🧩", "🎲"],
+      vehicles: ["🚗", "🚌", "🚓", "🚑", "🚒", "🚲", "✈️", "🚤"],
+      items: ["🎒", "🛏", "🔑"]
+    },
+    gameSettings: {
+      normalMode: {
+        startLevel: 2,
+        maxLevel: 10,
+        displayDuration: 1000
+      },
+      hardMode: {
+        startPairs: 2,
+        maxPairs: 5,
+        displayDuration: 1200
+      }
+    },
+    colors: {
+      primary: "#FF6B6B",
+      accent: "#4ECDC4",
+      background: "#F8F9FA",
+      success: "#51CF66",
+      error: "#FF6B6B"
+    }
+  };
+
+  const GamePhases = {
+    READY: 'ready',
+    DISPLAYING: 'displaying',
+    INPUT: 'input',
+    RESULT: 'result'
+  };
 
 // Game State
-let currentGameState = {
-  mode: null, // 'normal' or 'hard'
-  level: 1,
-  score: 0,
-  sequence: [],
-  userSequence: [],
-  isPlaying: false,
-  isDisplaying: false,
-  combo: 0,
-  maxCombo: 0,
-  hasMistake: false,
-  settings: {
-    volume: 0.5,
-    soundEnabled: true,
-    displaySpeed: 'normal'
-  }
-};
+  let currentGameState = {
+    mode: null, // 'normal' or 'hard'
+    level: 1,
+    score: 0,
+    sequence: [],
+    userSequence: [],
+    isPlaying: false,
+    isDisplaying: false,
+    combo: 0,
+    maxCombo: 0,
+    hasMistake: false,
+    phase: GamePhases.READY,
+    settings: {
+      volume: 0.5,
+      soundEnabled: true,
+      displaySpeed: 'normal'
+    }
+  };
 
 // バッジデータ
-const badges = [
-  { id: 'first_win', name: 'はじめてのせいこう', emoji: '🎯', description: 'はじめてレベルをクリアした', unlocked: false },
-  { id: 'level5', name: 'ちゅうきゅうせい', emoji: '🏅', description: 'レベル5に到達した', unlocked: false },
-  { id: 'level10', name: 'じょうきゅうせい', emoji: '🏆', description: 'レベル10に到達した', unlocked: false },
-  { id: 'combo10', name: 'コンボマスター', emoji: '⚡', description: '10コンボを達成した', unlocked: false },
-  { id: 'perfect', name: 'パーフェクト', emoji: '✨', description: 'ミスなしでレベルをクリアした', unlocked: false }
-];
+  const badges = [
+    { id: 'first_win', name: 'はじめてのせいこう', emoji: '🎯', description: 'はじめてレベルをクリアした', unlocked: false },
+    { id: 'level5', name: 'ちゅうきゅうせい', emoji: '🏅', description: 'レベル5に到達した', unlocked: false },
+    { id: 'level10', name: 'じょうきゅうせい', emoji: '🏆', description: 'レベル10に到達した', unlocked: false },
+    { id: 'combo10', name: 'コンボマスター', emoji: '⚡', description: '10コンボを達成した', unlocked: false },
+    { id: 'perfect', name: 'パーフェクト', emoji: '✨', description: 'ミスなしでレベルをクリアした', unlocked: false }
+  ];
 
-// Audio Context
-let audioContext = null;
-let gainNode = null;
+  // Audio Context
+  let audioContext = null;
+  let gainNode = null;
 
-// DOM Elements
-let elements = {};
+  // DOM Elements
+  let elements = {};
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+function initializeApp() {
   console.log('DOM loaded, initializing game...');
   
   // Get all DOM elements
@@ -80,16 +105,19 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load settings
   loadSettings();
+
+  // Debug phase changes
+  eventBus.on('phase', p => console.log('Phase changed:', p));
   
   // Show initial screen
   showScreen('top-screen');
   
   console.log('Game initialized successfully');
-});
+}
 
 // Initialize DOM elements
-function initializeElements() {
-  elements = {
+  function initializeElements() {
+    elements = {
     // Screens
     topScreen: document.getElementById('top-screen'),
     gameScreen: document.getElementById('game-screen'),
@@ -273,6 +301,8 @@ function startGame(mode) {
   currentGameState.combo = 0;
   currentGameState.maxCombo = 0;
   currentGameState.hasMistake = false;
+  currentGameState.phase = GamePhases.READY;
+  eventBus.emit('phase', currentGameState.phase);
   
   showScreen('game-screen');
   updateGameUI();
@@ -302,6 +332,8 @@ function startLevel() {
   
   currentGameState.userSequence = [];
   currentGameState.isDisplaying = true;
+  currentGameState.phase = GamePhases.DISPLAYING;
+  eventBus.emit('phase', currentGameState.phase);
   
   // Hide controls
   elements.startGameBtn.classList.add('hidden');
@@ -409,6 +441,9 @@ function displaySequence() {
 // Show choice options
 function showChoices() {
   console.log('Showing choices...');
+
+  currentGameState.phase = GamePhases.INPUT;
+  eventBus.emit('phase', currentGameState.phase);
   
   updateStatusText('順番にタップしてね！');
   elements.choiceArea.classList.remove('hidden');
@@ -550,6 +585,9 @@ function handleChoice(emoji) {
 // Level complete
 function levelComplete() {
   console.log('Level complete!');
+
+  currentGameState.phase = GamePhases.RESULT;
+  eventBus.emit('phase', currentGameState.phase);
   
   currentGameState.score += currentGameState.level * 10;
   updateGameUI();
@@ -563,6 +601,9 @@ function levelComplete() {
 // Level failed
 function levelFailed() {
   console.log('Level failed!');
+
+  currentGameState.phase = GamePhases.RESULT;
+  eventBus.emit('phase', currentGameState.phase);
   
   // 正解シーケンスを表示する前に少し待つ
   setTimeout(() => {
@@ -725,8 +766,10 @@ function nextLevel() {
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
   elements.hintBtn.classList.add('hidden');
-  
+
   updateStatusText('つぎのレベル！スタートボタンを押してください');
+  currentGameState.phase = GamePhases.READY;
+  eventBus.emit('phase', currentGameState.phase);
 }
 
 // Replay level
@@ -736,8 +779,10 @@ function replayLevel() {
   elements.replayBtn.classList.add('hidden');
   elements.choiceArea.classList.add('hidden');
   elements.hintBtn.classList.add('hidden');
-  
+
   updateStatusText('スタートボタンを押してください');
+  currentGameState.phase = GamePhases.READY;
+  eventBus.emit('phase', currentGameState.phase);
 }
 
 // Reset game
@@ -752,6 +797,8 @@ function resetGame() {
   currentGameState.combo = 0;
   currentGameState.maxCombo = 0;
   currentGameState.hasMistake = false;
+  currentGameState.phase = GamePhases.READY;
+  eventBus.emit('phase', currentGameState.phase);
 }
 
 // Update game UI
@@ -1117,14 +1164,19 @@ document.addEventListener('click', function initAudioOnClick() {
 }, { once: true });
 
 // Handle visibility change for audio context
-document.addEventListener('visibilitychange', function() {
-  if (audioContext) {
-    if (document.hidden) {
-      audioContext.suspend();
-    } else {
-      audioContext.resume();
+  document.addEventListener('visibilitychange', function() {
+    if (audioContext) {
+      if (document.hidden) {
+        audioContext.suspend();
+      } else {
+        audioContext.resume();
+      }
     }
-  }
-});
+  });
 
-console.log('App.js loaded successfully');
+  console.log('App.js loaded successfully');
+
+  return { init: initializeApp };
+})();
+
+document.addEventListener('DOMContentLoaded', Game.init);
