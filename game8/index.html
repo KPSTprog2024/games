@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひかるマス - 記憶パズルゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 設定画面 -->
+        <div id="settingsScreen" class="screen">
+            <div class="title-section">
+                <h1 class="game-title">ひかるマス</h1>
+                <p class="game-subtitle">記憶力チャレンジゲーム</p>
+            </div>
+            <div class="settings-card">
+                <h3>光る速度を選択してください</h3>
+                <div class="speed-options">
+                    <button class="speed-btn" data-speed="slow">
+                        <span class="speed-emoji">🐌</span>
+                        <span class="speed-label">ゆっくり</span>
+                        <span class="speed-time">(800ms)</span>
+                    </button>
+                    <button class="speed-btn" data-speed="normal">
+                        <span class="speed-emoji">🚶</span>
+                        <span class="speed-label">ふつう</span>
+                        <span class="speed-time">(500ms)</span>
+                    </button>
+                    <button class="speed-btn" data-speed="fast">
+                        <span class="speed-emoji">🏃</span>
+                        <span class="speed-label">はやい</span>
+                        <span class="speed-time">(300ms)</span>
+                    </button>
+                </div>
+                <button id="startGameBtn" class="btn btn--primary btn--lg" disabled>ゲームスタート</button>
+            </div>
+            <div class="instructions">
+                <p>光った順番を覚えて、同じ順番でマスをタップしよう！</p>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="gameScreen" class="screen hidden">
+            <!-- 設定ボタン -->
+            <button id="settingsBtn" class="settings-button">⚙️</button>
+            
+            <!-- ステージ情報 -->
+            <div class="stage-info">
+                <div class="stage-header">
+                    <h2 id="stageNumber">ステージ 1</h2>
+                    <div class="lives-display">
+                        <span id="livesHearts">❤️❤️</span>
+                    </div>
+                </div>
+                <div class="memory-count">
+                    <span>覚える数: </span>
+                    <span id="memoryCount" class="count-number">2</span>
+                    <span>個</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <span id="progressText" class="progress-text">1/7</span>
+                </div>
+            </div>
+
+            <!-- メッセージエリア -->
+            <div id="messageArea" class="message-area">
+                <p id="gameMessage">準備はいい？</p>
+            </div>
+
+            <!-- カウントダウン -->
+            <div id="countdown" class="countdown hidden">
+                <span id="countdownNumber">3</span>
+            </div>
+
+            <!-- ゲームボード -->
+            <div id="gameBoard" class="game-board">
+                <div class="game-square" data-index="0"></div>
+                <div class="game-square" data-index="1"></div>
+                <div class="game-square" data-index="2"></div>
+                <div class="game-square" data-index="3"></div>
+            </div>
+
+            <!-- ゲームコントロール -->
+            <div class="game-controls">
+                <button id="readyBtn" class="btn btn--primary">準備OK！</button>
+                <button id="nextStageBtn" class="btn btn--primary hidden">次のステージ</button>
+                <button id="retryBtn" class="btn btn--secondary hidden">もう一度</button>
+                <button id="backToStartBtn" class="btn btn--outline">最初に戻る</button>
+            </div>
+        </div>
+
+        <!-- ゲームオーバー画面 -->
+        <div id="gameOverScreen" class="screen hidden">
+            <div class="game-over-content">
+                <h2>お疲れさま！</h2>
+                <p id="finalStage">到達ステージ: <span class="highlight">1</span></p>
+                <p class="encouraging-text">君はすごいよ！また挑戦してみよう！</p>
+                <div class="game-over-controls">
+                    <button id="restartBtn" class="btn btn--primary btn--lg">もう一度プレイ</button>
+                    <button id="backToSettingsBtn" class="btn btn--secondary">設定に戻る</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
