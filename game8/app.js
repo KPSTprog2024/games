@@ -234,6 +234,7 @@ function showButton(buttonType) {
 
 // カウントダウン開始
 async function startCountdown() {
+    clearSequenceNumbers();
     showButton(null);
     showMessage('');
     
@@ -300,6 +301,28 @@ async function showSequence() {
     }
 }
 
+// シーケンス番号表示
+function displaySequenceNumbers() {
+    clearSequenceNumbers();
+    const counters = {};
+    gameState.sequence.forEach((idx, seqPos) => {
+        const square = elements.squares[idx];
+        if (!square) return;
+        counters[idx] = (counters[idx] || 0) + 1;
+        const span = document.createElement('span');
+        span.classList.add('sequence-num', `offset-${counters[idx]}`);
+        span.textContent = seqPos + 1;
+        square.appendChild(span);
+    });
+}
+
+// シーケンス番号クリア
+function clearSequenceNumbers() {
+    elements.squares.forEach(sq => {
+        sq.querySelectorAll('.sequence-num').forEach(el => el.remove());
+    });
+}
+
 // マスクリック処理
 function handleSquareClick(index) {
     if (!gameState.isAcceptingInput) return;
@@ -339,6 +362,7 @@ function checkInput() {
 // 成功処理
 async function handleSuccess() {
     gameState.isAcceptingInput = false;
+    displaySequenceNumbers();
     gameState.failCount = 0;
     gameState.lives = gameState.maxLives; // ライフ回復
     
@@ -365,6 +389,7 @@ async function handleSuccess() {
 // 失敗処理
 async function handleFailure() {
     gameState.isAcceptingInput = false;
+    displaySequenceNumbers();
     gameState.lives--;
     gameState.failCount++;
     
