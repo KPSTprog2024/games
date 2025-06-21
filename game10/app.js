@@ -591,15 +591,13 @@ async function loadJourneyData() {
     if (!response.ok) {
         throw new Error('journey-data.json の読み込みに失敗しました');
     }
-
-    const cloned = response.clone();
+    const clone = response.clone();
     try {
         return await response.json();
     } catch (err) {
-        console.error('JSON parsing failed', err);
-        console.log('response.status', cloned.status);
-        console.log('response text', await cloned.text());
-        throw err;
+        const text = await clone.text();
+        throw new Error(`journey-data.json の JSON 解析に失敗しました: ${text}`);
+
     }
 }
 
