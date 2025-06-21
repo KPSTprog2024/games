@@ -117,10 +117,12 @@ class BashoJourneyMap {
         this.journeyData = data;
         this.currentIndex = 0;
         this.map = null;
+        this.tileLayer = null; // タイルレイヤーを保持する変数を追加
         this.markers = [];
         this.currentMarker = null;
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
+        this.currentMapStyle = 'modern'; // デフォルトは現代地図
         
         this.init();
     }
@@ -161,7 +163,7 @@ class BashoJourneyMap {
         this.map = L.map('map').setView([37.5, 139.0], 6);
 
         // OpenStreetMapタイルレイヤーを追加
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(this.map);
 
@@ -177,13 +179,16 @@ class BashoJourneyMap {
 
     addMarkers() {
         this.journeyData.journeyData.forEach((location, index) => {
+            // カスタムアイコンを作成
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<span>${index + 1}</span>`,
+                iconSize: [24, 24]
+            });
+            
             // マーカーを作成
-            const marker = L.circleMarker([location.lat, location.lng], {
-                color: '#fff',
-                fillColor: '#e74c3c',
-                fillOpacity: 1,
-                radius: 8,
-                weight: 2
+            const marker = L.marker([location.lat, location.lng], {
+                icon: customIcon
             })
             .addTo(this.map)
             .bindPopup(`<strong>${location.name}</strong><br>${location.date}`)
@@ -240,6 +245,12 @@ class BashoJourneyMap {
 
         // 自動調整ボタンの初期状態を設定
         this.updateAutoAdjustButton();
+        
+        // 地図スタイルボタンの初期状態を設定
+        const toggleMapBtn = document.getElementById('toggle-map-style');
+        if (toggleMapBtn) {
+            toggleMapBtn.textContent = '古地図風に変更';
+        }
     }
 
     setupEventListeners() {
@@ -256,6 +267,8 @@ class BashoJourneyMap {
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const autoAdjustBtn = document.getElementById('auto-adjust-btn');
+        const toggleMapBtn = document.getElementById('toggle-map-style');
+        const readHaikuBtn = document.getElementById('read-haiku');
         
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
@@ -274,6 +287,18 @@ class BashoJourneyMap {
                 this.toggleAutoAdjust();
             });
         }
+        
+        if (toggleMapBtn) {
+            toggleMapBtn.addEventListener('click', () => {
+                this.toggleMapStyle();
+            });
+        }
+        
+        if (readHaikuBtn) {
+            readHaikuBtn.addEventListener('click', () => {
+                this.readHaikuAloud();
+            });
+        }
 
         // キーボードナビゲーション
         document.addEventListener('keydown', (e) => {
@@ -285,6 +310,134 @@ class BashoJourneyMap {
                 this.nextLocation();
             }
         });
+        
+        // タブ切り替え
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        if (tabBtns.length > 0) {
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const tabId = e.target.dataset.tab;
+                    this.switchTab(tabId);
+                });
+            });
+        }
+        
+        // タッチジェスチャーサポート
+        this.setupTouchGestures();
+    }
+    
+    setupTouchGestures() {
+        const infoPanel = document.querySelector('.info-panel');
+        if (!infoPanel) return;
+        
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        infoPanel.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        infoPanel.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            this.handleSwipe(touchStartX, touchEndX);
+        });
+    }
+    
+    handleSwipe(startX, endX) {
+        const swipeThreshold = 50; // スワイプと判定する最小ピクセル数
+        
+        if (startX - endX > swipeThreshold) {
+            // 左スワイプ -> 次へ
+            this.nextLocation();
+        } else if (endX - startX > swipeThreshold) {
+            // 右スワイプ -> 前へ
+            this.previousLocation();
+        }
+    }
+    
+    switchTab(tabId) {
+        // タブボタンのアクティブ状態を切り替え
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+        
+        // タブコンテンツの表示を切り替え
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.toggle('active', content.id === `${tabId}-content`);
+        });
+        
+        // 現代タブが選択された場合、現代情報を読み込む
+        if (tabId === 'modern') {
+            this.loadModernInfo();
+        }
+    }
+    
+    loadModernInfo() {
+        const location = this.journeyData.journeyData[this.currentIndex];
+        const modernDescription = document.getElementById('modern-description');
+        const modernImage = document.getElementById('modern-image');
+        
+        // 現代の情報（実際のアプリではAPIから取得するか、データを拡張する）
+        const modernInfo = {
+            '深川': {
+                description: '現在の深川は東京都江東区に位置し、都市化が進んでいます。芭蕉の庵跡には記念碑が建てられています。',
+                imageUrl: 'https://example.com/images/modern-fukagawa.jpg'
+            },
+            '白河の関': {
+                description: '現在は福島県白河市にあり、関所跡が観光名所となっています。歴史公園として整備されています。',
+                imageUrl: 'https://example.com/images/modern-shirakawa.jpg'
+            },
+            '平泉': {
+                description: '現在の平泉は世界遺産に登録され、中尊寺金色堂など多くの文化財が保存されています。',
+                imageUrl: 'https://example.com/images/modern-hiraizumi.jpg'
+            },
+            '立石寺（山寺）': {
+                description: '現在も天台宗の寺院として機能し、山形県の主要な観光地となっています。芭蕉の句碑も建立されています。',
+                imageUrl: 'https://example.com/images/modern-yamadera.jpg'
+            },
+            '最上川': {
+                description: '現在も山形県の主要河川として流れ、観光船も運航しています。芭蕉の句碑が川沿いに建てられています。',
+                imageUrl: 'https://example.com/images/modern-mogamigawa.jpg'
+            },
+            '象潟': {
+                description: '1804年の地震で潟湖が陸地化しましたが、現在は芭蕉記念館があり、観光地となっています。',
+                imageUrl: 'https://example.com/images/modern-kisakata.jpg'
+            },
+            '出雲崎': {
+                description: '現在も日本海に面した町で、芭蕉の句碑が建てられています。夕日の名所としても知られています。',
+                imageUrl: 'https://example.com/images/modern-izumozaki.jpg'
+            },
+            '大垣': {
+                description: '現在の大垣市には芭蕉の句碑や記念館があり、奥の細道むすびの地として観光スポットになっています。',
+                imageUrl: 'https://example.com/images/modern-ogaki.jpg'
+            }
+        };
+        
+        // 現代情報を表示（データがあれば）
+        if (modernInfo[location.name]) {
+            if (modernDescription) {
+                modernDescription.textContent = modernInfo[location.name].description;
+            }
+            
+            if (modernImage) {
+                if (modernInfo[location.name].imageUrl) {
+                    modernImage.innerHTML = ``;
+                } else {
+                    modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
+                }
+            }
+        } else {
+            // データがない場合のデフォルトメッセージ
+            if (modernDescription) {
+                modernDescription.textContent = '現代の詳細情報は準備中です。';
+            }
+            
+            if (modernImage) {
+                modernImage.innerHTML = '<div class="no-image">画像は準備中です</div>';
+            }
+        }
     }
 
     toggleAutoAdjust() {
@@ -304,6 +457,68 @@ class BashoJourneyMap {
             }
         }
     }
+    
+    toggleMapStyle() {
+        const toggleMapBtn = document.getElementById('toggle-map-style');
+        
+        // スタイルを切り替え
+        if (this.currentMapStyle === 'modern') {
+            // 古地図スタイルに変更
+            this.map.removeLayer(this.tileLayer);
+            
+            // 古地図風のタイルレイヤー
+            this.tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                className: 'map-tiles-sepia' // CSSで古い雰囲気を出す
+            }).addTo(this.map);
+            
+            this.currentMapStyle = 'historical';
+            if (toggleMapBtn) {
+                toggleMapBtn.textContent = '現代地図に戻す';
+                toggleMapBtn.classList.add('historical');
+            }
+        } else {
+            // 現代地図スタイルに変更
+            this.map.removeLayer(this.tileLayer);
+            this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(this.map);
+            
+            this.currentMapStyle = 'modern';
+            if (toggleMapBtn) {
+                toggleMapBtn.textContent = '古地図風に変更';
+                toggleMapBtn.classList.remove('historical');
+            }
+        }
+    }
+    
+    readHaikuAloud() {
+        const location = this.journeyData.journeyData[this.currentIndex];
+        const haiku = location.reading || location.haiku;
+        
+        if (haiku && window.speechSynthesis) {
+            // 読み上げ中のボタンの状態を変更
+            const readHaikuBtn = document.getElementById('read-haiku');
+            if (readHaikuBtn) {
+                readHaikuBtn.disabled = true;
+                readHaikuBtn.innerHTML = '<span class="icon">🔊</span> 読み上げ中...';
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(haiku);
+            utterance.lang = 'ja-JP';
+            
+            // 読み上げ完了時の処理
+            utterance.onend = () => {
+                if (readHaikuBtn) {
+                    readHaikuBtn.disabled = false;
+                    readHaikuBtn.innerHTML = '<span class="icon">🔊</span> 俳句を聞く';
+                }
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+    }
 
     selectLocation(index) {
         if (index < 0 || index >= this.journeyData.journeyData.length) {
@@ -319,28 +534,91 @@ class BashoJourneyMap {
 
     updateDisplay() {
         const location = this.journeyData.journeyData[this.currentIndex];
+        const locationDetails = document.querySelector('.location-details');
         
-        // 要素の存在確認をしてから更新
-        const elements = {
-            'current-location': location.name,
-            'current-date': location.date,
-            'special-text': location.haiku || '特別な記録はありません',
-            'special-reading': location.reading || '',
-            'description-text': location.description || '詳細情報はありません',
-            'context-text': location.context || '追加情報はありません',
-            'disciples-text': location.disciples || '情報なし',
-            'climate-text': location.climate || '情報なし',
-            'historical-events-text': location.historicalEvents || '情報なし',
-            'location-counter': `${this.currentIndex + 1} / ${this.journeyData.journeyData.length}`,
-            'progress-indicator': this.currentIndex === this.journeyData.journeyData.length - 1 ? '旅程完了' : '旅程進行中...'
-        };
+        // フェードアウト
+        if (locationDetails) {
+            locationDetails.classList.add('fade-out');
+            
+            // アニメーション完了後に内容を更新してフェードイン
+            setTimeout(() => {
+                // 要素の存在確認をしてから更新
+                const elements = {
+                    'current-location': location.name,
+                    'current-date': location.date,
+                    'special-text': location.haiku || '特別な記録はありません',
+                    'special-reading': location.reading || '',
+                    'description-text': location.description || '詳細情報はありません',
+                    'context-text': location.context || '追加情報はありません',
+                    'disciples-text': location.disciples || '情報なし',
+                    'climate-text': location.climate || '情報なし',
+                    'historical-events-text': location.historicalEvents || '情報なし',
+                    'location-counter': `${this.currentIndex + 1} / ${this.journeyData.journeyData.length}`,
+                    'progress-indicator': this.currentIndex === this.journeyData.journeyData.length - 1 ? '旅程完了' : '旅程進行中...'
+                };
 
-        Object.entries(elements).forEach(([id, text]) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = text;
-            }
-        });
+                Object.entries(elements).forEach(([id, text]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = text;
+                    }
+                });
+                
+                // 季節感を表現
+                this.updateSeasonIndicator(location.date);
+                
+                // 進行状況バーを更新
+                const progressBar = document.getElementById('journey-progress-bar');
+                if (progressBar) {
+                    const progress = ((this.currentIndex + 1) / this.journeyData.journeyData.length) * 100;
+                    progressBar.style.width = `${progress}%`;
+                }
+                
+                // フェードイン
+                locationDetails.classList.remove('fade-out');
+                locationDetails.classList.add('fade-in');
+                
+                // アニメーション完了後にクラスを削除
+                setTimeout(() => {
+                    locationDetails.classList.remove('fade-in');
+                }, 800);
+            }, 300);
+        }
+    }
+    
+    updateSeasonIndicator(dateString) {
+        const seasonElement = document.getElementById('season-indicator');
+        if (!seasonElement || !dateString) return;
+        
+        const date = new Date(dateString);
+        const month = date.getMonth() + 1;
+        let season = '';
+        let seasonIcon = '';
+        let seasonClass = '';
+        
+        if (month >= 3 && month <= 5) {
+            season = '春';
+            seasonIcon = '🌸';
+            seasonClass = 'season-spring';
+        } else if (month >= 6 && month <= 8) {
+            season = '夏';
+            seasonIcon = '☀️';
+            seasonClass = 'season-summer';
+        } else if (month >= 9 && month <= 11) {
+            season = '秋';
+            seasonIcon = '🍁';
+            seasonClass = 'season-autumn';
+        } else {
+            season = '冬';
+            seasonIcon = '❄️';
+            seasonClass = 'season-winter';
+        }
+        
+        seasonElement.textContent = `${seasonIcon} ${season}の旅`;
+        
+        // クラスをリセットして新しいクラスを追加
+        seasonElement.className = 'season-indicator';
+        seasonElement.classList.add(seasonClass);
     }
 
     updateMap() {
@@ -352,12 +630,14 @@ class BashoJourneyMap {
         }
         
         // 現在位置を示す特別なマーカーを作成
-        this.currentMarker = L.circleMarker([location.lat, location.lng], {
-            color: '#fff',
-            fillColor: '#3498db',
-            fillOpacity: 1,
-            radius: 12,
-            weight: 4
+        const currentIcon = L.divIcon({
+            className: 'custom-marker current-marker pulse',
+            html: `<span>${this.currentIndex + 1}</span>`,
+            iconSize: [32, 32]
+        });
+        
+        this.currentMarker = L.marker([location.lat, location.lng], {
+            icon: currentIcon
         }).addTo(this.map);
         
         // 自動調整が有効な場合、地図の中心と縮尺を移動
@@ -418,9 +698,3 @@ class BashoJourneyMap {
         }, 5000);
     }
 }
-
-// ページ読み込み完了時に初期化
-document.addEventListener('DOMContentLoaded', () => {
-    // グローバル変数として設定（外部から操作可能）
-    window.bashoJourney = new BashoJourneyMap();
-});
