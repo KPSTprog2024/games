@@ -587,7 +587,7 @@ class BashoJourneyMap {
 }
 
 async function loadJourneyData() {
-    const response = await fetch('journey-data.json');
+    const response = await fetch('./journey-data.json');
     if (!response.ok) {
         throw new Error('journey-data.json の読み込みに失敗しました');
     }
@@ -597,6 +597,7 @@ async function loadJourneyData() {
     } catch (err) {
         const text = await clone.text();
         throw new Error(`journey-data.json の JSON 解析に失敗しました: ${text}`);
+
     }
 }
 
