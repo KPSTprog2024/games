@@ -959,6 +959,22 @@ body {
   box-shadow: 0 0 10px rgba(50, 184, 198, 0.4);
 }
 
+/* Sequence numbers */
+.sequence-num {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fff;
+  pointer-events: none;
+}
+.sequence-num.offset-1 { top: 0; }
+.sequence-num.offset-2 { top: 12px; }
+.sequence-num.offset-3 { top: 24px; }
+.sequence-num.offset-4 { top: 36px; }
+.sequence-num.offset-5 { top: 48px; }
+
 @keyframes flashEffect {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
