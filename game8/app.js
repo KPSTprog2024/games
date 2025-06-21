@@ -205,9 +205,10 @@ function updateUI() {
     elements.livesHearts.textContent = '❤️'.repeat(gameState.lives);
     
     // プログレスバー更新
-    const maxStage = 7;
-    const progress = Math.min((gameState.currentStage / maxStage) * 100, 100);
-    elements.progressFill.style.width = `${progress}%`;
+    // 最終ステージはstageConfigから自動取得
+    const maxStage = stageConfig[stageConfig.length - 1]?.stage || 7;
+    const progress = (gameState.currentStage / maxStage) * 100;
+    elements.progressFill.style.width = `${Math.min(progress, 100)}%`;
     elements.progressText.textContent = `${gameState.currentStage}/${maxStage}`;
 }
 
