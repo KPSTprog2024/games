@@ -22,6 +22,16 @@
   --color-focus-ring: rgba(33, 128, 141, 0.4);
   --color-select-caret: rgba(19, 52, 59, 0.8);
 
+  /* 和風テイストのカラーパレット */
+  --color-washi: #f6f0e8;
+  --color-sumi: #1a1a1a;
+  --color-akane: #b94047;
+  --color-asagi: #33a6b8;
+  --color-yamabuki: #e6b422;
+  --color-wakakusa: #7fb80e;
+  --color-sakura: #ffd7dd;
+  --color-momiji: #d3381c;
+  
   /* Common style patterns */
   --focus-ring: 0 0 0 3px var(--color-focus-ring);
   --focus-outline: 2px solid var(--color-primary);
@@ -1327,12 +1337,13 @@ select.form-control {
 
 /* ヘッダースタイル */
 .header {
-    background: #2c3e50;
-    color: white;
-    padding: var(--space-16) var(--space-24);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-16);
-    text-align: center;
+  background: var(--color-sumi) url('https://www.transparenttextures.com/patterns/rice-paper.png');
+  color: white;
+  padding: var(--space-16) var(--space-24);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-16);
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .header h1 {
@@ -1475,47 +1486,46 @@ select.form-control {
     gap: var(--space-16);
 }
 
-.special-content,
-.description,
-.context,
-.disciples,
-.climate,
-.historical-events {
-    background: var(--color-background);
-    padding: var(--space-16);
-    border-radius: var(--radius-base);
-    border: 1px solid var(--color-card-border);
+special-content {
+  background: var(--color-washi);
+  border-left: 4px solid var(--color-akane);
+  padding: var(--space-16);
+  border-radius: var(--radius-base);
+  font-family: "游明朝", YuMincho, "Hiragino Mincho ProN", serif;
+  position: relative;
 }
 
-.special-content h3,
-.description h3,
-.context h3,
-.disciples h3,
-.climate h3,
-.historical-events h3 {
-    margin: 0 0 var(--space-8) 0;
-    font-size: var(--font-size-lg);
-    color: var(--color-primary);
-    font-weight: var(--font-weight-semibold);
+.special-content::before {
+  content: '句';
+  position: absolute;
+  right: var(--space-8);
+  top: var(--space-8);
+  font-size: 24px;
+  color: var(--color-akane);
+  opacity: 0.2;
+  font-family: "游明朝", YuMincho, "Hiragino Mincho ProN", serif;
 }
 
-.special-content p,
-.description p,
-.context p,
-.disciples p,
-.climate p,
-.historical-events p {
-    margin: 0;
-    line-height: var(--line-height-normal);
+.special-content h3 {
+  color: var(--color-akane);
+  border-bottom: 1px solid var(--color-akane);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-12);
+}
+
+#special-text {
+  font-size: var(--font-size-xl);
+  line-height: 1.8;
+  letter-spacing: 0.05em;
 }
 
 .reading {
-    font-style: italic;
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-sm);
-    margin-top: var(--space-8) !important;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-8) !important;
+  letter-spacing: 0.03em;
 }
-
 .navigation-info {
     display: flex;
     justify-content: space-between;
@@ -1530,6 +1540,20 @@ select.form-control {
 /* Leaflet マーカーのスタイル調整 */
 .leaflet-marker-icon {
     border-radius: 50% !important;
+}
+
+/* マーカーのカスタマイズ */
+.custom-marker {
+  border: 2px solid white;
+  border-radius: 50%;
+  text-align: center;
+  background-color: var(--color-akane);
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 /* レスポンシブデザイン */
