@@ -9,6 +9,17 @@
 </head>
 <body>
     <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1 id="journey-title">松尾芭蕉『奥の細道』の旅路</h1>
+            <p id="journey-period">1689年5月16日 - 8月21日（98日間）</p>
+        </header>
+
+        <section class="bio-section">
+            <h2>芭蕉の略歴</h2>
+            <p><a href="basho-profile.md" target="_blank">松尾芭蕉プロフィール概要</a></p>
+        </section>
+
         <!-- 芭蕉プロフィール -->
         <section id="basho-profile">
             <h2>芭蕉のプロフィール</h2>
@@ -23,8 +34,12 @@
 
         <!-- コンパクトなタイムラインコントロール -->
         <div class="timeline-controls">
+            <div class="journey-progress">
+                <div class="journey-progress-bar" id="journey-progress-bar"></div>
+            </div>
             <div class="timeline-row">
                 <button class="btn btn--sm auto-adjust-btn" id="auto-adjust-btn">自動調整ON</button>
+                <button class="btn btn--sm map-style-btn" id="toggle-map-style">地図スタイル切替</button>
                 <div class="timeline-slider-container">
                     <input type="range" id="timeline-slider" min="0" max="7" value="0" step="1">
                 </div>
@@ -40,38 +55,58 @@
             <div class="info-content">
                 <div class="location-header">
                     <h2 id="current-location">深川</h2>
+                    <div class="season-indicator" id="season-indicator">🌸 春の旅</div>
                     <span class="status status--info" id="current-date">1689-05-16</span>
                 </div>
-                <div class="location-details">
-                    <div class="special-content" id="special-content">
-                        <h3>俳句</h3>
-                        <p id="special-text">草の戸も住み替はる代ぞ雛の家</p>
-                        <p id="special-reading" class="reading">くさのとも すみかわるよぞ ひなのいえ</p>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="historical">江戸時代</button>
+                    <button class="tab-btn" data-tab="modern">現代</button>
+                </div>
+                <div class="tab-content active" id="historical-content">
+                    <div class="location-details">
+                        <div class="special-content" id="special-content">
+                            <h3>俳句</h3>
+                            <p id="special-text">草の戸も住み替はる代ぞ雛の家</p>
+                            <p id="special-reading" class="reading">くさのとも すみかわるよぞ ひなのいえ</p>
+                            <button id="read-haiku" class="btn btn--sm btn--outline haiku-btn">
+                                <span class="icon">🔊</span> 俳句を聞く
+                            </button>
+                        </div>
+                        <div class="description" id="description">
+                            <h3>詳細</h3>
+                            <p id="description-text">芭蕉庵があった出発地。『奥の細道』の旅路の始まり。</p>
+                        </div>
+                        <div class="context" id="context">
+                            <h3>歴史的背景</h3>
+                            <p id="context-text">江戸深川は新開地で、多くの文人墨客が住んでいた地域。</p>
+                        </div>
+                        <div class="disciples" id="disciples">
+                            <h3>弟子・同行者</h3>
+                            <p id="disciples-text">曽良</p>
+                        </div>
+                        <div class="climate" id="climate">
+                            <h3>気候</h3>
+                            <p id="climate-text">春から夏へ向かう温暖な気候</p>
+                        </div>
+                        <div class="historical-events" id="historical-events">
+                            <h3>関連する歴史的出来事</h3>
+                            <p id="historical-events-text">江戸町人文化が発展し始めた頃</p>
+                        </div>
                     </div>
-                    <div class="description" id="description">
-                        <h3>詳細</h3>
-                        <p id="description-text">芭蕉庵があった出発地。『奥の細道』の旅路の始まり。</p>
-                    </div>
-                    <div class="context" id="context">
-                        <h3>歴史的背景</h3>
-                        <p id="context-text">江戸深川は新開地で、多くの文人墨客が住んでいた地域。</p>
-                    </div>
-                    <div class="disciples" id="disciples">
-                        <h3>弟子・同行者</h3>
-                        <p id="disciples-text">曽良</p>
-                    </div>
-                    <div class="climate" id="climate">
-                        <h3>気候</h3>
-                        <p id="climate-text">春から夏へ向かう温暖な気候</p>
-                    </div>
-                    <div class="historical-events" id="historical-events">
-                        <h3>関連する歴史的出来事</h3>
-                        <p id="historical-events-text">江戸町人文化が発展し始めた頃</p>
+                </div>
+                <div class="tab-content" id="modern-content">
+                    <div class="modern-info">
+                        <h3>現代の様子</h3>
+                        <p id="modern-description">現代の情報はこちらに表示されます。</p>
+                        <div class="modern-image-container" id="modern-image">
+                            <!-- 画像がここに表示されます -->
+                        </div>
                     </div>
                 </div>
                 <div class="navigation-info">
                     <span id="location-counter">1 / 8</span>
                     <span id="progress-indicator">旅程進行中...</span>
+                    <span class="touch-hint">← スワイプで移動 →</span>
                 </div>
             </div>
         </div>
