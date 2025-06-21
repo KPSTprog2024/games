@@ -106,7 +106,6 @@ function setupEventListeners() {
     elements.backToSettingsBtn.addEventListener('click', () => showScreen('settings'));
     
     // Game controls
-    elements.readyBtn.addEventListener('click', startCountdown);
     elements.nextStageBtn.addEventListener('click', nextStage);
     elements.retryBtn.addEventListener('click', retryStage);
     elements.backToStartBtn.addEventListener('click', () => showScreen('settings'));
@@ -153,8 +152,7 @@ function startGame() {
     resetGame();
     showScreen('game');
     updateUI();
-    showMessage('準備はいい？');
-    showButton('ready');
+    startCountdown();
 }
 
 // ゲーム状態リセット
@@ -397,16 +395,14 @@ function nextStage() {
     gameState.failCount = 0;
     updateStageConfig();
     updateUI();
-    showMessage('準備はいい？');
-    showButton('ready');
+    startCountdown();
 }
 
 // ステージリトライ
 function retryStage() {
     updateStageConfig();
     updateUI();
-    showMessage('準備はいい？');
-    showButton('ready');
+    startCountdown();
 }
 
 // ゲームオーバー
