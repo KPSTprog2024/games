@@ -698,3 +698,7 @@ class BashoJourneyMap {
         }, 5000);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    new BashoJourneyMap();
+});
