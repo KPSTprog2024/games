@@ -601,11 +601,37 @@ async function loadJourneyData() {
     }
 }
 
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--color-error);
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        z-index: 10000;
+        max-width: 300px;
+    `;
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+
+    setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+            document.body.removeChild(errorDiv);
+        }
+    }, 5000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const data = await loadJourneyData();
         new BashoJourneyMap(data);
     } catch (err) {
         console.error('旅程データの取得に失敗しました', err);
+        showError(err.message);
+        // ページを再読み込みして再試行することを推奨
     }
 });
