@@ -345,9 +345,12 @@ async function handleSuccess() {
     // 励ましメッセージ
     const successMessage = messages.success[Math.floor(Math.random() * messages.success.length)];
     showMessage(successMessage);
-    
+
     await sleep(2000);
-    
+
+    // 成功の紙吹雪エフェクト
+    createConfetti();
+
     if (gameState.currentStage >= 7) {
         // 高ステージクリア
         showMessage('次のステージに進もう！');
@@ -407,6 +410,54 @@ function retryStage() {
     updateUI();
     showMessage('準備はいい？');
     showButton('ready');
+}
+
+// 紙吹雪エフェクト
+function createConfetti() {
+    const container = document.body;
+    const colors = ['#ff9a9e', '#a1c4fd', '#f6d365', '#96e6a1', '#ffecd2'];
+    const confettiCount = 50;
+
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.width = Math.floor(Math.random() * 10 + 5) + 'px';
+        confetti.style.height = Math.floor(Math.random() * 10 + 5) + 'px';
+        confetti.style.opacity = 1;
+        confetti.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+
+        const shapes = ['', '50%'];
+        confetti.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+
+        container.appendChild(confetti);
+
+        const animationDuration = 1 + Math.random() * 2;
+        const animationDelay = Math.random() * 0.5;
+        confetti.style.animation = `confetti-fall ${animationDuration}s ease-in ${animationDelay}s forwards`;
+        confetti.style.position = 'fixed';
+        confetti.style.zIndex = '9999';
+
+        const keyframes = `
+            @keyframes confetti-fall {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+        `;
+
+        if (!document.querySelector('style#confetti-style')) {
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'confetti-style';
+            styleSheet.innerHTML = keyframes;
+            document.head.appendChild(styleSheet);
+        }
+
+        setTimeout(() => {
+            container.removeChild(confetti);
+        }, (animationDuration + animationDelay) * 1000);
+    }
 }
 
 // ゲームオーバー

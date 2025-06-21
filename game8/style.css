@@ -1059,6 +1059,16 @@ body {
   margin-bottom: var(--space-24);
 }
 
+/* Confetti effect */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #f00;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Responsive design */
 @media (max-width: 767px) {
   .container {
