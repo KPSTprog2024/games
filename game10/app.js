@@ -591,7 +591,13 @@ async function loadJourneyData() {
     if (!response.ok) {
         throw new Error('journey-data.json の読み込みに失敗しました');
     }
-    return await response.json();
+    const clone = response.clone();
+    try {
+        return await response.json();
+    } catch (err) {
+        const text = await clone.text();
+        throw new Error(`journey-data.json の JSON 解析に失敗しました: ${text}`);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
