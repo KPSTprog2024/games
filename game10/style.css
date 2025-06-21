@@ -1348,6 +1348,17 @@ select.form-control {
     opacity: 0.9;
 }
 
+/* 芭蕉プロフィール・作品概要セクション */
+#basho-profile,
+#work-overview {
+    margin: var(--space-16) 0;
+    padding: var(--space-16);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--shadow-sm);
+}
+
 /* コンパクトなタイムラインコントロール */
 .timeline-controls {
     margin: var(--space-16) 0;
@@ -1466,7 +1477,10 @@ select.form-control {
 
 .special-content,
 .description,
-.context {
+.context,
+.disciples,
+.climate,
+.historical-events {
     background: var(--color-background);
     padding: var(--space-16);
     border-radius: var(--radius-base);
@@ -1475,7 +1489,10 @@ select.form-control {
 
 .special-content h3,
 .description h3,
-.context h3 {
+.context h3,
+.disciples h3,
+.climate h3,
+.historical-events h3 {
     margin: 0 0 var(--space-8) 0;
     font-size: var(--font-size-lg);
     color: var(--color-primary);
@@ -1484,7 +1501,10 @@ select.form-control {
 
 .special-content p,
 .description p,
-.context p {
+.context p,
+.disciples p,
+.climate p,
+.historical-events p {
     margin: 0;
     line-height: var(--line-height-normal);
 }
