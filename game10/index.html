@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>松尾芭蕉『奥の細道』の旅路</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1 id="journey-title">松尾芭蕉『奥の細道』の旅路</h1>
+            <p id="journey-period">1689年5月16日 - 8月21日（98日間）</p>
+        </header>
+
+        <!-- 地図エリア -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <!-- コンパクトなタイムラインコントロール -->
+        <div class="timeline-controls">
+            <div class="timeline-row">
+                <button class="btn btn--sm auto-adjust-btn" id="auto-adjust-btn">自動調整ON</button>
+                <div class="timeline-slider-container">
+                    <input type="range" id="timeline-slider" min="0" max="7" value="0" step="1">
+                </div>
+                <div class="nav-buttons">
+                    <button class="btn btn--sm" id="prev-btn">前へ</button>
+                    <button class="btn btn--sm" id="next-btn">次へ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 情報表示パネル -->
+        <div class="info-panel">
+            <div class="info-content">
+                <div class="location-header">
+                    <h2 id="current-location">深川</h2>
+                    <span class="status status--info" id="current-date">1689-05-16</span>
+                </div>
+                <div class="location-details">
+                    <div class="special-content" id="special-content">
+                        <h3>俳句</h3>
+                        <p id="special-text">草の戸も住み替はる代ぞ雛の家</p>
+                        <p id="special-reading" class="reading">くさのとも すみかわるよぞ ひなのいえ</p>
+                    </div>
+                    <div class="description" id="description">
+                        <h3>詳細</h3>
+                        <p id="description-text">芭蕉庵があった出発地。『奥の細道』の旅路の始まり。</p>
+                    </div>
+                    <div class="context" id="context">
+                        <h3>歴史的背景</h3>
+                        <p id="context-text">江戸深川は新開地で、多くの文人墨客が住んでいた地域。</p>
+                    </div>
+                </div>
+                <div class="navigation-info">
+                    <span id="location-counter">1 / 8</span>
+                    <span id="progress-indicator">旅程進行中...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
