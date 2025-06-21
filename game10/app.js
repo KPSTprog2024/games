@@ -438,11 +438,8 @@ class BashoJourneyMap {
                     'current-date': location.date,
                     'special-text': location.haiku || '特別な記録はありません',
                     'special-reading': location.reading || '',
-                    'description-text': location.description || '詳細情報はありません',
-                    'context-text': location.context || '追加情報はありません',
-                    'disciples-text': location.disciples || '情報なし',
-                    'climate-text': location.climate || '情報なし',
-                    'historical-events-text': location.historicalEvents || '情報なし',
+                    'scene-summary-text': location.sceneSummary || '情報なし',
+                    'background-info-text': location.backgroundInfo || '情報なし',
                     'location-counter': `${this.currentIndex + 1} / ${this.journeyData.journeyData.length}`,
                     'progress-indicator': this.currentIndex === this.journeyData.journeyData.length - 1 ? '旅程完了' : '旅程進行中...'
                 };

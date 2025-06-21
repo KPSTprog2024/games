@@ -965,11 +965,8 @@ select.form-control {
 }
 
 .special-content,
-.description,
-.context,
-.disciples,
-.climate,
-.historical-events {
+.scene-summary,
+.background-info {
     background: var(--color-background);
     padding: var(--space-16);
     border-radius: var(--radius-base);
@@ -997,11 +994,8 @@ select.form-control {
 }
 
 .special-content h3,
-.description h3,
-.context h3,
-.disciples h3,
-.climate h3,
-.historical-events h3 {
+.scene-summary h3,
+.background-info h3 {
     margin: 0 0 var(--space-8) 0;
     font-size: var(--font-size-lg);
     color: var(--color-primary);
@@ -1016,11 +1010,8 @@ select.form-control {
 }
 
 .special-content p,
-.description p,
-.context p,
-.disciples p,
-.climate p,
-.historical-events p {
+.scene-summary p,
+.background-info p {
     margin: 0;
     line-height: var(--line-height-normal);
 }
