@@ -52,6 +52,17 @@ travel-map/
 
 `travel-data.js` ファイルを編集して、あなたの旅行データを設定します。
 
+### 4. ローカルサーバーで起動
+
+ブラウザのセキュリティ制限を避けるため、`index.html` はHTTPサーバー経由で表示してください。
+
+```bash
+cd game10
+python3 -m http.server
+```
+
+その後、`http://localhost:8000/index.html` を開きます。
+
 ## データ設定ガイド
 
 ### 基本設定

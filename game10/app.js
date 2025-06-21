@@ -587,11 +587,20 @@ class BashoJourneyMap {
 }
 
 async function loadJourneyData() {
-    const response = await fetch('journey-data.json');
+    const response = await fetch('./journey-data.json');
     if (!response.ok) {
         throw new Error('journey-data.json の読み込みに失敗しました');
     }
-    return await response.json();
+
+    const cloned = response.clone();
+    try {
+        return await response.json();
+    } catch (err) {
+        console.error('JSON parsing failed', err);
+        console.log('response.status', cloned.status);
+        console.log('response text', await cloned.text());
+        throw err;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
