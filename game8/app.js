@@ -95,6 +95,8 @@ function init() {
 
 // イベントリスナーの設定
 function setupEventListeners() {
+    // Ensure all squares are selected (including any new ones)
+    elements.squares = document.querySelectorAll('.game-square');
     // Settings screen
     elements.speedButtons.forEach(btn => {
         btn.addEventListener('click', () => selectSpeed(btn.dataset.speed));
@@ -272,7 +274,7 @@ function generateSequence() {
     for (let i = 0; i < gameState.flashCount; i++) {
         let nextIndex;
         do {
-            nextIndex = Math.floor(Math.random() * 4);
+            nextIndex = Math.floor(Math.random() * 5);
         } while (!gameState.allowRepeat && i > 0 && nextIndex === gameState.sequence[i - 1]);
         
         gameState.sequence.push(nextIndex);

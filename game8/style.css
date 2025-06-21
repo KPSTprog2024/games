@@ -917,7 +917,7 @@ body {
 /* Game board styles */
 .game-board {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-16);
   margin-bottom: var(--space-32);
   padding: var(--space-20);
