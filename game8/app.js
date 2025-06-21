@@ -1,9 +1,9 @@
 // ゲーム設定データ
 const gameSettings = {
     speedOptions: {
-        slow: { duration: 800, label: "🐌 ゆっくり" },
-        normal: { duration: 500, label: "🚶 ふつう" },
-        fast: { duration: 300, label: "🏃 はやい" }
+        slow: { duration: 400, label: "🐌 ゆっくり" },
+        normal: { duration: 300, label: "🚶 ふつう" },
+        fast: { duration: 200, label: "🏃 はやい" }
     }
 };
 
@@ -40,8 +40,8 @@ let gameState = {
     lives: 2,
     maxLives: 2,
     flashCount: 2,
-    flashDuration: 500,
-    baseDuration: 500,
+    flashDuration: 400,
+    baseDuration: 400,
     allowRepeat: false,
     sequence: [],
     playerInput: [],
