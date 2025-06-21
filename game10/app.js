@@ -341,9 +341,11 @@ class BashoJourneyMap {
             if (this.autoAdjustEnabled) {
                 autoAdjustBtn.textContent = '自動調整ON';
                 autoAdjustBtn.classList.remove('disabled');
+                autoAdjustBtn.setAttribute('aria-label', '自動調整ON');
             } else {
                 autoAdjustBtn.textContent = '自動調整OFF';
                 autoAdjustBtn.classList.add('disabled');
+                autoAdjustBtn.setAttribute('aria-label', '自動調整OFF');
             }
         }
     }
@@ -367,6 +369,7 @@ class BashoJourneyMap {
             if (toggleMapBtn) {
                 toggleMapBtn.textContent = '現代地図に戻す';
                 toggleMapBtn.classList.add('historical');
+                toggleMapBtn.setAttribute('aria-label', '現代地図に戻す');
             }
         } else {
             // 現代地図スタイルに変更
@@ -379,6 +382,7 @@ class BashoJourneyMap {
             if (toggleMapBtn) {
                 toggleMapBtn.textContent = '古地図風に変更';
                 toggleMapBtn.classList.remove('historical');
+                toggleMapBtn.setAttribute('aria-label', '古地図風に変更');
             }
         }
     }
@@ -425,6 +429,32 @@ class BashoJourneyMap {
     updateDisplay() {
         const location = this.journeyData.journeyData[this.currentIndex];
         const locationDetails = document.querySelector('.location-details');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const slider = document.getElementById('timeline-slider');
+
+        if (prevBtn) {
+            if (this.currentIndex > 0) {
+                const prevName = this.journeyData.journeyData[this.currentIndex - 1].name;
+                prevBtn.setAttribute('aria-label', `前へ: ${prevName}`);
+            } else {
+                prevBtn.setAttribute('aria-label', '前の地点はありません');
+            }
+        }
+
+        if (nextBtn) {
+            if (this.currentIndex < this.journeyData.journeyData.length - 1) {
+                const nextName = this.journeyData.journeyData[this.currentIndex + 1].name;
+                nextBtn.setAttribute('aria-label', `次へ: ${nextName}`);
+            } else {
+                nextBtn.setAttribute('aria-label', '次の地点はありません');
+            }
+        }
+
+        if (slider) {
+            slider.setAttribute('aria-valuenow', this.currentIndex);
+            slider.setAttribute('aria-valuetext', location.name);
+        }
         
         // フェードアウト
         if (locationDetails) {
@@ -546,6 +576,11 @@ class BashoJourneyMap {
         const slider = document.getElementById('timeline-slider');
         if (slider) {
             slider.value = this.currentIndex;
+            slider.setAttribute('aria-valuenow', this.currentIndex);
+            const location = this.journeyData.journeyData[this.currentIndex];
+            if (location && location.name) {
+                slider.setAttribute('aria-valuetext', location.name);
+            }
         }
     }
 
