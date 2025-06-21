@@ -1,119 +1,9 @@
 // 松尾芭蕉『奥の細道』の旅路マップアプリケーション
 
-// 奥の細道の旅程データ
-const BASHO_JOURNEY_DATA = {
-    title: "松尾芭蕉『奥の細道』の旅路",
-    period: "1689年5月16日 - 8月21日（98日間）",
-    journeyData: [
-        {
-            name: "深川",
-            date: "1689-05-16",
-            lat: 35.6762,
-            lng: 139.7969,
-            haiku: "草の戸も住み替はる代ぞ雛の家",
-            reading: "くさのとも すみかわるよぞ ひなのいえ",
-            description: "芭蕉庵があった出発地。『奥の細道』の旅路の始まり。",
-            context: "江戸深川は新開地で、多くの文人墨客が住んでいた地域。",
-            disciples: "曽良",
-            climate: "春から夏へ向かう温暖な気候",
-            historicalEvents: "江戸町人文化が発展し始めた頃"
-        },
-        {
-            name: "白河の関",
-            date: "1689-06-06",
-            lat: 37.1250,
-            lng: 140.2167,
-            haiku: "風流の初やおくの田植歌",
-            reading: "ふうりゅうの はじめやおくの たうえうた",
-            description: "奥州への入口となる重要な関所。本格的な旅の始まり。",
-            context: "古来より歌枕として有名で、都から遠い\u300cみちのく\u300dへの入口。",
-            disciples: "曽良",
-            climate: "初夏の爽やかな気候",
-            historicalEvents: "関所として古くから機能していた"
-        },
-        {
-            name: "平泉",
-            date: "1689-06-29",
-            lat: 39.0000,
-            lng: 141.1167,
-            haiku: "夏草や兵どもが夢の跡",
-            reading: "なつくさや つわものどもが ゆめのあと",
-            description: "奥州藤原氏の栄華の跡地。源義経の最期の地。",
-            context: "平泉は奥州藤原氏三代の栄華の舞台で、芭蕉は栄枯盛衰の無常を感じた。",
-            disciples: "曽良",
-            climate: "梅雨期で湿潤",
-            historicalEvents: "藤原氏滅亡から約500年後の姿"
-        },
-        {
-            name: "立石寺（山寺）",
-            date: "1689-07-13",
-            lat: 38.3167,
-            lng: 140.4333,
-            haiku: "閑さや岩にしみ入る蝉の声",
-            reading: "しずかさや いわにしみいる せみのこえ",
-            description: "山形の名刹。1015段の石段を登り、静寂の中の蝉の声に感動。",
-            context: "立石寺は慈覚大師円仁が開いた天台宗の古刹で、断崖絶壁に建つ。",
-            disciples: "曽良",
-            climate: "夏の暑さの中でも山間は涼しい",
-            historicalEvents: "開基から約800年を迎えていた"
-        },
-        {
-            name: "最上川",
-            date: "1689-07-25",
-            lat: 38.7500,
-            lng: 140.1000,
-            haiku: "五月雨をあつめて早し最上川",
-            reading: "さみだれを あつめてはやし もがみがわ",
-            description: "山形を流れる大河を舟で下る。梅雨の雨で増水した川の迫力。",
-            context: "最上川は山形県を流れる一級河川で、当時は重要な交通路。",
-            disciples: "曽良",
-            climate: "梅雨明け間近で水量が多い",
-            historicalEvents: "水運による商業が盛んだった"
-        },
-        {
-            name: "象潟",
-            date: "1689-08-01",
-            lat: 39.2072,
-            lng: 139.9089,
-            haiku: "象潟や雨に西施がねぶの花",
-            reading: "きさかたや あめにせいしが ねぶのはな",
-            description: "旅の最北端。松島と並び称される景勝地。",
-            context: "象潟は松島と並び称される景勝地で、芭蕉の時代は美しい潟湖だった。",
-            disciples: "曽良",
-            climate: "夏でも涼しい海風が吹く",
-            historicalEvents: "後に地震で潟湖が陸地化"
-        },
-        {
-            name: "出雲崎",
-            date: "1689-08-05",
-            lat: 37.3500,
-            lng: 138.7500,
-            haiku: "荒海や佐渡によこたふ天河",
-            reading: "あらうみや さどによこたう あまのがわ",
-            description: "日本海に面した港町。佐渡島を望む海岸で天の川を詠む。",
-            context: "出雲崎は佐渡金山の積出港として栄えた港町。",
-            disciples: "曽良",
-            climate: "潮風が強い夏の海岸",
-            historicalEvents: "北前船交易で賑わっていた"
-        },
-        {
-            name: "大垣",
-            date: "1689-08-21",
-            lat: 35.3661,
-            lng: 136.6183,
-            haiku: "蛤のふたみにわかれ行秋ぞ",
-            reading: "はまぐりの ふたみにわかれ ゆくあきぞ",
-            description: "約2400キロの旅の終着点。約98日間の長旅の終わり。",
-            context: "大垣は美濃国の城下町で、芭蕉の旅の終着点となった。",
-            disciples: "曽良",
-            climate: "夏の終わりで朝晩は涼しい",
-            historicalEvents: "西国への交通の要衝として発展"
-        }
-    ]
-};
+// 旅程データは外部JSONから読み込む
 
 class BashoJourneyMap {
-    constructor(data = BASHO_JOURNEY_DATA) {
+    constructor(data) {
         this.journeyData = data;
         this.currentIndex = 0;
         this.map = null;
@@ -699,6 +589,19 @@ class BashoJourneyMap {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new BashoJourneyMap();
+async function loadJourneyData() {
+    const response = await fetch('journey-data.json');
+    if (!response.ok) {
+        throw new Error('journey-data.json の読み込みに失敗しました');
+    }
+    return await response.json();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const data = await loadJourneyData();
+        new BashoJourneyMap(data);
+    } catch (err) {
+        console.error('旅程データの取得に失敗しました', err);
+    }
 });
