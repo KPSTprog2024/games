@@ -558,20 +558,6 @@ function showError(message) {
     }, 5000);
 }
 
-async function loadConfig() {
-    const response = await fetch('./config.json');
-    if (!response.ok) {
-        throw new Error('config.json の読み込みに失敗しました');
-    }
-    const clone = response.clone();
-    try {
-        return await response.json();
-    } catch (err) {
-        const text = await clone.text();
-        throw new Error(`config.json の JSON 解析に失敗しました: ${text}`);
-    }
-}
-
 export function initializeApp(config, data) {
     if (config && config.appTitle) {
         document.title = config.appTitle;
