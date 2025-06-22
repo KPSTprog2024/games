@@ -173,6 +173,7 @@ function generateSeasonQuizQuestion() {
   const quizItemEl = document.getElementById('season-quiz-item');
   quizItemEl.textContent = randomItem.emoji;
   quizItemEl.setAttribute('aria-label', randomItem.name);
+  adjustTextItem(quizItemEl, randomItem.emoji);
   document.getElementById('season-quiz-name').textContent = randomItem.name;
 }
 
@@ -210,6 +211,7 @@ function generateNameQuizQuestion() {
   const nameIconEl = document.getElementById('name-quiz-icon');
   nameIconEl.textContent = correctItem.emoji;
   nameIconEl.setAttribute('aria-label', correctItem.name);
+  adjustTextItem(nameIconEl, correctItem.emoji);
   
   // カテゴリを決定
   const categories = ['もの', 'はな', 'くだもの', 'ぎょうじ'];
@@ -430,6 +432,7 @@ function generateTestQuestion() {
   const testItemEl = document.getElementById('test-question-item');
   testItemEl.textContent = correctItem.emoji;
   testItemEl.setAttribute('aria-label', correctItem.name);
+  adjustTextItem(testItemEl, correctItem.emoji);
   
   const optionsContainer = document.getElementById('test-options-container');
   optionsContainer.innerHTML = '';
@@ -506,6 +509,7 @@ function showExplanation(isCorrect) {
   const item = gameState.currentQuestionData;
   explanationIcon.textContent = item.emoji;
   explanationIcon.setAttribute('aria-label', item.name);
+  adjustTextItem(explanationIcon, item.emoji);
   explanationName.textContent = item.name;
   explanationSeason.textContent = `季節：${item.season}`;
   explanationDescription.textContent = item.description;
@@ -672,5 +676,14 @@ function loadProgress() {
     }
   } catch (e) {
     console.warn('Failed to load progress:', e);
+  }
+}
+
+// 問題表示用アイコンのテキスト量に応じてクラスを付与
+function adjustTextItem(element, content) {
+  if (content && content.length > 2) {
+    element.classList.add('text-item');
+  } else {
+    element.classList.remove('text-item');
   }
 }
