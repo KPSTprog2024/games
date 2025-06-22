@@ -420,6 +420,7 @@ class BashoJourneyMap {
         this.currentIndex = index;
         this.updateDisplay();
         this.updateMap();
+        this.updateMarkerStyles();
         this.updateTimeline();
     }
 
@@ -556,14 +557,15 @@ class BashoJourneyMap {
     }
 
     updateMarkerStyles() {
-        this.markers.forEach((marker, index) => {
+
+        this.markers.forEach((marker, idx) => {
             const el = marker.getElement();
-            if (el) {
-                if (index === this.currentIndex) {
-                    el.classList.add('current-marker');
-                } else {
-                    el.classList.remove('current-marker');
-                }
+            if (!el) return;
+            if (idx === this.currentIndex) {
+                el.classList.add('current-marker');
+            } else {
+                el.classList.remove('current-marker');
+
             }
         });
     }
