@@ -26,14 +26,15 @@
                 <div class="journey-progress-bar" id="journey-progress-bar"></div>
             </div>
             <div class="timeline-row">
-                <button class="btn btn--sm auto-adjust-btn" id="auto-adjust-btn">自動調整ON</button>
-                <button class="btn btn--sm map-style-btn" id="toggle-map-style">地図スタイル切替</button>
+                <button class="btn btn--sm auto-adjust-btn" id="auto-adjust-btn" aria-label="自動調整ON">自動調整ON</button>
+                <button class="btn btn--sm map-style-btn" id="toggle-map-style" aria-label="地図スタイル切替">地図スタイル切替</button>
                 <div class="timeline-slider-container">
-                    <input type="range" id="timeline-slider" min="0" max="7" value="0" step="1">
+                    <label id="timeline-slider-label" for="timeline-slider" class="sr-only">旅程スライダー</label>
+                    <input type="range" id="timeline-slider" min="0" max="7" value="0" step="1" aria-labelledby="timeline-slider-label current-location">
                 </div>
                 <div class="nav-buttons">
-                    <button class="btn btn--sm" id="prev-btn">前へ</button>
-                    <button class="btn btn--sm" id="next-btn">次へ</button>
+                    <button class="btn btn--sm" id="prev-btn" aria-label="前の地点へ">前へ</button>
+                    <button class="btn btn--sm" id="next-btn" aria-label="次の地点へ">次へ</button>
                 </div>
             </div>
         </div>
