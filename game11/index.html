@@ -20,29 +20,29 @@
         </div>
         <div class="stars-display">
           <span class="stars-label">ほし：</span>
-          <span id="stars-value">0</span> <span class="star-icon">★</span>
+          <span id="stars-value">0</span> <span class="star-icon" aria-hidden="true">★</span>
         </div>
       </div>
       
       <div class="game-buttons">
         <button class="game-btn spring-theme" data-game="seasonQuiz">
-          <div class="btn-icon">🌸</div>
+          <div class="btn-icon" aria-hidden="true">🌸</div>
           季節あてクイズ
         </button>
         <button class="game-btn summer-theme" data-game="nameQuiz">
-          <div class="btn-icon">🌻</div>
+          <div class="btn-icon" aria-hidden="true">🌻</div>
           なまえあてクイズ
         </button>
         <button class="game-btn autumn-theme" data-game="matchGame">
-          <div class="btn-icon">🍁</div>
+          <div class="btn-icon" aria-hidden="true">🍁</div>
           おなじ季節さがし
         </button>
         <button class="game-btn winter-theme" data-game="orderGame">
-          <div class="btn-icon">❄️</div>
+          <div class="btn-icon" aria-hidden="true">❄️</div>
           季節の順番ゲーム
         </button>
         <button class="game-btn test-theme" data-game="testMode">
-          <div class="btn-icon">📝</div>
+          <div class="btn-icon" aria-hidden="true">📝</div>
           おぼえたかな？テスト
         </button>
       </div>
@@ -50,11 +50,11 @@
       <div class="badges-section">
         <h3>獲得バッジ</h3>
         <div id="badges-container" class="badges-container">
-          <div class="badge locked" id="badge-spring"><span>🌸</span><p>はなはかせ</p></div>
-          <div class="badge locked" id="badge-summer"><span>🌞</span><p>なつマスター</p></div>
-          <div class="badge locked" id="badge-autumn"><span>🍂</span><p>あきの友だち</p></div>
-          <div class="badge locked" id="badge-winter"><span>☃️</span><p>ふゆのたんけんか</p></div>
-          <div class="badge locked" id="badge-all"><span>🏆</span><p>きせつはかせ</p></div>
+          <div class="badge locked" id="badge-spring"><span aria-hidden="true">🌸</span><p>はなはかせ</p></div>
+          <div class="badge locked" id="badge-summer"><span aria-hidden="true">🌞</span><p>なつマスター</p></div>
+          <div class="badge locked" id="badge-autumn"><span aria-hidden="true">🍂</span><p>あきの友だち</p></div>
+          <div class="badge locked" id="badge-winter"><span aria-hidden="true">☃️</span><p>ふゆのたんけんか</p></div>
+          <div class="badge locked" id="badge-all"><span aria-hidden="true">🏆</span><p>きせつはかせ</p></div>
         </div>
       </div>
     </div>
@@ -64,21 +64,21 @@
       <h2 class="game-title">季節あてクイズ</h2>
       <div class="quiz-container">
         <div class="question-area">
-          <div id="season-quiz-item" class="quiz-item"></div>
+          <div id="season-quiz-item" aria-hidden="true" class="quiz-item"></div>
           <p class="question-text">これは <span id="season-quiz-name"></span> です。どの季節かな？</p>
         </div>
         <div class="answer-options season-options">
           <button class="answer-btn spring-theme" data-answer="春">
-            <span class="btn-icon">🌸</span>はる
+            <span class="btn-icon" aria-hidden="true">🌸</span>はる
           </button>
           <button class="answer-btn summer-theme" data-answer="夏">
-            <span class="btn-icon">☀️</span>なつ
+            <span class="btn-icon" aria-hidden="true">☀️</span>なつ
           </button>
           <button class="answer-btn autumn-theme" data-answer="秋">
-            <span class="btn-icon">🍁</span>あき
+            <span class="btn-icon" aria-hidden="true">🍁</span>あき
           </button>
           <button class="answer-btn winter-theme" data-answer="冬">
-            <span class="btn-icon">❄️</span>ふゆ
+            <span class="btn-icon" aria-hidden="true">❄️</span>ふゆ
           </button>
         </div>
       </div>
@@ -90,7 +90,7 @@
       <h2 class="game-title">なまえあてクイズ</h2>
       <div class="quiz-container">
         <div class="question-area">
-          <div id="name-quiz-icon" class="quiz-item large-emoji"></div>
+          <div id="name-quiz-icon" aria-hidden="true" class="quiz-item large-emoji"></div>
           <p class="question-text">これは なんていう <span id="name-quiz-category"></span> かな？</p>
         </div>
         <div class="answer-options name-options" id="name-options-container">
@@ -136,7 +136,7 @@
       <h2 class="game-title">おぼえたかな？テスト</h2>
       <div class="test-container">
         <div class="question-area">
-          <div id="test-question-item" class="quiz-item"></div>
+          <div id="test-question-item" aria-hidden="true" class="quiz-item"></div>
           <p id="test-question-text" class="question-text">もんだい: <span id="test-question"></span></p>
         </div>
         <div class="answer-options test-options" id="test-options-container">
@@ -155,7 +155,7 @@
       <div class="result-container">
         <div class="result-stars">
           <span id="result-stars-count">0</span>
-          <span class="star-icon large">★</span>
+          <span class="star-icon large" aria-hidden="true">★</span>
         </div>
         <p class="result-message" id="result-message">よくがんばったね！</p>
         <div class="result-badges" id="result-badges">
@@ -173,7 +173,7 @@
           <!-- 正解/不正解の表示 -->
         </div>
         <div class="explanation-content">
-          <div class="explanation-icon" id="explanation-icon"></div>
+          <div class="explanation-icon" aria-hidden="true" id="explanation-icon"></div>
           <div class="explanation-text">
             <h3 id="explanation-name" class="explanation-name"></h3>
             <p id="explanation-season" class="explanation-season"></p>
