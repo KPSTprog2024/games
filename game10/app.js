@@ -480,13 +480,6 @@ class BashoJourneyMap {
                 // 季節感を表現
                 this.updateSeasonIndicator(location.date);
                 
-                // 進行状況バーを更新
-                const progressBar = document.getElementById('journey-progress-bar');
-                if (progressBar) {
-                    const progress = ((this.currentIndex + 1) / this.journeyData.journeyData.length) * 100;
-                    progressBar.style.width = `${progress}%`;
-                }
-                
                 // フェードイン
                 locationDetails.classList.remove('fade-out');
                 locationDetails.classList.add('fade-in');
