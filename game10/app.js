@@ -9,11 +9,10 @@ class BashoJourneyMap {
         this.map = null;
         this.tileLayer = null; // タイルレイヤーを保持する変数を追加
         this.markers = [];
-        this.currentMarker = null;
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
         this.currentMapStyle = 'modern'; // デフォルトは現代地図
-        this.modernInfoData = null; // 現代情報のキャッシュ
+
         
         this.init();
     }
@@ -89,6 +88,8 @@ class BashoJourneyMap {
 
             this.markers.push(marker);
         });
+
+        this.updateMarkerStyles();
     }
 
     drawJourneyPath() {
@@ -137,11 +138,6 @@ class BashoJourneyMap {
         // 自動調整ボタンの初期状態を設定
         this.updateAutoAdjustButton();
         
-        // 地図スタイルボタンの初期状態を設定
-        const toggleMapBtn = document.getElementById('toggle-map-style');
-        if (toggleMapBtn) {
-            toggleMapBtn.textContent = '古地図風に変更';
-        }
     }
 
     setupEventListeners() {
@@ -158,7 +154,6 @@ class BashoJourneyMap {
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const autoAdjustBtn = document.getElementById('auto-adjust-btn');
-        const toggleMapBtn = document.getElementById('toggle-map-style');
         const readHaikuBtn = document.getElementById('read-haiku');
         
         if (prevBtn) {
@@ -179,11 +174,6 @@ class BashoJourneyMap {
             });
         }
         
-        if (toggleMapBtn) {
-            toggleMapBtn.addEventListener('click', () => {
-                this.toggleMapStyle();
-            });
-        }
         
         if (readHaikuBtn) {
             readHaikuBtn.addEventListener('click', () => {
@@ -259,71 +249,6 @@ class BashoJourneyMap {
             content.classList.toggle('active', content.id === `${tabId}-content`);
         });
         
-        // 現代タブが選択された場合、現代情報を読み込む
-        if (tabId === 'modern') {
-            // モダン情報は非同期で読み込む
-            this.loadModernInfo();
-        }
-    }
-
-    async loadModernInfo() {
-        const location = this.journeyData.journeyData[this.currentIndex];
-        const modernDescription = document.getElementById('modern-description');
-        const modernImage = document.getElementById('modern-image');
-        
-        // modern-info.json を初回のみ取得
-        try {
-            if (!this.modernInfoData) {
-                const response = await fetch('./modern-info.json');
-                if (!response.ok) {
-                    throw new Error('modern-info.json の読み込みに失敗しました');
-                }
-
-                const clone = response.clone();
-                try {
-                    this.modernInfoData = await response.json();
-                } catch (err) {
-                    const text = await clone.text();
-                    throw new Error(`modern-info.json の JSON 解析に失敗しました: ${text}`);
-                }
-            }
-        } catch (err) {
-            console.error('現代情報取得エラー:', err);
-            this.showError('現代情報の取得に失敗しました。');
-
-            if (modernDescription) {
-                modernDescription.textContent = '現代の詳細情報は取得できませんでした。';
-            }
-
-            if (modernImage) {
-                modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
-            }
-            return;
-        }
-
-        const info = this.modernInfoData[location.name];
-
-        if (info) {
-            if (modernDescription) {
-                modernDescription.textContent = info.description;
-            }
-
-            if (modernImage) {
-                if (info.imageUrl) {
-                    modernImage.innerHTML = `<img src="${info.imageUrl}" alt="${location.name} の現代の様子">`;
-                } else {
-                    modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
-                }
-            }
-        } else {
-            if (modernDescription) {
-                modernDescription.textContent = '現代の詳細情報は準備中です。';
-            }
-
-            if (modernImage) {
-                modernImage.innerHTML = '<div class="no-image">画像は準備中です</div>';
-            }
-        }
     }
 
     toggleAutoAdjust() {
@@ -346,42 +271,6 @@ class BashoJourneyMap {
         }
     }
     
-    toggleMapStyle() {
-        const toggleMapBtn = document.getElementById('toggle-map-style');
-        
-        // スタイルを切り替え
-        if (this.currentMapStyle === 'modern') {
-            // 古地図スタイルに変更
-            this.map.removeLayer(this.tileLayer);
-            
-            // 古地図風のタイルレイヤー
-            this.tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                className: 'map-tiles-sepia' // CSSで古い雰囲気を出す
-            }).addTo(this.map);
-            
-            this.currentMapStyle = 'historical';
-            if (toggleMapBtn) {
-                toggleMapBtn.textContent = '現代地図に戻す';
-                toggleMapBtn.classList.add('historical');
-                toggleMapBtn.setAttribute('aria-label', '現代地図に戻す');
-            }
-        } else {
-            // 現代地図スタイルに変更
-            this.map.removeLayer(this.tileLayer);
-            this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(this.map);
-            
-            this.currentMapStyle = 'modern';
-            if (toggleMapBtn) {
-                toggleMapBtn.textContent = '古地図風に変更';
-                toggleMapBtn.classList.remove('historical');
-                toggleMapBtn.setAttribute('aria-label', '古地図風に変更');
-            }
-        }
-    }
     
     readHaikuAloud() {
         const location = this.journeyData.journeyData[this.currentIndex];
@@ -419,6 +308,7 @@ class BashoJourneyMap {
         this.currentIndex = index;
         this.updateDisplay();
         this.updateMap();
+        this.updateMarkerStyles();
         this.updateTimeline();
     }
 
@@ -480,13 +370,6 @@ class BashoJourneyMap {
                 // 季節感を表現
                 this.updateSeasonIndicator(location.date);
                 
-                // 進行状況バーを更新
-                const progressBar = document.getElementById('journey-progress-bar');
-                if (progressBar) {
-                    const progress = ((this.currentIndex + 1) / this.journeyData.journeyData.length) * 100;
-                    progressBar.style.width = `${progress}%`;
-                }
-                
                 // フェードイン
                 locationDetails.classList.remove('fade-out');
                 locationDetails.classList.add('fade-in');
@@ -536,22 +419,8 @@ class BashoJourneyMap {
 
     updateMap() {
         const location = this.journeyData.journeyData[this.currentIndex];
-        
-        // 現在位置マーカーを更新
-        if (this.currentMarker) {
-            this.map.removeLayer(this.currentMarker);
-        }
-        
-        // 現在位置を示す特別なマーカーを作成
-        const currentIcon = L.divIcon({
-            className: 'custom-marker current-marker pulse',
-            html: `<span>${this.currentIndex + 1}</span>`,
-            iconSize: [32, 32]
-        });
-        
-        this.currentMarker = L.marker([location.lat, location.lng], {
-            icon: currentIcon
-        }).addTo(this.map);
+
+        this.updateMarkerStyles();
         
         // 自動調整が有効な場合、地図の中心と縮尺を移動
         if (this.autoAdjustEnabled) {
@@ -566,6 +435,20 @@ class BashoJourneyMap {
                 duration: 1
             });
         }
+    }
+
+    updateMarkerStyles() {
+
+        this.markers.forEach((marker, idx) => {
+            const el = marker.getElement();
+            if (!el) return;
+            if (idx === this.currentIndex) {
+                el.classList.add('current-marker');
+            } else {
+                el.classList.remove('current-marker');
+
+            }
+        });
     }
 
     updateTimeline() {
