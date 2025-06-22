@@ -278,9 +278,10 @@ function generateMatchGameQuestion() {
 
   // 参照アイテムを表示
   const refEl = document.getElementById('match-reference');
-  refEl.textContent = referenceItem.emoji;
+  const refContent = referenceItem.emoji || referenceItem.name;
+  refEl.textContent = refContent;
   refEl.setAttribute('aria-label', referenceItem.name);
-  adjustTextItem(refEl, referenceItem.emoji);
+  adjustTextItem(refEl, refContent);
 
   const matchGrid = document.getElementById('match-grid');
   matchGrid.innerHTML = '';
