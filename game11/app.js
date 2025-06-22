@@ -253,7 +253,7 @@ function startMatchGame() {
 function generateMatchGameQuestion() {
   const seasons = ['spring', 'summer', 'autumn', 'winter'];
   const targetSeason = seasons[Math.floor(Math.random() * seasons.length)];
-  const seasonItems = learningData[targetSeason];
+  const seasonItems = [...learningData[targetSeason]];
   
   // 同じ季節から2つ選択
   const shuffledItems = seasonItems.sort(() => Math.random() - 0.5);
@@ -263,7 +263,7 @@ function generateMatchGameQuestion() {
   const otherSeasons = seasons.filter(s => s !== targetSeason);
   const wrongItems = [];
   otherSeasons.forEach(season => {
-    const items = learningData[season].sort(() => Math.random() - 0.5);
+    const items = [...learningData[season]].sort(() => Math.random() - 0.5);
     wrongItems.push(items[0]);
     if (wrongItems.length < 4) {
       wrongItems.push(items[1]);
