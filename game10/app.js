@@ -9,7 +9,6 @@ class BashoJourneyMap {
         this.map = null;
         this.tileLayer = null; // タイルレイヤーを保持する変数を追加
         this.markers = [];
-        this.currentMarker = null;
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
         this.modernInfoData = null; // 現代情報のキャッシュ
@@ -88,6 +87,8 @@ class BashoJourneyMap {
 
             this.markers.push(marker);
         });
+
+        this.updateMarkerStyles();
     }
 
     drawJourneyPath() {
@@ -371,6 +372,7 @@ class BashoJourneyMap {
         this.currentIndex = index;
         this.updateDisplay();
         this.updateMap();
+        this.updateMarkerStyles();
         this.updateTimeline();
     }
 
@@ -432,13 +434,6 @@ class BashoJourneyMap {
                 // 季節感を表現
                 this.updateSeasonIndicator(location.date);
                 
-                // 進行状況バーを更新
-                const progressBar = document.getElementById('journey-progress-bar');
-                if (progressBar) {
-                    const progress = ((this.currentIndex + 1) / this.journeyData.journeyData.length) * 100;
-                    progressBar.style.width = `${progress}%`;
-                }
-                
                 // フェードイン
                 locationDetails.classList.remove('fade-out');
                 locationDetails.classList.add('fade-in');
@@ -488,22 +483,8 @@ class BashoJourneyMap {
 
     updateMap() {
         const location = this.journeyData.journeyData[this.currentIndex];
-        
-        // 現在位置マーカーを更新
-        if (this.currentMarker) {
-            this.map.removeLayer(this.currentMarker);
-        }
-        
-        // 現在位置を示す特別なマーカーを作成
-        const currentIcon = L.divIcon({
-            className: 'custom-marker current-marker pulse',
-            html: `<span>${this.currentIndex + 1}</span>`,
-            iconSize: [32, 32]
-        });
-        
-        this.currentMarker = L.marker([location.lat, location.lng], {
-            icon: currentIcon
-        }).addTo(this.map);
+
+        this.updateMarkerStyles();
         
         // 自動調整が有効な場合、地図の中心と縮尺を移動
         if (this.autoAdjustEnabled) {
@@ -518,6 +499,20 @@ class BashoJourneyMap {
                 duration: 1
             });
         }
+    }
+
+    updateMarkerStyles() {
+
+        this.markers.forEach((marker, idx) => {
+            const el = marker.getElement();
+            if (!el) return;
+            if (idx === this.currentIndex) {
+                el.classList.add('current-marker');
+            } else {
+                el.classList.remove('current-marker');
+
+            }
+        });
     }
 
     updateTimeline() {
