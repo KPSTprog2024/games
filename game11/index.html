@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>きせつまなび 解説版</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- メインコンテナ -->
+  <div class="app-container">
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen active">
+      <h1 class="app-title">きせつまなび 解説版</h1>
+      
+      <div class="progress-section">
+        <div class="level-display">
+          <span class="level-label">レベル：</span>
+          <span id="level-value">1</span>
+        </div>
+        <div class="stars-display">
+          <span class="stars-label">ほし：</span>
+          <span id="stars-value">0</span> <span class="star-icon">★</span>
+        </div>
+      </div>
+      
+      <div class="game-buttons">
+        <button class="game-btn spring-theme" data-game="seasonQuiz">
+          <div class="btn-icon">🌸</div>
+          季節あてクイズ
+        </button>
+        <button class="game-btn summer-theme" data-game="nameQuiz">
+          <div class="btn-icon">🌻</div>
+          なまえあてクイズ
+        </button>
+        <button class="game-btn autumn-theme" data-game="matchGame">
+          <div class="btn-icon">🍁</div>
+          おなじ季節さがし
+        </button>
+        <button class="game-btn winter-theme" data-game="orderGame">
+          <div class="btn-icon">❄️</div>
+          季節の順番ゲーム
+        </button>
+        <button class="game-btn test-theme" data-game="testMode">
+          <div class="btn-icon">📝</div>
+          おぼえたかな？テスト
+        </button>
+      </div>
+      
+      <div class="badges-section">
+        <h3>獲得バッジ</h3>
+        <div id="badges-container" class="badges-container">
+          <div class="badge locked" id="badge-spring"><span>🌸</span><p>はなはかせ</p></div>
+          <div class="badge locked" id="badge-summer"><span>🌞</span><p>なつマスター</p></div>
+          <div class="badge locked" id="badge-autumn"><span>🍂</span><p>あきの友だち</p></div>
+          <div class="badge locked" id="badge-winter"><span>☃️</span><p>ふゆのたんけんか</p></div>
+          <div class="badge locked" id="badge-all"><span>🏆</span><p>きせつはかせ</p></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 季節あてクイズ画面 -->
+    <div id="season-quiz-screen" class="screen">
+      <h2 class="game-title">季節あてクイズ</h2>
+      <div class="quiz-container">
+        <div class="question-area">
+          <div id="season-quiz-item" class="quiz-item"></div>
+          <p class="question-text">これは <span id="season-quiz-name"></span> です。どの季節かな？</p>
+        </div>
+        <div class="answer-options season-options">
+          <button class="answer-btn spring-theme" data-answer="春">
+            <span class="btn-icon">🌸</span>はる
+          </button>
+          <button class="answer-btn summer-theme" data-answer="夏">
+            <span class="btn-icon">☀️</span>なつ
+          </button>
+          <button class="answer-btn autumn-theme" data-answer="秋">
+            <span class="btn-icon">🍁</span>あき
+          </button>
+          <button class="answer-btn winter-theme" data-answer="冬">
+            <span class="btn-icon">❄️</span>ふゆ
+          </button>
+        </div>
+      </div>
+      <button id="season-quiz-back" class="back-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- なまえあてクイズ画面 -->
+    <div id="name-quiz-screen" class="screen">
+      <h2 class="game-title">なまえあてクイズ</h2>
+      <div class="quiz-container">
+        <div class="question-area">
+          <div id="name-quiz-icon" class="quiz-item large-emoji"></div>
+          <p class="question-text">これは なんていう <span id="name-quiz-category"></span> かな？</p>
+        </div>
+        <div class="answer-options name-options" id="name-options-container">
+          <!-- 選択肢がJSで動的に生成されます -->
+        </div>
+      </div>
+      <button id="name-quiz-back" class="back-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- おなじ季節さがし画面 -->
+    <div id="match-game-screen" class="screen">
+      <h2 class="game-title">おなじ季節さがし</h2>
+      <div class="match-container">
+        <p class="question-text">おなじ季節のものを2つえらんでね</p>
+        <div class="match-grid" id="match-grid">
+          <!-- マッチングカードがJSで動的に生成されます -->
+        </div>
+      </div>
+      <button id="match-game-back" class="back-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- 季節の順番ゲーム画面 -->
+    <div id="order-game-screen" class="screen">
+      <h2 class="game-title">季節の順番ゲーム</h2>
+      <div class="order-container">
+        <p class="question-text">季節を はる→なつ→あき→ふゆ の順に ならべてね</p>
+        <div class="order-slots" id="order-slots">
+          <div class="order-slot" data-position="0"></div>
+          <div class="order-slot" data-position="1"></div>
+          <div class="order-slot" data-position="2"></div>
+          <div class="order-slot" data-position="3"></div>
+        </div>
+        <div class="order-options" id="order-options">
+          <!-- 順番に並べるアイテムがJSで動的に生成されます -->
+        </div>
+        <button id="order-check-btn" class="check-btn">かくにん</button>
+      </div>
+      <button id="order-game-back" class="back-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- おぼえたかな？テスト画面 -->
+    <div id="test-mode-screen" class="screen">
+      <h2 class="game-title">おぼえたかな？テスト</h2>
+      <div class="test-container">
+        <div class="question-area">
+          <div id="test-question-item" class="quiz-item"></div>
+          <p id="test-question-text" class="question-text">もんだい: <span id="test-question"></span></p>
+        </div>
+        <div class="answer-options test-options" id="test-options-container">
+          <!-- テストの選択肢がJSで動的に生成されます -->
+        </div>
+      </div>
+      <div class="test-progress">
+        <span id="current-question">1</span> / <span id="total-questions">10</span>
+      </div>
+      <button id="test-mode-back" class="back-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- 結果画面 -->
+    <div id="result-screen" class="screen">
+      <h2 class="result-title">けっか</h2>
+      <div class="result-container">
+        <div class="result-stars">
+          <span id="result-stars-count">0</span>
+          <span class="star-icon large">★</span>
+        </div>
+        <p class="result-message" id="result-message">よくがんばったね！</p>
+        <div class="result-badges" id="result-badges">
+          <!-- 獲得したバッジがある場合表示 -->
+        </div>
+      </div>
+      <button id="result-home-btn" class="home-btn">ホームにもどる</button>
+    </div>
+    
+    <!-- 解説画面 -->
+    <div id="explanation-screen" class="screen">
+      <h2 class="explanation-title">かいせつ</h2>
+      <div class="explanation-container">
+        <div class="judgment-result" id="judgment-result">
+          <!-- 正解/不正解の表示 -->
+        </div>
+        <div class="explanation-content">
+          <div class="explanation-icon" id="explanation-icon"></div>
+          <div class="explanation-text">
+            <h3 id="explanation-name" class="explanation-name"></h3>
+            <p id="explanation-season" class="explanation-season"></p>
+            <p id="explanation-description" class="explanation-description"></p>
+          </div>
+        </div>
+        <button id="next-btn" class="next-btn">つぎへ</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>
