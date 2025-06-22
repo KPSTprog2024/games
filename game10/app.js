@@ -2,9 +2,10 @@
 
 // 旅程データは外部JSONから読み込む
 
-class BashoJourneyMap {
-    constructor(data) {
+export class BashoJourneyMap {
+    constructor(data, config = {}) {
         this.journeyData = data;
+        this.config = config;
         this.currentIndex = 0;
         this.map = null;
         this.tileLayer = null; // タイルレイヤーを保持する変数を追加
@@ -24,7 +25,8 @@ class BashoJourneyMap {
             this.setupUI();
             this.setupEventListeners();
             this.updateDisplay();
-            console.log('松尾芭蕉『奥の細道』地図が正常に初期化されました');
+            const title = this.config.appTitle || '松尾芭蕉\u300e奥の細道\u300f';
+            console.log(`${title} 地図が正常に初期化されました`);
         } catch (error) {
             console.error('初期化エラー:', error);
             this.showError('地図の初期化に失敗しました。');
@@ -122,10 +124,13 @@ class BashoJourneyMap {
         // タイトルと期間を設定
         const titleElement = document.getElementById('journey-title');
         const periodElement = document.getElementById('journey-period');
-        
-        if (titleElement) titleElement.textContent = this.journeyData.title || '松尾芭蕉『奥の細道』の旅路';
+
+        const journeyTitle = this.config.journeyTitle || this.journeyData.title || '松尾芭蕉『奥の細道』の旅路';
+        const journeyPeriod = this.config.journeyPeriod || this.journeyData.period || '1689年5月16日 - 8月21日（98日間）';
+
+        if (titleElement) titleElement.textContent = journeyTitle;
         if (periodElement) {
-            periodElement.textContent = this.journeyData.period || '1689年5月16日 - 8月21日（98日間）';
+            periodElement.textContent = journeyPeriod;
         }
 
         // タイムラインスライダーを設定
@@ -553,6 +558,27 @@ function showError(message) {
     }, 5000);
 }
 
+async function loadConfig() {
+    const response = await fetch('./config.json');
+    if (!response.ok) {
+        throw new Error('config.json の読み込みに失敗しました');
+    }
+    const clone = response.clone();
+    try {
+        return await response.json();
+    } catch (err) {
+        const text = await clone.text();
+        throw new Error(`config.json の JSON 解析に失敗しました: ${text}`);
+    }
+}
+
+export function initializeApp(config, data) {
+    if (config && config.appTitle) {
+        document.title = config.appTitle;
+    }
+    return new BashoJourneyMap(data, config);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const config = await loadConfig();
@@ -560,7 +586,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await loadJourneyData(dataPath);
         new BashoJourneyMap(data);
     } catch (err) {
-        console.error('旅程データの取得に失敗しました', err);
+        console.error('設定または旅程データの取得に失敗しました', err);
         showError(err.message);
         // ページを再読み込みして再試行することを推奨
     }

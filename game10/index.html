@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>松尾芭蕉『奥の細道』の旅路</title>
+    <title id="page-title"></title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
+        <header class="header">
+            <h1 id="journey-title"></h1>
+            <p id="journey-period"></p>
+        </header>
         <!-- 芭蕉プロフィール -->
         <section class="bio-section">
           <h2>芭蕉の略歴</h2>
-          <p><a href="basho-profile.html" target="_blank">松尾芭蕉プロフィール概要</a></p>
+          <p><a id="profile-link" href="basho-profile.html" target="_blank"></a></p>
         </section>
 
         <!-- 地図エリア -->
@@ -77,5 +81,16 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="app.js"></script>
+    <script>
+      fetch('config.json')
+        .then(r => r.json())
+        .then(cfg => {
+          const titleEl = document.getElementById('page-title');
+          if (titleEl) titleEl.textContent = cfg.title || '';
+          const profileEl = document.getElementById('profile-link');
+          if (profileEl) profileEl.textContent = cfg.profileLinkText || '';
+        })
+        .catch(err => console.error('config load error', err));
+    </script>
 </body>
 </html>
