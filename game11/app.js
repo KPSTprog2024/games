@@ -170,7 +170,9 @@ function generateSeasonQuizQuestion() {
   
   gameState.currentQuestionData = randomItem;
   
-  document.getElementById('season-quiz-item').textContent = randomItem.emoji;
+  const quizItemEl = document.getElementById('season-quiz-item');
+  quizItemEl.textContent = randomItem.emoji;
+  quizItemEl.setAttribute('aria-label', randomItem.name);
   document.getElementById('season-quiz-name').textContent = randomItem.name;
 }
 
@@ -205,7 +207,9 @@ function generateNameQuizQuestion() {
   
   gameState.currentQuestionData = correctItem;
   
-  document.getElementById('name-quiz-icon').textContent = correctItem.emoji;
+  const nameIconEl = document.getElementById('name-quiz-icon');
+  nameIconEl.textContent = correctItem.emoji;
+  nameIconEl.setAttribute('aria-label', correctItem.name);
   
   // カテゴリを決定
   const categories = ['もの', 'はな', 'くだもの', 'ぎょうじ'];
@@ -250,7 +254,7 @@ function startMatchGame() {
 function generateMatchGameQuestion() {
   const seasons = ['spring', 'summer', 'autumn', 'winter'];
   const targetSeason = seasons[Math.floor(Math.random() * seasons.length)];
-  const seasonItems = learningData[targetSeason];
+  const seasonItems = [...learningData[targetSeason]];
   
   // 同じ季節から2つ選択
   const shuffledItems = seasonItems.sort(() => Math.random() - 0.5);
@@ -260,7 +264,7 @@ function generateMatchGameQuestion() {
   const otherSeasons = seasons.filter(s => s !== targetSeason);
   const wrongItems = [];
   otherSeasons.forEach(season => {
-    const items = learningData[season].sort(() => Math.random() - 0.5);
+    const items = [...learningData[season]].sort(() => Math.random() - 0.5);
     wrongItems.push(items[0]);
     if (wrongItems.length < 4) {
       wrongItems.push(items[1]);
@@ -279,6 +283,7 @@ function generateMatchGameQuestion() {
     const card = document.createElement('div');
     card.className = 'match-card';
     card.textContent = item.emoji;
+    card.setAttribute('aria-label', item.name);
     card.dataset.item = JSON.stringify(item);
     card.addEventListener('click', function() {
       selectMatchCard(this, item);
@@ -363,6 +368,7 @@ function generateOrderGameQuestion() {
     const item = document.createElement('div');
     item.className = 'order-item';
     item.textContent = season.emoji;
+    item.setAttribute('aria-label', season.name);
     item.dataset.season = JSON.stringify(season);
     item.addEventListener('click', function() {
       selectOrderItem(this, season);
@@ -421,7 +427,9 @@ function generateTestQuestion() {
   const questionTypes = ['season', 'name'];
   const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
   
-  document.getElementById('test-question-item').textContent = correctItem.emoji;
+  const testItemEl = document.getElementById('test-question-item');
+  testItemEl.textContent = correctItem.emoji;
+  testItemEl.setAttribute('aria-label', correctItem.name);
   
   const optionsContainer = document.getElementById('test-options-container');
   optionsContainer.innerHTML = '';
@@ -497,6 +505,7 @@ function showExplanation(isCorrect) {
   // 解説内容の表示
   const item = gameState.currentQuestionData;
   explanationIcon.textContent = item.emoji;
+  explanationIcon.setAttribute('aria-label', item.name);
   explanationName.textContent = item.name;
   explanationSeason.textContent = `季節：${item.season}`;
   explanationDescription.textContent = item.description;

@@ -22,12 +22,8 @@
 
         <!-- コンパクトなタイムラインコントロール -->
         <div class="timeline-controls">
-            <div class="journey-progress">
-                <div class="journey-progress-bar" id="journey-progress-bar"></div>
-            </div>
             <div class="timeline-row">
                 <button class="btn btn--sm auto-adjust-btn" id="auto-adjust-btn" aria-label="自動調整ON">自動調整ON</button>
-                <button class="btn btn--sm map-style-btn" id="toggle-map-style" aria-label="地図スタイル切替">地図スタイル切替</button>
                 <div class="timeline-slider-container">
                     <label id="timeline-slider-label" for="timeline-slider" class="sr-only">旅程スライダー</label>
                     <input type="range" id="timeline-slider" min="0" max="7" value="0" step="1" aria-labelledby="timeline-slider-label current-location">
@@ -49,7 +45,6 @@
                 </div>
                 <div class="tabs">
                     <button class="tab-btn active" data-tab="historical">江戸時代</button>
-                    <button class="tab-btn" data-tab="modern">現代</button>
                 </div>
                 <div class="tab-content active" id="historical-content">
                     <div class="location-details">
@@ -68,15 +63,6 @@
                         <div class="background-info" id="background-info">
                             <h3>背景情報</h3>
                             <p id="background-info-text">江戸深川は新開地で、多くの文人墨客が住んでいた地域。</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="modern-content">
-                    <div class="modern-info">
-                        <h3>現代の様子</h3>
-                        <p id="modern-description">現代の情報はこちらに表示されます。</p>
-                        <div class="modern-image-container" id="modern-image">
-                            <!-- 画像がここに表示されます -->
                         </div>
                     </div>
                 </div>
