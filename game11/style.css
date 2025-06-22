@@ -949,6 +949,16 @@ body {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  word-break: break-word;
+  overflow: hidden;
+  padding: 4px;
+}
+
+/* 文字が複数の場合にサイズを調整 */
+.quiz-item.text-item {
+  font-size: 2.5rem;
+  line-height: 1.2;
 }
 
 .large-emoji {
@@ -1190,6 +1200,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  word-break: break-word;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.explanation-icon.text-item {
+  font-size: 2.5rem;
+  line-height: 1.2;
 }
 
 .explanation-text {
