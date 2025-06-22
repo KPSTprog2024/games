@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+  loadProgress();
   updateProgressDisplay();
   updateBadgeDisplay();
   attachEventListeners();
@@ -557,6 +558,7 @@ function continueGame() {
 function endGame() {
   updateLevel();
   updateBadges();
+  saveProgress();
   showResults();
   updateProgressDisplay();
   updateBadgeDisplay();
@@ -636,4 +638,39 @@ function updateBadgeDisplay() {
       badgeElement.classList.add('unlocked');
     }
   });
+}
+
+// 進捗を保存
+function saveProgress() {
+  try {
+    const data = {
+      level: gameState.level,
+      stars: gameState.stars,
+      badges: gameState.badges
+    };
+    localStorage.setItem('game11Progress', JSON.stringify(data));
+  } catch (e) {
+    console.warn('Failed to save progress:', e);
+  }
+}
+
+// 進捗を読み込み
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem('game11Progress');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (typeof data.level === 'number') {
+        gameState.level = data.level;
+      }
+      if (typeof data.stars === 'number') {
+        gameState.stars = data.stars;
+      }
+      if (data.badges && typeof data.badges === 'object') {
+        gameState.badges = { ...gameState.badges, ...data.badges };
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load progress:', e);
+  }
 }
