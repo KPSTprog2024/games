@@ -11,7 +11,8 @@ class BashoJourneyMap {
         this.markers = [];
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
-        this.modernInfoData = null; // 現代情報のキャッシュ
+        this.currentMapStyle = 'modern'; // デフォルトは現代地図
+
         
         this.init();
     }
@@ -248,71 +249,6 @@ class BashoJourneyMap {
             content.classList.toggle('active', content.id === `${tabId}-content`);
         });
         
-        // 現代タブが選択された場合、現代情報を読み込む
-        if (tabId === 'modern') {
-            // モダン情報は非同期で読み込む
-            this.loadModernInfo();
-        }
-    }
-
-    async loadModernInfo() {
-        const location = this.journeyData.journeyData[this.currentIndex];
-        const modernDescription = document.getElementById('modern-description');
-        const modernImage = document.getElementById('modern-image');
-        
-        // modern-info.json を初回のみ取得
-        try {
-            if (!this.modernInfoData) {
-                const response = await fetch('./modern-info.json');
-                if (!response.ok) {
-                    throw new Error('modern-info.json の読み込みに失敗しました');
-                }
-
-                const clone = response.clone();
-                try {
-                    this.modernInfoData = await response.json();
-                } catch (err) {
-                    const text = await clone.text();
-                    throw new Error(`modern-info.json の JSON 解析に失敗しました: ${text}`);
-                }
-            }
-        } catch (err) {
-            console.error('現代情報取得エラー:', err);
-            this.showError('現代情報の取得に失敗しました。');
-
-            if (modernDescription) {
-                modernDescription.textContent = '現代の詳細情報は取得できませんでした。';
-            }
-
-            if (modernImage) {
-                modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
-            }
-            return;
-        }
-
-        const info = this.modernInfoData[location.name];
-
-        if (info) {
-            if (modernDescription) {
-                modernDescription.textContent = info.description;
-            }
-
-            if (modernImage) {
-                if (info.imageUrl) {
-                    modernImage.innerHTML = `<img src="${info.imageUrl}" alt="${location.name} の現代の様子">`;
-                } else {
-                    modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
-                }
-            }
-        } else {
-            if (modernDescription) {
-                modernDescription.textContent = '現代の詳細情報は準備中です。';
-            }
-
-            if (modernImage) {
-                modernImage.innerHTML = '<div class="no-image">画像は準備中です</div>';
-            }
-        }
     }
 
     toggleAutoAdjust() {
