@@ -500,18 +500,32 @@ class BashoJourneyMap {
     }
 }
 
-async function loadJourneyData() {
-    const response = await fetch('./journey-data.json');
+async function loadJourneyData(path) {
+    const response = await fetch(path);
     if (!response.ok) {
-        throw new Error('journey-data.json の読み込みに失敗しました');
+        throw new Error(`${path} の読み込みに失敗しました`);
     }
     const clone = response.clone();
     try {
         return await response.json();
     } catch (err) {
         const text = await clone.text();
-        throw new Error(`journey-data.json の JSON 解析に失敗しました: ${text}`);
+        throw new Error(`${path} の JSON 解析に失敗しました: ${text}`);
 
+    }
+}
+
+async function loadConfig() {
+    const response = await fetch('./config.json');
+    if (!response.ok) {
+        throw new Error('config.json の読み込みに失敗しました');
+    }
+    const clone = response.clone();
+    try {
+        return await response.json();
+    } catch (err) {
+        const text = await clone.text();
+        throw new Error(`config.json の JSON 解析に失敗しました: ${text}`);
     }
 }
 
@@ -541,7 +555,9 @@ function showError(message) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const data = await loadJourneyData();
+        const config = await loadConfig();
+        const dataPath = config.dataPath || './journey-data.json';
+        const data = await loadJourneyData(dataPath);
         new BashoJourneyMap(data);
     } catch (err) {
         console.error('旅程データの取得に失敗しました', err);
