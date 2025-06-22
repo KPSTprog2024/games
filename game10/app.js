@@ -9,7 +9,6 @@ class BashoJourneyMap {
         this.map = null;
         this.tileLayer = null; // タイルレイヤーを保持する変数を追加
         this.markers = [];
-        this.currentMarker = null;
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
         this.currentMapStyle = 'modern'; // デフォルトは現代地図
@@ -89,6 +88,8 @@ class BashoJourneyMap {
 
             this.markers.push(marker);
         });
+
+        this.updateMarkerStyles();
     }
 
     drawJourneyPath() {
@@ -536,22 +537,8 @@ class BashoJourneyMap {
 
     updateMap() {
         const location = this.journeyData.journeyData[this.currentIndex];
-        
-        // 現在位置マーカーを更新
-        if (this.currentMarker) {
-            this.map.removeLayer(this.currentMarker);
-        }
-        
-        // 現在位置を示す特別なマーカーを作成
-        const currentIcon = L.divIcon({
-            className: 'custom-marker current-marker pulse',
-            html: `<span>${this.currentIndex + 1}</span>`,
-            iconSize: [32, 32]
-        });
-        
-        this.currentMarker = L.marker([location.lat, location.lng], {
-            icon: currentIcon
-        }).addTo(this.map);
+
+        this.updateMarkerStyles();
         
         // 自動調整が有効な場合、地図の中心と縮尺を移動
         if (this.autoAdjustEnabled) {
@@ -566,6 +553,19 @@ class BashoJourneyMap {
                 duration: 1
             });
         }
+    }
+
+    updateMarkerStyles() {
+        this.markers.forEach((marker, index) => {
+            const el = marker.getElement();
+            if (el) {
+                if (index === this.currentIndex) {
+                    el.classList.add('current-marker');
+                } else {
+                    el.classList.remove('current-marker');
+                }
+            }
+        });
     }
 
     updateTimeline() {
