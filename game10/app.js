@@ -11,7 +11,6 @@ class BashoJourneyMap {
         this.markers = [];
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
-        this.currentMapStyle = 'modern'; // デフォルトは現代地図
         this.modernInfoData = null; // 現代情報のキャッシュ
         
         this.init();
@@ -138,11 +137,6 @@ class BashoJourneyMap {
         // 自動調整ボタンの初期状態を設定
         this.updateAutoAdjustButton();
         
-        // 地図スタイルボタンの初期状態を設定
-        const toggleMapBtn = document.getElementById('toggle-map-style');
-        if (toggleMapBtn) {
-            toggleMapBtn.textContent = '古地図風に変更';
-        }
     }
 
     setupEventListeners() {
@@ -159,7 +153,6 @@ class BashoJourneyMap {
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const autoAdjustBtn = document.getElementById('auto-adjust-btn');
-        const toggleMapBtn = document.getElementById('toggle-map-style');
         const readHaikuBtn = document.getElementById('read-haiku');
         
         if (prevBtn) {
@@ -180,11 +173,6 @@ class BashoJourneyMap {
             });
         }
         
-        if (toggleMapBtn) {
-            toggleMapBtn.addEventListener('click', () => {
-                this.toggleMapStyle();
-            });
-        }
         
         if (readHaikuBtn) {
             readHaikuBtn.addEventListener('click', () => {
@@ -347,42 +335,6 @@ class BashoJourneyMap {
         }
     }
     
-    toggleMapStyle() {
-        const toggleMapBtn = document.getElementById('toggle-map-style');
-        
-        // スタイルを切り替え
-        if (this.currentMapStyle === 'modern') {
-            // 古地図スタイルに変更
-            this.map.removeLayer(this.tileLayer);
-            
-            // 古地図風のタイルレイヤー
-            this.tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                className: 'map-tiles-sepia' // CSSで古い雰囲気を出す
-            }).addTo(this.map);
-            
-            this.currentMapStyle = 'historical';
-            if (toggleMapBtn) {
-                toggleMapBtn.textContent = '現代地図に戻す';
-                toggleMapBtn.classList.add('historical');
-                toggleMapBtn.setAttribute('aria-label', '現代地図に戻す');
-            }
-        } else {
-            // 現代地図スタイルに変更
-            this.map.removeLayer(this.tileLayer);
-            this.tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(this.map);
-            
-            this.currentMapStyle = 'modern';
-            if (toggleMapBtn) {
-                toggleMapBtn.textContent = '古地図風に変更';
-                toggleMapBtn.classList.remove('historical');
-                toggleMapBtn.setAttribute('aria-label', '古地図風に変更');
-            }
-        }
-    }
     
     readHaikuAloud() {
         const location = this.journeyData.journeyData[this.currentIndex];
