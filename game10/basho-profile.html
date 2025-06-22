@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>松尾芭蕉プロフィール概要 - 奥の細道の旅路</title>
+    <title></title>
     <link rel="stylesheet" href="style.css">
     <style>
         /* プロフィールページ専用のスタイル */
@@ -147,13 +147,13 @@
 <body>
     <div class="profile-container">
         <a href="index.html" class="back-link">
-            <span class="icon">←</span> 奥の細道の旅路に戻る
+            <span class="icon">←</span>
         </a>
         
         <div class="profile-header">
             
             <div class="profile-title">
-                <h1>松尾芭蕉</h1>
+                <h1></h1>
                 <div class="years">1644年 - 1694年</div>
             </div>
         </div>
@@ -183,9 +183,31 @@
             <p>元禄2年（1689年）は、生類憐みの令が出され始めた頃で、幕府による統制が強まる一方、都市では町人文化が発展しました。政治的には比較的平穏でしたが、各地で新しい文化や学問が芽生えつつありました。</p>
         </div>
         
-        <div class="profile-footer">
-            <p>この概要は参考情報です。正確な史実や出典を確認するには、追加の調査と引用が必要です。</p>
-        </div>
+    <div class="profile-footer">
+        <p>この概要は参考情報です。正確な史実や出典を確認するには、追加の調査と引用が必要です。</p>
     </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('config.json')
+                .then(res => res.json())
+                .then(cfg => {
+                    if (cfg.title) {
+                        document.title = cfg.title;
+                    }
+                    const backLink = document.querySelector('.back-link');
+                    if (backLink && cfg.backLinkText) {
+                        backLink.innerHTML = '<span class="icon">\u2190</span> ' + cfg.backLinkText;
+                    }
+                    const heading = document.querySelector('.profile-title h1');
+                    if (heading && cfg.pageHeading) {
+                        heading.textContent = cfg.pageHeading;
+                    }
+                })
+                .catch(err => {
+                    console.error('config.json \u306e\u8aad\u307f\u8fbc\u307f\u306b\u5931\u6557\u3057\u307e\u3057\u305f', err);
+                });
+        });
+    </script>
 </body>
 </html>
