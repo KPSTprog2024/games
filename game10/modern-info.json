@@ -1,0 +1,146 @@
+{
+  "深川": {
+    "description": "現在の深川は東京都江東区に位置し、都市化が進んでいます。芭蕉の庵跡には記念碑が建てられています。",
+    "imageUrl": "https://example.com/images/modern-fukagawa.jpg"
+  },
+  "千住": {
+    "description": "現在の千住の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "日光": {
+    "description": "現在の日光の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "黒羽（雲巌寺）": {
+    "description": "現在の黒羽（雲巌寺）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "那須（殺生石）": {
+    "description": "現在の那須（殺生石）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "白河の関": {
+    "description": "現在は福島県白河市にあり、関所跡が観光名所となっています。歴史公園として整備されています。",
+    "imageUrl": "https://example.com/images/modern-shirakawa.jpg"
+  },
+  "飯塚": {
+    "description": "現在の飯塚の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "多賀城": {
+    "description": "現在の多賀城の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "松島": {
+    "description": "現在の松島の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "平泉": {
+    "description": "現在の平泉は世界遺産に登録され、中尊寺金色堂など多くの文化財が保存されています。",
+    "imageUrl": "https://example.com/images/modern-hiraizumi.jpg"
+  },
+  "尿前関": {
+    "description": "現在の尿前関の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "尾花沢": {
+    "description": "現在の尾花沢の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "立石寺（山寺）": {
+    "description": "現在も天台宗の寺院として機能し、山形県の主要な観光地となっています。芭蕉の句碑も建立されています。",
+    "imageUrl": "https://example.com/images/modern-yamadera.jpg"
+  },
+  "新庄／大石田（最上川）": {
+    "description": "現在の新庄／大石田（最上川）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "羽黒山": {
+    "description": "現在の羽黒山の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "月山": {
+    "description": "現在の月山の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "湯殿山": {
+    "description": "現在の湯殿山の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "鶴岡": {
+    "description": "現在の鶴岡の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "酒田": {
+    "description": "現在の酒田の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "象潟": {
+    "description": "1804年の地震で潟湖が陸地化しましたが、現在は芭蕉記念館があり、観光地となっています。",
+    "imageUrl": "https://example.com/images/modern-kisakata.jpg"
+  },
+  "出雲崎": {
+    "description": "現在も日本海に面した町で、芭蕉の句碑が建てられています。夕日の名所としても知られています。",
+    "imageUrl": "https://example.com/images/modern-izumozaki.jpg"
+  },
+  "市振の関": {
+    "description": "現在の市振の関の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "那古の浦": {
+    "description": "現在の那古の浦の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "金沢": {
+    "description": "現在の金沢の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "小松": {
+    "description": "現在の小松の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "那谷寺（小松）": {
+    "description": "現在の那谷寺（小松）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "山中温泉": {
+    "description": "現在の山中温泉の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "加賀（片山津）": {
+    "description": "現在の加賀（片山津）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "熊谷山全昌寺（大聖寺）": {
+    "description": "現在の熊谷山全昌寺（大聖寺）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "吉崎": {
+    "description": "現在の吉崎の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "天龍寺（松岡）": {
+    "description": "現在の天龍寺（松岡）の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "敦賀": {
+    "description": "現在の敦賀の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "今庄": {
+    "description": "現在の今庄の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "垂井": {
+    "description": "現在の垂井の情報は準備中です。",
+    "imageUrl": ""
+  },
+  "大垣（終着地）": {
+    "description": "現在の大垣市には芭蕉の句碑や記念館があり、奥の細道むすびの地として観光スポットになっています。",
+    "imageUrl": "https://example.com/images/modern-ogaki.jpg"
+  },
+  "最上川": {
+    "description": "現在も山形県の主要河川として流れ、観光船も運航しています。芭蕉の句碑が川沿いに建てられています。",
+    "imageUrl": "https://example.com/images/modern-mogamigawa.jpg"
+  }
+}

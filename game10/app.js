@@ -13,6 +13,7 @@ class BashoJourneyMap {
         this.journeyPath = null;
         this.autoAdjustEnabled = true; // デフォルトは自動調整ON
         this.currentMapStyle = 'modern'; // デフォルトは現代地図
+        this.modernInfoData = null; // 現代情報のキャッシュ
         
         this.init();
     }
@@ -260,70 +261,65 @@ class BashoJourneyMap {
         
         // 現代タブが選択された場合、現代情報を読み込む
         if (tabId === 'modern') {
+            // モダン情報は非同期で読み込む
             this.loadModernInfo();
         }
     }
-    
-    loadModernInfo() {
+
+    async loadModernInfo() {
         const location = this.journeyData.journeyData[this.currentIndex];
         const modernDescription = document.getElementById('modern-description');
         const modernImage = document.getElementById('modern-image');
         
-        // 現代の情報（実際のアプリではAPIから取得するか、データを拡張する）
-        const modernInfo = {
-            '深川': {
-                description: '現在の深川は東京都江東区に位置し、都市化が進んでいます。芭蕉の庵跡には記念碑が建てられています。',
-                imageUrl: 'https://example.com/images/modern-fukagawa.jpg'
-            },
-            '白河の関': {
-                description: '現在は福島県白河市にあり、関所跡が観光名所となっています。歴史公園として整備されています。',
-                imageUrl: 'https://example.com/images/modern-shirakawa.jpg'
-            },
-            '平泉': {
-                description: '現在の平泉は世界遺産に登録され、中尊寺金色堂など多くの文化財が保存されています。',
-                imageUrl: 'https://example.com/images/modern-hiraizumi.jpg'
-            },
-            '立石寺（山寺）': {
-                description: '現在も天台宗の寺院として機能し、山形県の主要な観光地となっています。芭蕉の句碑も建立されています。',
-                imageUrl: 'https://example.com/images/modern-yamadera.jpg'
-            },
-            '最上川': {
-                description: '現在も山形県の主要河川として流れ、観光船も運航しています。芭蕉の句碑が川沿いに建てられています。',
-                imageUrl: 'https://example.com/images/modern-mogamigawa.jpg'
-            },
-            '象潟': {
-                description: '1804年の地震で潟湖が陸地化しましたが、現在は芭蕉記念館があり、観光地となっています。',
-                imageUrl: 'https://example.com/images/modern-kisakata.jpg'
-            },
-            '出雲崎': {
-                description: '現在も日本海に面した町で、芭蕉の句碑が建てられています。夕日の名所としても知られています。',
-                imageUrl: 'https://example.com/images/modern-izumozaki.jpg'
-            },
-            '大垣': {
-                description: '現在の大垣市には芭蕉の句碑や記念館があり、奥の細道むすびの地として観光スポットになっています。',
-                imageUrl: 'https://example.com/images/modern-ogaki.jpg'
+        // modern-info.json を初回のみ取得
+        try {
+            if (!this.modernInfoData) {
+                const response = await fetch('./modern-info.json');
+                if (!response.ok) {
+                    throw new Error('modern-info.json の読み込みに失敗しました');
+                }
+
+                const clone = response.clone();
+                try {
+                    this.modernInfoData = await response.json();
+                } catch (err) {
+                    const text = await clone.text();
+                    throw new Error(`modern-info.json の JSON 解析に失敗しました: ${text}`);
+                }
             }
-        };
-        
-        // 現代情報を表示（データがあれば）
-        if (modernInfo[location.name]) {
+        } catch (err) {
+            console.error('現代情報取得エラー:', err);
+            this.showError('現代情報の取得に失敗しました。');
+
             if (modernDescription) {
-                modernDescription.textContent = modernInfo[location.name].description;
+                modernDescription.textContent = '現代の詳細情報は取得できませんでした。';
             }
-            
+
             if (modernImage) {
-                if (modernInfo[location.name].imageUrl) {
-                    modernImage.innerHTML = ``;
+                modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
+            }
+            return;
+        }
+
+        const info = this.modernInfoData[location.name];
+
+        if (info) {
+            if (modernDescription) {
+                modernDescription.textContent = info.description;
+            }
+
+            if (modernImage) {
+                if (info.imageUrl) {
+                    modernImage.innerHTML = `<img src="${info.imageUrl}" alt="${location.name} の現代の様子">`;
                 } else {
                     modernImage.innerHTML = '<div class="no-image">画像はありません</div>';
                 }
             }
         } else {
-            // データがない場合のデフォルトメッセージ
             if (modernDescription) {
                 modernDescription.textContent = '現代の詳細情報は準備中です。';
             }
-            
+
             if (modernImage) {
                 modernImage.innerHTML = '<div class="no-image">画像は準備中です</div>';
             }

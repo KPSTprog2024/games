@@ -1,23 +1,10 @@
-# Game 10 Styles
+# 芭蕉の旅路マップ (game10)
 
-This game uses [Sass](https://sass-lang.com/) to keep the CSS manageable. The `scss` folder contains partials that are combined into `style.css`.
+このディレクトリには、松尾芭蕉『奥の細道』を題材とした地図アプリが含まれています。
 
-## Structure
+## データファイル
 
-- `_variables.scss` – color, spacing and typographic variables
-- `_themes.scss` – light/dark theme definitions
-- `_base.scss` – resets and base typography
-- `_components.scss` – buttons, cards and form elements
-- `_layout.scss` – layout utilities and responsive rules
+- `journey-data.json` – 旅程の地点情報、俳句や解説などを収録しています。
+- `modern-info.json` – 各地点の現代の様子（説明と画像URL）をまとめたファイルです。`modern` タブを開くと読み込まれます。
 
-`style.scss` imports all of these partials and is compiled into `../style.css`.
-
-## Building
-
-Run the following command from the repository root:
-
-```bash
-npx sass game10/scss/style.scss game10/style.css --no-source-map --style=expanded
-```
-
-This will regenerate `style.css` so the page works exactly as before.
+これらの JSON はクライアント側で読み込まれ、地図表示や解説の表示に利用されます。
