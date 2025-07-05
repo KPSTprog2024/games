@@ -48,6 +48,19 @@ const learningData = {
   ]
 };
 
+// 季節ごとのアイコン候補
+const seasonEmojiOptions = {
+  '春': ['🌸', '🌷', '🎎', '🐝', '🦋'],
+  '夏': ['🌻', '🍉', '🎆', '🏊', '🌞'],
+  '秋': ['🍁', '🌾', '🍂', '🌰', '🎑'],
+  '冬': ['❄️', '⛄', '🎄', '🎍', '☃️']
+};
+
+function pickEmoji(seasonKey) {
+  const options = seasonEmojiOptions[seasonKey] || [];
+  return options[Math.floor(Math.random() * options.length)] || '';
+}
+
 // ゲーム状態管理
 let gameState = {
   currentScreen: 'home',
@@ -359,10 +372,10 @@ function startOrderGame() {
 
 function generateOrderGameQuestion() {
   const seasons = [
-    { name: '春', emoji: '🌸', order: 0 },
-    { name: '夏', emoji: '🌻', order: 1 },
-    { name: '秋', emoji: '🍁', order: 2 },
-    { name: '冬', emoji: '❄️', order: 3 }
+    { name: '春', emoji: pickEmoji('春'), order: 0 },
+    { name: '夏', emoji: pickEmoji('夏'), order: 1 },
+    { name: '秋', emoji: pickEmoji('秋'), order: 2 },
+    { name: '冬', emoji: pickEmoji('冬'), order: 3 }
   ];
   
   const shuffledSeasons = seasons.sort(() => Math.random() - 0.5);
