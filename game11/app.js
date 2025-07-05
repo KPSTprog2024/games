@@ -275,18 +275,18 @@ function generateMatchGameQuestion() {
   const referenceItem = seasonItems[0];
   const remainingItems = seasonItems.slice(1);
 
-  // 同じ季節から正解となる2つを選ぶ
-  const correctItems = remainingItems.slice(0, 2);
+  // 同じ季節から正解となる1つを選ぶ
+  const correctItem = remainingItems[0];
 
-  // 他の季節から4つの選択肢を作成
+  // 他の季節から5つの選択肢を作成
   const otherItems = seasons
     .filter(s => s !== targetSeason)
     .flatMap(season => learningData[season]);
-  const distractors = otherItems.sort(() => Math.random() - 0.5).slice(0, 4);
+  const distractors = otherItems.sort(() => Math.random() - 0.5).slice(0, 5);
 
-  const allCards = [...correctItems, ...distractors].sort(() => Math.random() - 0.5);
+  const allCards = [correctItem, ...distractors].sort(() => Math.random() - 0.5);
 
-  gameState.currentQuestionData = { referenceItem, correctItems };
+  gameState.currentQuestionData = { referenceItem, correctItem };
   gameState.selectedAnswers = [];
 
   // 参照アイテムを表示
@@ -317,15 +317,11 @@ function selectMatchCard(cardElement, item) {
   
   if (cardElement.classList.contains('selected')) {
     cardElement.classList.remove('selected');
-    gameState.selectedAnswers = gameState.selectedAnswers.filter(selected => selected.name !== item.name);
+    gameState.selectedAnswers = [];
   } else {
-    if (gameState.selectedAnswers.length < 2) {
-      cardElement.classList.add('selected');
-      gameState.selectedAnswers.push(item);
-    }
-  }
-  
-  if (gameState.selectedAnswers.length === 2) {
+    document.querySelectorAll('.match-card.selected').forEach(card => card.classList.remove('selected'));
+    cardElement.classList.add('selected');
+    gameState.selectedAnswers = [item];
     setTimeout(() => {
       checkMatchGameAnswer();
     }, 500);
@@ -333,12 +329,12 @@ function selectMatchCard(cardElement, item) {
 }
 
 function checkMatchGameAnswer() {
-  const { referenceItem, correctItems } = gameState.currentQuestionData;
+  const { referenceItem, correctItem } = gameState.currentQuestionData;
   const referenceSeason = referenceItem.season;
 
   const isCorrect =
-    gameState.selectedAnswers.length === 2 &&
-    gameState.selectedAnswers.every(item => item.season === referenceSeason);
+    gameState.selectedAnswers.length === 1 &&
+    gameState.selectedAnswers[0].season === referenceSeason;
 
   if (isCorrect) {
     gameState.score++;
@@ -356,8 +352,8 @@ function checkMatchGameAnswer() {
     });
   }
   
-  // 解説用に1つ目の正解アイテムを保持
-  gameState.currentQuestionData = correctItems[0];
+  // 解説用に正解アイテムを保持
+  gameState.currentQuestionData = correctItem;
   
   setTimeout(() => {
     showExplanation(isCorrect);
