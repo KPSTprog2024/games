@@ -82,6 +82,8 @@ export class UIManager {
         gameEventEmitter.on('updateRankingList', (ranking) => this.updateRankingList(ranking));
         gameEventEmitter.on('setDifficultySelection', (difficulty) => this.setDifficultySelection(difficulty));
         gameEventEmitter.on('stageClearedAnimation', () => this.playStageClearedAnimation());
+        gameEventEmitter.on('showSequenceNumbers', (sequence) => this.showSequenceNumbers(sequence));
+        gameEventEmitter.on('clearSequenceNumbers', () => this.clearSequenceNumbers());
     }
 
     showTopPage(message) {
@@ -143,19 +145,30 @@ export class UIManager {
         this.countdownOverlay.classList.remove('hidden');
         let count = COUNTDOWN_TIME;
         this.countdownNumberSpan.textContent = count.toString();
-        
+        this.restartCountdownAnimation();
+
         const countdownInterval = setInterval(() => {
             count--;
             if (count > 0) {
                 this.countdownNumberSpan.textContent = count.toString();
+                this.restartCountdownAnimation();
             } else if (count === 0) {
                 this.countdownNumberSpan.textContent = 'すたーと！';
+                this.restartCountdownAnimation();
             } else {
                 clearInterval(countdownInterval);
                 this.countdownOverlay.classList.add('hidden');
                 gameEventEmitter.emit('countdownFinished'); // カウントダウン終了を通知
             }
         }, 1000);
+    }
+
+    // アニメーションをリセットして再生
+    restartCountdownAnimation() {
+        this.countdownNumberSpan.classList.remove('countdown-number');
+        // reflow to restart animation
+        void this.countdownNumberSpan.offsetWidth;
+        this.countdownNumberSpan.classList.add('countdown-number');
     }
 
     stopCountdown() {
@@ -180,6 +193,23 @@ export class UIManager {
         } else {
             this.replayButton.classList.add('hidden');
         }
+    }
+
+    // 正解シーケンスの番号を各マスに表示
+    showSequenceNumbers(sequence) {
+        sequence.forEach((cellIndex, order) => {
+            const cell = this.gridContainer.querySelector(`.gridItem[data-index="${cellIndex}"]`);
+            if (cell) {
+                cell.textContent = (order + 1).toString();
+            }
+        });
+    }
+
+    // マスの番号表示をクリア
+    clearSequenceNumbers() {
+        this.gridContainer.querySelectorAll('.gridItem').forEach(cell => {
+            cell.textContent = '';
+        });
     }
 
     // ランキングリストを更新

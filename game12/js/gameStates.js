@@ -1,6 +1,6 @@
 // js/gameStates.js
 
-import { GAME_STATES, MESSAGES } from './constants.js';
+import { GAME_STATES, MESSAGES, STAGE_CLEARED_DELAY, RESET_DELAY } from './constants.js';
 import { gameEventEmitter } from './eventEmitter.js';
 
 /**
@@ -184,11 +184,13 @@ export class StageClearedState extends GameState {
     enter() {
         console.log("Entering StageClearedState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.STAGE_CLEARED);
+        gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
         // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後にReadyStateに戻るか、次のステージへ
+        // 一定時間後に次のステージを自動で開始
         setTimeout(() => {
-            this.game.changeState(new ReadyState(this.game));
-        }, MESSAGES.STAGE_CLEARED_DELAY);
+            gameEventEmitter.emit('clearSequenceNumbers');
+            this.game.startGame();
+        }, STAGE_CLEARED_DELAY);
     }
 }
 
@@ -199,10 +201,12 @@ export class GameOverState extends GameState {
     enter() {
         console.log("Entering GameOverState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.GAME_OVER);
+        gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
         // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後にReadyStateに戻る
+        // 一定時間後にトップページへ戻る
         setTimeout(() => {
+            gameEventEmitter.emit('clearSequenceNumbers');
             this.game.changeState(new ReadyState(this.game));
-        }, MESSAGES.RESET_DELAY); // RESET_DELAY を利用
+        }, RESET_DELAY);
     }
 }

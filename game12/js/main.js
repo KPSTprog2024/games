@@ -104,6 +104,7 @@ class GameController {
         }
         this.countdownActive = true;
         this.countdownTimer = COUNTDOWN_TIME;
+        gameEventEmitter.emit('clearSequenceNumbers');
 
         // 現在のステージに応じてシーケンスの長さを決定
         const currentStage = this.mode === GAME_MODES.ONCE ? this.stageOnce : this.stageRepeat;
@@ -159,6 +160,7 @@ class GameController {
         if (this.currentState instanceof PlayingSequenceState) {
             return; // ゲーム中はリセット不可
         }
+        gameEventEmitter.emit('clearSequenceNumbers');
         this.stageOnce = 1;
         this.stageRepeat = 1;
         localStorage.setItem('memoryGame_stageOnce', this.stageOnce.toString());
