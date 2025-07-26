@@ -15,6 +15,8 @@ export class UIManager {
         this.modeButton = document.getElementById('modeButton');
         this.replayButton = document.getElementById('replayButton');
         this.resetButton = document.getElementById('resetButton');
+        this.nextButton = document.getElementById('nextButton');
+        this.backButton = document.getElementById('backButton');
         this.startGameButton = document.getElementById('startGameButton');
         this.difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
         this.countdownOverlay = document.getElementById('countdown');
@@ -54,6 +56,8 @@ export class UIManager {
         this.modeButton.addEventListener('click', () => gameEventEmitter.emit('modeButtonClicked'));
         this.replayButton.addEventListener('click', () => gameEventEmitter.emit('replayButtonClicked'));
         this.resetButton.addEventListener('click', () => gameEventEmitter.emit('resetButtonClicked'));
+        this.nextButton.addEventListener('click', () => gameEventEmitter.emit('nextButtonClicked'));
+        this.backButton.addEventListener('click', () => gameEventEmitter.emit('backButtonClicked'));
         this.startGameButton.addEventListener('click', () => gameEventEmitter.emit('startGameButtonClicked'));
         this.resetRankingButton.addEventListener('click', () => gameEventEmitter.emit('resetRankingButtonClicked'));
 
@@ -82,6 +86,10 @@ export class UIManager {
         gameEventEmitter.on('updateRankingList', (ranking) => this.updateRankingList(ranking));
         gameEventEmitter.on('setDifficultySelection', (difficulty) => this.setDifficultySelection(difficulty));
         gameEventEmitter.on('stageClearedAnimation', () => this.playStageClearedAnimation());
+        gameEventEmitter.on('showSequenceNumbers', (sequence) => this.showSequenceNumbers(sequence));
+        gameEventEmitter.on('clearSequenceNumbers', () => this.clearSequenceNumbers());
+        gameEventEmitter.on('setNextButtonVisible', (visible) => this.setNextButtonVisible(visible));
+        gameEventEmitter.on('setBackButtonVisible', (visible) => this.setBackButtonVisible(visible));
     }
 
     showTopPage(message) {
@@ -90,11 +98,15 @@ export class UIManager {
         if (message) {
             this.setMessage(message); // トップページでメッセージを表示する場合
         }
+        this.setNextButtonVisible(false);
+        this.setBackButtonVisible(false);
     }
 
     hideTopPage() {
         this.topPage.classList.add('hidden');
         this.gameScreen.classList.remove('hidden');
+        this.setNextButtonVisible(false);
+        this.setBackButtonVisible(false);
     }
 
     setMessage(message) {
@@ -143,19 +155,30 @@ export class UIManager {
         this.countdownOverlay.classList.remove('hidden');
         let count = COUNTDOWN_TIME;
         this.countdownNumberSpan.textContent = count.toString();
-        
+        this.restartCountdownAnimation();
+
         const countdownInterval = setInterval(() => {
             count--;
             if (count > 0) {
                 this.countdownNumberSpan.textContent = count.toString();
+                this.restartCountdownAnimation();
             } else if (count === 0) {
                 this.countdownNumberSpan.textContent = 'すたーと！';
+                this.restartCountdownAnimation();
             } else {
                 clearInterval(countdownInterval);
                 this.countdownOverlay.classList.add('hidden');
                 gameEventEmitter.emit('countdownFinished'); // カウントダウン終了を通知
             }
         }, 1000);
+    }
+
+    // アニメーションをリセットして再生
+    restartCountdownAnimation() {
+        this.countdownNumberSpan.classList.remove('countdown-number');
+        // reflow to restart animation
+        void this.countdownNumberSpan.offsetWidth;
+        this.countdownNumberSpan.classList.add('countdown-number');
     }
 
     stopCountdown() {
@@ -165,7 +188,7 @@ export class UIManager {
 
     // コントロールボタンの有効/無効を切り替える
     setControlsEnabled(enabled, except = []) {
-        const buttons = [this.startButton, this.modeButton, this.resetButton, this.startGameButton, this.resetRankingButton, this.replayButton];
+        const buttons = [this.startButton, this.modeButton, this.resetButton, this.startGameButton, this.resetRankingButton, this.replayButton, this.nextButton, this.backButton];
         buttons.forEach(button => {
             if (button && !except.includes(button.id)) {
                 button.disabled = !enabled;
@@ -180,6 +203,39 @@ export class UIManager {
         } else {
             this.replayButton.classList.add('hidden');
         }
+    }
+
+    setNextButtonVisible(visible) {
+        if (visible) {
+            this.nextButton.classList.remove('hidden');
+        } else {
+            this.nextButton.classList.add('hidden');
+        }
+    }
+
+    setBackButtonVisible(visible) {
+        if (visible) {
+            this.backButton.classList.remove('hidden');
+        } else {
+            this.backButton.classList.add('hidden');
+        }
+    }
+
+    // 正解シーケンスの番号を各マスに表示
+    showSequenceNumbers(sequence) {
+        sequence.forEach((cellIndex, order) => {
+            const cell = this.gridContainer.querySelector(`.gridItem[data-index="${cellIndex}"]`);
+            if (cell) {
+                cell.textContent = (order + 1).toString();
+            }
+        });
+    }
+
+    // マスの番号表示をクリア
+    clearSequenceNumbers() {
+        this.gridContainer.querySelectorAll('.gridItem').forEach(cell => {
+            cell.textContent = '';
+        });
     }
 
     // ランキングリストを更新

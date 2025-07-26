@@ -184,11 +184,18 @@ export class StageClearedState extends GameState {
     enter() {
         console.log("Entering StageClearedState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.STAGE_CLEARED);
-        // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後にReadyStateに戻るか、次のステージへ
-        setTimeout(() => {
-            this.game.changeState(new ReadyState(this.game));
-        }, MESSAGES.STAGE_CLEARED_DELAY);
+        gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
+        // 「つぎへ」ボタンを表示し、操作はプレイヤーに任せる
+        gameEventEmitter.emit('setNextButtonVisible', true);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', false, ['nextButton']);
+    }
+
+    exit() {
+        gameEventEmitter.emit('clearSequenceNumbers');
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', true);
     }
 }
 
@@ -199,10 +206,17 @@ export class GameOverState extends GameState {
     enter() {
         console.log("Entering GameOverState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.GAME_OVER);
-        // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後にReadyStateに戻る
-        setTimeout(() => {
-            this.game.changeState(new ReadyState(this.game));
-        }, MESSAGES.RESET_DELAY); // RESET_DELAY を利用
+        gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
+        // 「さいしょにもどる」ボタンを表示し、待機
+        gameEventEmitter.emit('setBackButtonVisible', true);
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', false, ['backButton']);
+    }
+
+    exit() {
+        gameEventEmitter.emit('clearSequenceNumbers');
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', true);
     }
 }
