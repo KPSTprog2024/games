@@ -1,0 +1,288 @@
+/*
+ * スタイルシート
+ * すべてのテキストはひらがな表記となるように、フォントやレイアウトを調整します。
+ */
+
+/* 共通設定 */
+body {
+    font-family: 'Sawarabi Mincho', sans-serif;
+    background-color: #f5f0e6; /* 優しいベージュ系背景 */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #4a4a4a;
+    overflow: hidden; /* カウントダウンオーバーレイでスクロールが出ないように */
+}
+
+/* 画面切り替え用 */
+.hidden {
+    display: none !important;
+}
+
+/* トップページとゲーム画面の共通コンテナスタイル */
+#topPage, #gameScreen {
+    width: 92vmin;
+    max-width: 600px;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem; /* パディングを少し増やす */
+    box-sizing: border-box;
+    display: flex; /* flexboxで中央寄せ */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 70vh; /* 画面に収まるように最小高さを設定 */
+}
+
+/* ゲーム画面のコンテナは既存スタイルを維持 */
+#gameContainer {
+    width: 100%; /* 親要素の幅に合わせる */
+    max-width: none; /* 親要素のmax-widthに従う */
+    padding: 0; /* 親要素がパディングを持つため0にする */
+    box-shadow: none; /* 親要素がシャドウを持つためなしにする */
+    background-color: transparent; /* 親要素が背景を持つため透明にする */
+}
+
+/* 上部情報表示 */
+#topInfo {
+    text-align: center;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+#stageLabel {
+    font-size: 1.6rem; /* 少し大きく */
+    margin-bottom: 0.3rem;
+    color: #333;
+}
+
+#message {
+    font-size: 1.3rem; /* 少し大きく */
+    min-height: 1.5rem;
+    margin-top: 0.3rem;
+    font-weight: bold;
+    color: #555;
+}
+
+/* ３×３のマスを配置するグリッド */
+#gridContainer {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: 0 auto;
+    padding: 0.5rem; /* グリッド全体にパディング */
+    background-color: #e8e8e8; /* グリッドの背景色 */
+    border-radius: 0.8rem;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 各マスのスタイル */
+.gridItem {
+    background-color: #e0e0e0;
+    border-radius: 0.7rem; /* 少し大きく */
+    border: 2px solid #bdbdbd;
+    position: relative;
+    transition: background-color 0.2s ease-out, transform 0.1s ease-out, box-shadow 0.2s ease-out;
+    cursor: pointer;
+    display: flex; /* 中央揃え用 */
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem; /* 必要に応じて数字を表示する場合に備えて */
+    font-weight: bold;
+    color: rgba(0,0,0,0.2); /* 最初は薄く */
+    user-select: none; /* テキスト選択防止 */
+}
+
+/* 光ったときのスタイル（強化版） */
+.gridItem.active {
+    background-color: #ffeb3b; /* 明るい黄色 */
+    transform: scale(1.08) translateY(-3px); /* 強く浮き上がる */
+    box-shadow: 0 0 20px rgba(255, 235, 59, 0.7); /* 強めの光る影 */
+    border-color: #ffc107; /* 濃い黄色 */
+    animation: pulseGlow 0.8s ease-out forwards; /* 光るアニメーションを追加 */
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255, 235, 59, 1);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    }
+}
+
+
+/* 正解のとき（軽く緑に） */
+.gridItem.correct {
+    background-color: #8bc34a; /* より鮮やかな緑 */
+    border-color: #689f38;
+    animation: correctPop 0.3s ease-out; /* ポップするアニメーション */
+}
+
+@keyframes correctPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* 不正解のとき（赤くフラッシュ、揺れ） */
+.gridItem.incorrect {
+    background-color: #ef5350; /* 赤 */
+    border-color: #c62828;
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+
+/* ボタンのスタイル (既存と共通化) */
+#bottomControls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem; /* マージンを少し増やす */
+    gap: 0.5rem; /* ボタン間の隙間 */
+}
+
+button {
+    flex: 1;
+    margin: 0; /* gapで制御するためマージンなし */
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 0.6rem;
+    background-color: #8ab4f8; /* Google Blue Light */
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    white-space: nowrap; /* ボタン内のテキスト折り返し防止 */
+}
+
+button:hover:not(:disabled) {
+    background-color: #6fa7f2; /* Hover Blue */
+    transform: translateY(-2px);
+}
+
+button:active:not(:disabled) {
+    background-color: #5c94d7; /* Active Blue */
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* トップページのスタートボタン（HTMLでTailwindクラス付与済み） */
+/* トップページのラジオボタン */
+input[type="radio"] {
+    appearance: none; /* デフォルトのラジオボタンの外観をリセット */
+    width: 1.25rem; /* サイズ */
+    height: 1.25rem;
+    border: 2px solid #a5d6a7; /* 枠線 */
+    border-radius: 50%; /* 丸く */
+    outline: none; /* フォーカス時のアウトラインを消す */
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    transition: all 0.2s ease-in-out;
+}
+
+input[type="radio"]:checked {
+    background-color: #a5d6a7; /* チェックされたら背景色 */
+    border-color: #66bb6a; /* 枠線色も変更 */
+}
+
+input[type="radio"]:checked::before {
+    content: '';
+    display: block;
+    width: 0.6rem; /* 内側の白い点 */
+    height: 0.6rem;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ランキング表示エリア */
+#rankingArea ul {
+    list-style: none; /* デフォルトのリストスタイルをなくす */
+    padding: 0;
+    margin: 0;
+}
+
+#rankingArea ul li {
+    font-size: 1.1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#rankingArea ul li:last-child {
+    border-bottom: none;
+}
+
+/* カウントダウンオーバーレイ */
+.countdown-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85); /* 半透明の白 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100; /* 最前面に表示 */
+    backdrop-filter: blur(5px); /* 背景を少しぼかす */
+}
+
+.countdown-number {
+    font-size: 8rem; /* 大きな数字 */
+    font-weight: bold;
+    color: #4a4a4a;
+    animation: countdown 1s linear forwards; /* カウントダウンアニメーション */
+}
+
+@keyframes countdown {
+    0% {
+        opacity: 0;
+        transform: scale(1.5);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
