@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>わーきんぐめもりげーむ</title>
+    <!-- ひらがな表示に適したフォントを読み込み -->
+    <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (CDN) - モダンなデザインのために追加 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- アイコンライブラリ (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- アニメーション (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- トップページ -->
+    <section id="topPage" class="flex flex-col items-center justify-center p-4">
+        <h1 class="text-4xl font-bold mb-8 text-center text-blue-700">わーきんぐ めもりげーむ</h1>
+        
+        <!-- ゲームスタートボタン -->
+        <button id="startGameButton" class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-4 px-8 rounded-full shadow-lg hover:from-blue-600 hover:to-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 mb-8">
+            げーむ すたーと！
+        </button>
+
+        <!-- 難易度選択 -->
+        <div class="mb-8 p-6 bg-white rounded-xl shadow-md">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">なんいどをえらんでね</h2>
+            <div class="flex flex-wrap justify-center gap-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="1" class="form-radio h-5 w-5 text-blue-600" checked>
+                    <span class="ml-2 text-lg text-gray-800">やさしい</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="2" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-lg text-gray-800">ふつう</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="3" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-lg text-gray-800">ちょっとむずかしい</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="4" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-lg text-gray-800">むずかしい</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="5" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-lg text-gray-800">さいこう！</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- ランキング表示エリア -->
+        <div id="rankingArea" class="mb-8 p-6 bg-white rounded-xl shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">らんきんぐ</h2>
+            <ul id="rankingList" class="list-disc list-inside text-gray-700 text-lg">
+                <!-- ランキング項目はJSで動的に追加されます -->
+                <li>まだきろくがないよ</li>
+            </ul>
+            <button id="resetRankingButton" class="mt-4 bg-red-500 text-white font-bold py-2 px-4 rounded-full shadow hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 w-full">
+                らんきんぐをりせっと
+            </button>
+        </div>
+    </section>
+
+    <!-- ゲーム画面 -->
+    <section id="gameScreen" class="hidden">
+        <!-- ゲーム全体を囲むコンテナ -->
+        <div id="gameContainer">
+            <!-- 上部情報表示：ステージ番号とメッセージ -->
+            <div id="topInfo">
+                <div id="stageLabel">すてーじ：<span id="stageNumber">1</span></div>
+                <div id="message" aria-live="polite">がんばってね</div>
+            </div>
+            
+            <!-- カウントダウン表示 -->
+            <div id="countdown" class="countdown-overlay hidden">
+                <span class="countdown-number">3</span>
+            </div>
+
+            <!-- ３×３のマス -->
+            <div id="gridContainer">
+                <!-- JavaScriptでマスを生成します -->
+            </div>
+            <!-- 下部の操作ボタン -->
+            <div id="bottomControls">
+                <button id="startButton">すたーと</button>
+                <button id="modeButton">もーど：いちどだけ</button>
+                <button id="replayButton" class="hidden">もういちど</button> <!-- 新しく追加 -->
+                <button id="resetButton">りせっと</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ゲームロジック -->
+    <!-- type="module" を追加し、パスをjs/main.jsに変更 -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
