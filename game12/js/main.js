@@ -107,8 +107,10 @@ class GameController {
         this.countdownActive = true;
         this.countdownTimer = COUNTDOWN_TIME;
         gameEventEmitter.emit('clearSequenceNumbers');
+
         gameEventEmitter.emit('setNextButtonVisible', false);
         gameEventEmitter.emit('setBackButtonVisible', false);
+
 
         // 現在のステージに応じてシーケンスの長さを決定
         const currentStage = this.mode === GAME_MODES.ONCE ? this.stageOnce : this.stageRepeat;
@@ -167,6 +169,7 @@ class GameController {
         gameEventEmitter.emit('clearSequenceNumbers');
         gameEventEmitter.emit('setNextButtonVisible', false);
         gameEventEmitter.emit('setBackButtonVisible', false);
+
         this.stageOnce = 1;
         this.stageRepeat = 1;
         localStorage.setItem('memoryGame_stageOnce', this.stageOnce.toString());

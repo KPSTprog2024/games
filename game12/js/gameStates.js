@@ -1,6 +1,6 @@
 // js/gameStates.js
 
-import { GAME_STATES, MESSAGES } from './constants.js';
+import { GAME_STATES, MESSAGES, STAGE_CLEARED_DELAY, RESET_DELAY } from './constants.js';
 import { gameEventEmitter } from './eventEmitter.js';
 
 /**
@@ -185,6 +185,7 @@ export class StageClearedState extends GameState {
         console.log("Entering StageClearedState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.STAGE_CLEARED);
         gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
+
         // 「つぎへ」ボタンを表示し、操作はプレイヤーに任せる
         gameEventEmitter.emit('setNextButtonVisible', true);
         gameEventEmitter.emit('setBackButtonVisible', false);
@@ -196,6 +197,7 @@ export class StageClearedState extends GameState {
         gameEventEmitter.emit('setNextButtonVisible', false);
         gameEventEmitter.emit('setBackButtonVisible', false);
         gameEventEmitter.emit('setControlsEnabled', true);
+
     }
 }
 
@@ -207,6 +209,7 @@ export class GameOverState extends GameState {
         console.log("Entering GameOverState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.GAME_OVER);
         gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
+
         // 「さいしょにもどる」ボタンを表示し、待機
         gameEventEmitter.emit('setBackButtonVisible', true);
         gameEventEmitter.emit('setNextButtonVisible', false);
@@ -217,6 +220,6 @@ export class GameOverState extends GameState {
         gameEventEmitter.emit('clearSequenceNumbers');
         gameEventEmitter.emit('setNextButtonVisible', false);
         gameEventEmitter.emit('setBackButtonVisible', false);
-        gameEventEmitter.emit('setControlsEnabled', true);
+
     }
 }

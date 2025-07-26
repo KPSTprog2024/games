@@ -88,6 +88,7 @@ export class UIManager {
         gameEventEmitter.on('stageClearedAnimation', () => this.playStageClearedAnimation());
         gameEventEmitter.on('showSequenceNumbers', (sequence) => this.showSequenceNumbers(sequence));
         gameEventEmitter.on('clearSequenceNumbers', () => this.clearSequenceNumbers());
+
         gameEventEmitter.on('setNextButtonVisible', (visible) => this.setNextButtonVisible(visible));
         gameEventEmitter.on('setBackButtonVisible', (visible) => this.setBackButtonVisible(visible));
     }
@@ -220,6 +221,7 @@ export class UIManager {
             this.backButton.classList.add('hidden');
         }
     }
+
 
     // 正解シーケンスの番号を各マスに表示
     showSequenceNumbers(sequence) {
