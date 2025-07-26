@@ -8,7 +8,7 @@ import { ReadyState, PlayingSequenceState, PlayerTurnState, StageClearedState, G
 import {
     GAME_STATES, MESSAGES, DIFFICULTY_SETTINGS,
     SOUND_FREQUENCIES, SOUND_DURATIONS, COUNTDOWN_TIME,
-    STAGE_CLEARED_DELAY, RESET_DELAY, DEFAULT_DIFFICULTY,
+    DEFAULT_DIFFICULTY,
     GRID_SIZE, GAME_MODES
 } from './constants.js';
 
@@ -60,6 +60,8 @@ class GameController {
         gameEventEmitter.on('modeButtonClicked', () => this.toggleMode());
         gameEventEmitter.on('replayButtonClicked', () => this.replaySequence());
         gameEventEmitter.on('resetButtonClicked', () => this.resetGame());
+        gameEventEmitter.on('nextButtonClicked', () => this.startGame());
+        gameEventEmitter.on('backButtonClicked', () => this.changeState(new ReadyState(this)));
         gameEventEmitter.on('resetRankingButtonClicked', () => this.rankingManager.resetRanking());
         gameEventEmitter.on('difficultyChanged', (difficulty) => this.setDifficulty(difficulty));
         gameEventEmitter.on('gridCellClicked', (index) => {
@@ -105,6 +107,10 @@ class GameController {
         this.countdownActive = true;
         this.countdownTimer = COUNTDOWN_TIME;
         gameEventEmitter.emit('clearSequenceNumbers');
+
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+
 
         // 現在のステージに応じてシーケンスの長さを決定
         const currentStage = this.mode === GAME_MODES.ONCE ? this.stageOnce : this.stageRepeat;
@@ -161,6 +167,9 @@ class GameController {
             return; // ゲーム中はリセット不可
         }
         gameEventEmitter.emit('clearSequenceNumbers');
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+
         this.stageOnce = 1;
         this.stageRepeat = 1;
         localStorage.setItem('memoryGame_stageOnce', this.stageOnce.toString());

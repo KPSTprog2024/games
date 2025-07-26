@@ -185,12 +185,19 @@ export class StageClearedState extends GameState {
         console.log("Entering StageClearedState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.STAGE_CLEARED);
         gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
-        // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後に次のステージを自動で開始
-        setTimeout(() => {
-            gameEventEmitter.emit('clearSequenceNumbers');
-            this.game.startGame();
-        }, STAGE_CLEARED_DELAY);
+
+        // 「つぎへ」ボタンを表示し、操作はプレイヤーに任せる
+        gameEventEmitter.emit('setNextButtonVisible', true);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', false, ['nextButton']);
+    }
+
+    exit() {
+        gameEventEmitter.emit('clearSequenceNumbers');
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', true);
+
     }
 }
 
@@ -202,11 +209,17 @@ export class GameOverState extends GameState {
         console.log("Entering GameOverState");
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.GAME_OVER);
         gameEventEmitter.emit('showSequenceNumbers', this.game.currentSequence);
-        // UIはPlayerTurnStateのものを引き継ぎつつ、メッセージは更新済み
-        // 一定時間後にトップページへ戻る
-        setTimeout(() => {
-            gameEventEmitter.emit('clearSequenceNumbers');
-            this.game.changeState(new ReadyState(this.game));
-        }, RESET_DELAY);
+
+        // 「さいしょにもどる」ボタンを表示し、待機
+        gameEventEmitter.emit('setBackButtonVisible', true);
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setControlsEnabled', false, ['backButton']);
+    }
+
+    exit() {
+        gameEventEmitter.emit('clearSequenceNumbers');
+        gameEventEmitter.emit('setNextButtonVisible', false);
+        gameEventEmitter.emit('setBackButtonVisible', false);
+
     }
 }
