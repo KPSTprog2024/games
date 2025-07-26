@@ -3,73 +3,73 @@ const events = [
     {
         id: "nyugakushiki",
         name: "にゅうがくしき",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/6ed96669-4056-4683-8a3a-389d279ec485.png",
+        image: "images/nyugakushiki.png",
         description: "入学式"
     },
     {
         id: "kodomonohi", 
         name: "こどものひ",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/36bbedd0-66f4-4a26-ad72-889b728066cf.png",
+        image: "images/kodomonohi.png",
         description: "子供の日"
     },
     {
         id: "hahanohi",
         name: "ははのひ", 
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/a80db988-3f13-44e0-83df-00760e484bb3.png",
+        image: "images/hahanohi.png",
         description: "母の日"
     },
     {
         id: "tsuyu",
         name: "つゆ",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/7db36ff1-5c41-4f0c-854b-47175e1acad4.png", 
+        image: "images/tsuyu.png",
         description: "梅雨"
     },
     {
         id: "tanabata",
         name: "たなばた",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/87d0b933-0c6e-4d20-9704-9467c7071ebd.png",
+        image: "images/tanabata.png",
         description: "七夕"
     },
     {
         id: "halloween",
         name: "はろうぃん",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/cdcbc462-1eaf-4cd3-b478-484c32530f9e.png",
+        image: "images/halloween.png",
         description: "ハロウィン"
     },
     {
         id: "shichigosan", 
         name: "しちごさん",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/b417e383-db21-4a0a-8a7a-a0a67ae44275.png",
+        image: "images/shichigosan.png",
         description: "七五三"
     },
     {
         id: "kurisumasu",
         name: "くりすます",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/299fb220-5066-4330-b0fd-5ebb92c21fbd.png", 
+        image: "images/kurisumasu.png",
         description: "クリスマス"
     },
     {
         id: "oshougatsu",
         name: "おしょうがつ",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/bfc5ac05-e948-4151-bb91-2eaf7d3d04f5.png",
+        image: "images/oshougatsu.png",
         description: "お正月"
     },
     {
         id: "setsubun",
         name: "せつぶん", 
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/c801653e-7b9a-4006-abbe-0fc8e88b307b.png",
+        image: "images/setsubun.png",
         description: "節分"
     },
     {
         id: "hinamatsuri",
         name: "ひなまつり",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/85924884-b5aa-42db-b3a3-5708938176f5.png",
+        image: "images/hinamatsuri.png",
         description: "ひな祭り"
     },
     {
         id: "hanami",
         name: "はなみ",
-        image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/eab8a2c3-36cf-47a2-9845-dfc84a863938.png",
+        image: "images/hanami.png",
         description: "花見"
     }
 ];
