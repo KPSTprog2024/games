@@ -101,6 +101,8 @@ export class UIManager {
         }
         this.setNextButtonVisible(false);
         this.setBackButtonVisible(false);
+        // トップページではボタンを再度有効にする
+        this.setControlsEnabled(true);
     }
 
     hideTopPage() {
