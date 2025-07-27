@@ -165,9 +165,6 @@ export class UIManager {
             if (count > 0) {
                 this.countdownNumberSpan.textContent = count.toString();
                 this.restartCountdownAnimation();
-            } else if (count === 0) {
-                this.countdownNumberSpan.textContent = 'すたーと！';
-                this.restartCountdownAnimation();
             } else {
                 clearInterval(countdownInterval);
                 this.countdownOverlay.classList.add('hidden');

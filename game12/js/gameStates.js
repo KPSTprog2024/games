@@ -142,7 +142,9 @@ export class PlayerTurnState extends GameState {
         gameEventEmitter.emit('gameStateChanged', GAME_STATES.PLAYER_TURN);
         gameEventEmitter.emit('setMessage', MESSAGES.YOUR_TURN[Math.floor(Math.random() * MESSAGES.YOUR_TURN.length)]);
         gameEventEmitter.emit('setReplayButtonVisible', true); // もう一度ボタンを表示
-        gameEventEmitter.emit('setControlsEnabled', true, ['modeButton', 'resetButton', 'replayButton']); // モード、リセット、リプレイボタンは有効
+        // まずすべてのボタンを有効化した後、必要なもの以外は無効化
+        gameEventEmitter.emit('setControlsEnabled', true);
+        gameEventEmitter.emit('setControlsEnabled', false, ['modeButton', 'resetButton', 'replayButton']); // モード、リセット、リプレイボタンのみ有効
     }
 
     exit() {
