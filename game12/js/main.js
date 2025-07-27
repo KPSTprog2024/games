@@ -61,7 +61,8 @@ class GameController {
         gameEventEmitter.on('replayButtonClicked', () => this.replaySequence());
         gameEventEmitter.on('resetButtonClicked', () => this.resetGame());
         gameEventEmitter.on('nextButtonClicked', () => this.startGame());
-        gameEventEmitter.on('backButtonClicked', () => this.changeState(new ReadyState(this)));
+        // トップページに戻る際はステージをリセット
+        gameEventEmitter.on('backButtonClicked', () => this.resetGame());
         gameEventEmitter.on('resetRankingButtonClicked', () => this.rankingManager.resetRanking());
         gameEventEmitter.on('difficultyChanged', (difficulty) => this.setDifficulty(difficulty));
         gameEventEmitter.on('gridCellClicked', (index) => {
