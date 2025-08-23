@@ -10,7 +10,9 @@ let gameHeight = window.innerHeight - 200; // タイトルと余白分高さを�
 let imageKey = '';
 let imageCounter = 0;
 let completedImageURL = ''; // 完成画像のデータURLを保存
-let gameInstance;
+
+let bgColor = '#8E24AA';
+document.documentElement.style.setProperty('--bg-color', bgColor);
 
 document.getElementById('piece-count').addEventListener('change', function (e) {
   const value = e.target.value;
@@ -28,17 +30,32 @@ document.getElementById('piece-count').addEventListener('change', function (e) {
 
 document.getElementById('upload-image').addEventListener('change', function (e) {
   const file = e.target.files[0];
+  const startButton = document.getElementById('start-button');
   if (file && file.size <= 5 * 1024 * 1024) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      selectedImage = event.target.result;
-      document.getElementById('start-button').disabled = false;
-    };
-    reader.readAsDataURL(file);
+    if (file.type === 'image/jpeg' || file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        selectedImage = event.target.result;
+        startButton.disabled = false;
+      };
+      reader.onerror = function () {
+        alert('画像の読み込みに失敗しました');
+        startButton.disabled = true;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('PNGまたはJPG形式の画像を選択してください。');
+      startButton.disabled = true;
+    }
   } else {
     alert('5MB以下のPNGまたはJPG画像を選択してください。');
-    document.getElementById('start-button').disabled = true;
+    startButton.disabled = true;
   }
+});
+
+document.getElementById('bg-color').addEventListener('change', function (e) {
+  bgColor = e.target.value;
+  document.documentElement.style.setProperty('--bg-color', bgColor);
 });
 
 document.getElementById('start-button').addEventListener('click', function () {
@@ -66,7 +83,7 @@ function initGame() {
     width: gameWidth,
     height: gameHeight * 2, // 高さを2倍に設定してスクロール可能に
     parent: 'game-container',
-    backgroundColor: '#8E24AA', // 背景色を紫色に設定
+    backgroundColor: bgColor, // 背景色を設定
     scene: {
       preload: preload,
       create: create
@@ -94,7 +111,7 @@ function create() {
   const scene = this;
 
   // シーン全体の背景色を設定
-  scene.cameras.main.setBackgroundColor('#8E24AA'); // 背景色を紫色に設定
+  scene.cameras.main.setBackgroundColor(bgColor); // 背景色を設定
 
   // 画像を新しいImageオブジェクトとしてロード
   const img = new Image();
