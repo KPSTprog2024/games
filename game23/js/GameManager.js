@@ -49,8 +49,8 @@ export class GameManager {
   preload() {
     const scene = this.gameState.gameInstance.scene.scenes[0];
     scene.load.image("puzzleImage", this.gameState.selectedImage);
-    scene.load.audio("placeSound", "assets/sounds/place.mp3");
-    scene.load.audio("clearSound", "assets/sounds/clear.mp3");
+    scene.load.audio("placeSound", "./assets/sounds/place.wav");
+    scene.load.audio("clearSound", "./assets/sounds/clear.wav");
   }
 
   create() {
