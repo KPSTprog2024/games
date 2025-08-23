@@ -7,6 +7,7 @@ export class UIManager {
   showScreen(screenId) {
     this.screens.forEach(id => {
       const el = document.getElementById(id);
+      if (!el) return;
       if (id === screenId) {
         el.classList.remove("hidden");
       } else {
