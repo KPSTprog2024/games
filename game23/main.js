@@ -10,6 +10,8 @@ let gameHeight = window.innerHeight - 200; // タイトルと余白分高さを�
 let imageKey = '';
 let imageCounter = 0;
 let completedImageURL = ''; // 完成画像のデータURLを保存
+let bgColor = '#8E24AA';
+document.documentElement.style.setProperty('--bg-color', bgColor);
 
 document.getElementById('piece-count').addEventListener('change', function (e) {
   const value = e.target.value;
@@ -40,6 +42,11 @@ document.getElementById('upload-image').addEventListener('change', function (e) 
   }
 });
 
+document.getElementById('bg-color').addEventListener('change', function (e) {
+  bgColor = e.target.value;
+  document.documentElement.style.setProperty('--bg-color', bgColor);
+});
+
 document.getElementById('start-button').addEventListener('click', function () {
   if (selectedImage) {
     document.getElementById('start-screen').style.display = 'none';
@@ -65,7 +72,7 @@ function initGame() {
     width: gameWidth,
     height: gameHeight * 2, // 高さを2倍に設定してスクロール可能に
     parent: 'game-container',
-    backgroundColor: '#8E24AA', // 背景色を紫色に設定
+    backgroundColor: bgColor, // 背景色を設定
     scene: {
       preload: preload,
       create: create
@@ -86,7 +93,7 @@ function create() {
   const scene = this;
 
   // シーン全体の背景色を設定
-  scene.cameras.main.setBackgroundColor('#8E24AA'); // 背景色を紫色に設定
+  scene.cameras.main.setBackgroundColor(bgColor); // 背景色を設定
 
   // 画像を新しいImageオブジェクトとしてロード
   const img = new Image();
