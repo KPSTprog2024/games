@@ -10,6 +10,7 @@ let gameHeight = window.innerHeight - 200; // タイトルと余白分高さを�
 let imageKey = '';
 let imageCounter = 0;
 let completedImageURL = ''; // 完成画像のデータURLを保存
+let gameInstance;
 
 document.getElementById('piece-count').addEventListener('change', function (e) {
   const value = e.target.value;
@@ -49,11 +50,11 @@ document.getElementById('start-button').addEventListener('click', function () {
 });
 
 document.getElementById('retry-button').addEventListener('click', function () {
-  location.reload();
+  restartGame();
 });
 
 document.getElementById('reset-button').addEventListener('click', function () {
-  location.reload();
+  restartGame();
 });
 
 function initGame() {
@@ -72,7 +73,14 @@ function initGame() {
     }
   };
 
-  const game = new Phaser.Game(config);
+  gameInstance = new Phaser.Game(config);
+}
+
+function restartGame() {
+  if (gameInstance) {
+    gameInstance.destroy(true);
+  }
+  initGame();
 }
 
 function preload() {
