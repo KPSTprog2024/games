@@ -185,15 +185,11 @@ class Game{
 
   _bindInputs(){
     const onPress = ()=> this.jump();
-    document.addEventListener('touchstart', (e)=>{
+    document.addEventListener('pointerdown', (e)=>{
+      if(e.pointerType==='mouse' && e.button!==0) return;
       if(e.target.closest('#startBtn')) return;
       if(e.target.tagName==='INPUT' || e.target.tagName==='BUTTON') return;
-      onPress();
-    }, {passive:true});
-    document.addEventListener('mousedown', (e)=>{
-      if(e.button!==0) return;
-      if(e.target.closest('#startBtn')) return;
-      if(e.target.tagName==='INPUT' || e.target.tagName==='BUTTON') return;
+      if(e.pointerType==='touch') e.preventDefault();
       onPress();
     });
     document.addEventListener('keydown', (e)=>{
