@@ -27,16 +27,26 @@ document.getElementById('piece-count').addEventListener('change', function (e) {
 
 document.getElementById('upload-image').addEventListener('change', function (e) {
   const file = e.target.files[0];
+  const startButton = document.getElementById('start-button');
   if (file && file.size <= 5 * 1024 * 1024) {
-    const reader = new FileReader();
-    reader.onload = function (event) {
-      selectedImage = event.target.result;
-      document.getElementById('start-button').disabled = false;
-    };
-    reader.readAsDataURL(file);
+    if (file.type === 'image/jpeg' || file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        selectedImage = event.target.result;
+        startButton.disabled = false;
+      };
+      reader.onerror = function () {
+        alert('画像の読み込みに失敗しました');
+        startButton.disabled = true;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('PNGまたはJPG形式の画像を選択してください。');
+      startButton.disabled = true;
+    }
   } else {
     alert('5MB以下のPNGまたはJPG画像を選択してください。');
-    document.getElementById('start-button').disabled = true;
+    startButton.disabled = true;
   }
 });
 
