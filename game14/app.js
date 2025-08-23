@@ -17,7 +17,8 @@ class DiameterLineAnimator {
         
         // 見えるボール管理（各直径線に1つ）
         this.visibleBalls = [];             // 位置・色情報
-        this.ballColors = ["white", "#ff5555", "#55ff55", "#5555ff", "#ffff55", "#ff8855", "#aa55ff", "#55ffff"];
+        this.firstBallColor = '#ff0000';    // 水平線上で位置が変わらないボールの色
+        this.defaultBallColor = 'white';    // その他のボールの色
         
         // アニメーション制御
         this.isPlaying = false;
@@ -110,11 +111,13 @@ class DiameterLineAnimator {
             // 直径線上の実際の座標
             const x = this.centerX + radialDistance * Math.cos(lineAngle);
             const y = this.centerY + radialDistance * Math.sin(lineAngle);
-            
+
+            const color = index === 0 ? this.firstBallColor : this.defaultBallColor;
+
             this.visibleBalls.push({
                 x: x,
                 y: y,
-                color: this.ballColors[index % this.ballColors.length]
+                color: color
             });
         });
     }
