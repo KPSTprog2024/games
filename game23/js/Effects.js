@@ -16,10 +16,6 @@ export class Effects {
     this.sounds.clear?.play({ volume: 0.7 });
   }
 
-  animateButton(button) {
-    button.style.animation = 'pulse-glow 2s ease-in-out infinite';
-  }
-
   createNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type} animate__animated animate__bounceInDown`;
