@@ -1,0 +1,154 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #6A1B9A; /* 明るめのパープル */
+  color: #FFFFFF; /* 白いテキスト */
+  overflow: auto; /* 画面をスクロール可能にする */
+}
+
+#start-screen, #game-clear-screen {
+  text-align: center;
+  padding: 50px;
+}
+
+#game-screen {
+  text-align: center;
+}
+
+#game-title {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+#game-container {
+  width: 100%;
+  height: auto; /* 高さを自動調整 */
+  overflow: visible; /* コンテンツが溢れた場合でも表示 */
+  position: relative;
+  background-color: #8E24AA; /* 紫色に近いハロウィンカラー */
+}
+
+/* ボタンコンテナのスタイル */
+.button-container {
+  display: flex;
+  flex-direction: column; /* 縦に並べる */
+  align-items: center;
+  gap: 30px; /* ボタン間のスペースを広げる */
+}
+
+/* タイルボタンのスタイル */
+.tile-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFB74D; /* 明るいオレンジ */
+  color: white;
+  width: 250px; /* ボタンの幅を調整 */
+  height: 150px; /* ボタンの高さを統一 */
+  font-size: 24px; /* フォントサイズを大きく */
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  position: relative;
+}
+
+/* ボタンのホバー効果 */
+.tile-button:hover {
+  background-color: #FFD54F; /* より明るいオレンジ */
+}
+
+/* ラベル内のselect要素とinput要素を非表示に */
+.tile-button select,
+.tile-button input[type="file"] {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* スタートボタンのスタイル調整 */
+#start-button {
+  background-color: #FFB74D;
+  color: white;
+  width: 250px; /* ボタンの幅を調整 */
+  height: 150px; /* ボタンの高さを統一 */
+  font-size: 24px;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+}
+
+#start-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+#start-button:hover:enabled {
+  background-color: #FFD54F;
+}
+
+/* ゲーム画面のボタンスタイル */
+#reset-button, #retry-button {
+  background-color: #FFB74D; /* 明るいオレンジ */
+  color: white;
+  padding: 15px 30px; /* ボタンを大きく */
+  font-size: 20px; /* フォントサイズを大きく */
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+#reset-button:hover, #retry-button:hover {
+  background-color: #FFD54F; /* より明るいオレンジ */
+}
+
+#reset-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+}
+
+#retry-button {
+  padding: 20px 40px;
+}
+
+h1, label, select, button {
+  color: #FFFFFF;
+}
+
+select {
+  background-color: #AB47BC; /* 明るめのパープル */
+  color: #FFFFFF;
+  border: none;
+  padding: 10px;
+  font-size: 24px; /* フォントサイズを大きく */
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+option {
+  background-color: #AB47BC; /* 明るめのパープル */
+  color: #FFFFFF;
+  font-size: 24px; /* フォントサイズを大きく */
+}
+
+#game-clear-screen h1 {
+  color: #FFB74D; /* 明るいオレンジ */
+}
+
+#game-clear-screen img {
+  max-width: 80%;
+  height: auto;
+  margin-top: 20px;
+}
+
+button:focus, .tile-button:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 5px #FFB74D;
+}
