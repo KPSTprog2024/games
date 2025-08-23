@@ -1,20 +1,20 @@
-// Game data with actual image URLs
+// Game data with local image paths
 const gameData = {
   events: [
-    { name: "おしょうがつ", month: 1, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/a98bfad4-6609-4a6f-866d-79f94448a671.png" },
-    { name: "せつぶん", month: 2, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/ce4a5901-a7da-4f13-8814-4131f2fd47e0.png" },
-    { name: "ひなまつり", month: 3, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/4ab690c3-75e7-4940-9513-7824188fc44e.png" },
-    { name: "にゅうがくしき", month: 4, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/0e33e23d-4daf-48c4-bdc0-f69ec2032474.png" },
-    { name: "はなみ", month: 4, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/c128092b-24e1-45d5-b01d-c5e033d6a6c3.png" },
-    { name: "こどものひ", month: 5, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/34e2161c-66c1-4ad8-b116-8bc7320cce9a.png" },
-    { name: "ははのひ", month: 5, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/b50041b3-7151-49e0-9bf5-1809d9f53c1d.png" },
-    { name: "つゆ", month: 6, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/3d4a5736-abee-4178-ac3a-3e26620be943.png" },
-    { name: "たなばた", month: 7, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/130b4a30-baa4-4c90-9891-5496aa0d3687.png" },
-    { name: "なつやすみ", month: 8, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/b0c36094-6e73-4d0a-bd4f-c0c62aa1a6ed.png" },
-    { name: "つきみ", month: 9, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/65df9d01-111a-4d41-a456-6461d6f5227a.png" },
-    { name: "はろうぃん", month: 10, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/93fa8bd7-2c2e-460c-a928-c5136ae65894.png" },
-    { name: "しちごさん", month: 11, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/4031fb38-7d5f-48b8-beb2-ebb4cec01eb1.png" },
-    { name: "くりすます", month: 12, image: "https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/5fc2f838-eb16-4620-ab29-c75b247aef84.png" }
+    { name: "おしょうがつ", month: 1, image: "./おしょうがつ.png" },
+    { name: "せつぶん", month: 2, image: "./せつぶん.png" },
+    { name: "ひなまつり", month: 3, image: "./ひなまつり.png" },
+    { name: "にゅうがくしき", month: 4, image: "./にゅうがくしき.png" },
+    { name: "はなみ", month: 4, image: "./はなみ.png" },
+    { name: "こどものひ", month: 5, image: "./こどものひ.png" },
+    { name: "ははのひ", month: 5, image: "./ははのひ.png" },
+    { name: "つゆ", month: 6, image: "./つゆ.png" },
+    { name: "たなばた", month: 7, image: "./たなばた.png" },
+    { name: "なつやすみ", month: 8, image: "./なつやすみ.png" },
+    { name: "つきみ", month: 9, image: "./つきみ.png" },
+    { name: "はろうぃん", month: 10, image: "./はろうぃん.png" },
+    { name: "しちごさん", month: 11, image: "./しちごさん.png" },
+    { name: "くりすます", month: 12, image: "./くりすます.png" }
   ]
 };
 
@@ -280,7 +280,8 @@ function loadCurrentQuestion() {
   
   // Update event display
   if (eventImage && eventName) {
-    eventImage.src = currentQuestion.image;
+    // Ensure paths with Japanese characters load correctly
+    eventImage.src = encodeURI(currentQuestion.image);
     eventImage.alt = currentQuestion.name;
     eventImage.style.display = 'block';
     eventName.textContent = currentQuestion.name;
