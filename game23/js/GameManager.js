@@ -31,6 +31,7 @@ export class GameManager {
   startGame() {
     if (!this.gameState.selectedImage) return;
     this.gameState.remainingPieces = this.gameState.rows * this.gameState.cols;
+    this.uiManager.updateRemainingPieces(this.gameState.remainingPieces);
     this.uiManager.showScreen("game-screen");
     this.initPhaserGame();
   }
