@@ -1,6 +1,3 @@
-import { UIManager } from "./UIManager.js";
-import { Effects } from "./Effects.js";
-
 export class GameManager {
   constructor(uiManager, effects) {
     this.uiManager = uiManager;
