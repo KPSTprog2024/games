@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>速さ×時間＝距離 学習アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>速さ×時間＝距離 学習アプリ</h1>
+        
+        <!-- 移動手段選択 -->
+        <div class="transport-selection">
+            <h3>移動手段を選択してください：</h3>
+            <div class="transport-buttons">
+                <button class="btn btn--secondary transport-btn active" data-transport="car">
+                    🚗 車
+                </button>
+                <button class="btn btn--secondary transport-btn" data-transport="bicycle">
+                    🚴‍♂️ 自転車
+                </button>
+                <button class="btn btn--secondary transport-btn" data-transport="runner">
+                    🏃‍♂️ 走る人
+                </button>
+            </div>
+        </div>
+
+        <!-- 上半分：速さ×時間グリッド -->
+        <div class="grid-section">
+            <h3>速さと時間を選択してください：</h3>
+            <div class="grid-container">
+                <!-- 軸ラベル付きグリッド -->
+                <div class="grid-with-axes">
+                    <!-- 左上の空白セル -->
+                    <div class="corner-cell">速さ(km/h) → 時間(時間)</div>
+                    <!-- 横軸（時間）ラベル -->
+                    <div class="time-axis-labels">
+                        <div class="axis-label" data-value="1">1</div>
+                        <div class="axis-label" data-value="2">2</div>
+                        <div class="axis-label" data-value="3">3</div>
+                        <div class="axis-label" data-value="4">4</div>
+                        <div class="axis-label" data-value="5">5</div>
+                        <div class="axis-label" data-value="6">6</div>
+                        <div class="axis-label" data-value="7">7</div>
+                        <div class="axis-label" data-value="8">8</div>
+                        <div class="axis-label" data-value="9">9</div>
+                        <div class="axis-label" data-value="10">10</div>
+                    </div>
+                    <!-- 縦軸（速さ）ラベル -->
+                    <div class="speed-axis-labels">
+                        <div class="axis-label" data-value="1">1</div>
+                        <div class="axis-label" data-value="2">2</div>
+                        <div class="axis-label" data-value="3">3</div>
+                        <div class="axis-label" data-value="4">4</div>
+                        <div class="axis-label" data-value="5">5</div>
+                        <div class="axis-label" data-value="6">6</div>
+                        <div class="axis-label" data-value="7">7</div>
+                        <div class="axis-label" data-value="8">8</div>
+                        <div class="axis-label" data-value="9">9</div>
+                        <div class="axis-label" data-value="10">10</div>
+                    </div>
+                    <!-- メイングリッド -->
+                    <div class="calculation-grid" id="calculationGrid">
+                        <!-- グリッドセルはJavaScriptで生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 計算式表示 -->
+            <div class="formula-display" id="formulaDisplay">
+                速さと時間を選択してください
+            </div>
+        </div>
+
+        <!-- 下半分：距離移動アニメーション -->
+        <div class="animation-section">
+            <h3>距離移動アニメーション</h3>
+            
+            <!-- 制御ボタン -->
+            <div class="control-buttons">
+                <button class="btn btn--primary" id="startBtn">スタート</button>
+                <button class="btn btn--secondary" id="resetBtn">リセット</button>
+            </div>
+            
+            <!-- カウントダウン表示 -->
+            <div class="countdown-display" id="countdownDisplay">
+                スタートボタンを押してください
+            </div>
+            
+            <!-- 距離目盛りとアニメーション軌道 -->
+            <div class="distance-track">
+                <div class="distance-marks" id="distanceMarks">
+                    <!-- 100マスの目盛りはJavaScriptで生成 -->
+                </div>
+                <div class="movement-track">
+                    <div class="moving-icon" id="movingIcon">🚗</div>
+                </div>
+                <div class="distance-numbers">
+                    <span>0km</span>
+                    <span>25km</span>
+                    <span>50km</span>
+                    <span>75km</span>
+                    <span>100km</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
