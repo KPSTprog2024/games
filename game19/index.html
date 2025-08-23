@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地点比較マップ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="controls">
+            <button id="home-setting-btn" class="btn btn--primary">自宅を設定する</button>
+            <span id="status-text" class="status-text">比較地図上をクリックして自宅を設定してください</span>
+        </div>
+        <div class="map-container">
+            <div class="map-section">
+                <h3 class="map-title">比較地図</h3>
+                <div id="map-left" class="map-area"></div>
+            </div>
+            <div class="map-section">
+                <h3 class="map-title">自宅地図</h3>
+                <div id="map-right" class="map-area"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
