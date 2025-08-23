@@ -41,6 +41,7 @@ export class GameManager {
       type: Phaser.AUTO,
       width: this.config.gameWidth,
       height: this.config.gameHeight,
+      backgroundColor: 0xffffff,
       parent: "game-container",
       scene: { preload: () => this.preload(), create: () => this.create() }
     };
