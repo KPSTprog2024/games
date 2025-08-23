@@ -1,63 +1,189 @@
-(() => {
-  class PuzzleGame {
-    constructor() {
-      this.selectedImage = null;
-      this.rows = 3;
-      this.cols = 4;
-      this.pieceWidth = 0;
-      this.pieceHeight = 0;
-      this.piecesGroup = null;
-      this.puzzleGroup = null;
-      this.gameWidth = window.innerWidth;
-      this.gameHeight = window.innerHeight - 200;
-      this.imageKey = '';
-      this.imageCounter = 0;
-      this.completedImageURL = '';
+const rootStyle = getComputedStyle(document.documentElement);
+const COLORS = {
+  gameBg: rootStyle.getPropertyValue('--game-bg-color').trim(),
+  button: rootStyle.getPropertyValue('--button-color').trim(),
+  text: rootStyle.getPropertyValue('--text-color').trim(),
+  border: rootStyle.getPropertyValue('--border-color').trim()
+};
+const COLOR_VALUES = {
+  gameBg: Phaser.Display.Color.HexStringToColor(COLORS.gameBg).color,
+  button: Phaser.Display.Color.HexStringToColor(COLORS.button).color,
+  text: Phaser.Display.Color.HexStringToColor(COLORS.text).color
+};
 
-      document.getElementById('piece-count').addEventListener('change', (e) => {
-        const value = e.target.value;
-        if (value === '3x4') {
-          this.rows = 3;
-          this.cols = 4;
-        } else if (value === '4x5') {
-          this.rows = 4;
-          this.cols = 5;
-        } else if (value === '6x8') {
-          this.rows = 6;
-          this.cols = 8;
-        }
-      });
+let selectedImage = null;
+let rows = 3;
+let cols = 4;
+let pieceWidth;
+let pieceHeight;
+let piecesGroup;
+let puzzleGroup;
+let gameWidth = window.innerWidth;
+let gameHeight = window.innerHeight - 200; // タイトルと余白分高さを減らす
+let imageKey = '';
+let imageCounter = 0;
+let completedImageURL = ''; // 完成画像のデータURLを保存
 
-      document.getElementById('upload-image').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.size <= 5 * 1024 * 1024) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            this.selectedImage = event.target.result;
-            document.getElementById('start-button').disabled = false;
-          };
-          reader.readAsDataURL(file);
-        } else {
-          alert('5MB以下のPNGまたはJPG画像を選択してください。');
-          document.getElementById('start-button').disabled = true;
-        }
-      });
+let bgColor = '#8E24AA';
+document.documentElement.style.setProperty('--bg-color', bgColor);
 
-      document.getElementById('start-button').addEventListener('click', () => {
-        if (this.selectedImage) {
-          document.getElementById('start-screen').style.display = 'none';
-          document.getElementById('game-screen').style.display = 'block';
-          this.initGame();
-        }
-      });
+document.getElementById('piece-count').addEventListener('change', function (e) {
+  const value = e.target.value;
+  if (value === '3x4') {
+    rows = 3;
+    cols = 4;
+  } else if (value === '4x5') {
+    rows = 4;
+    cols = 5;
+  } else if (value === '6x8') {
+    rows = 6;
+    cols = 8;
+  }
+});
 
-      document.getElementById('retry-button').addEventListener('click', () => {
-        location.reload();
-      });
+document.getElementById('upload-image').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  const startButton = document.getElementById('start-button');
+  if (file && file.size <= 5 * 1024 * 1024) {
+    if (file.type === 'image/jpeg' || file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        selectedImage = event.target.result;
+        startButton.disabled = false;
+      };
+      reader.onerror = function () {
+        alert('画像の読み込みに失敗しました');
+        startButton.disabled = true;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('PNGまたはJPG形式の画像を選択してください。');
+      startButton.disabled = true;
+    }
+  } else {
+    alert('5MB以下のPNGまたはJPG画像を選択してください。');
+    startButton.disabled = true;
+  }
+});
 
-      document.getElementById('reset-button').addEventListener('click', () => {
-        location.reload();
-      });
+document.getElementById('bg-color').addEventListener('change', function (e) {
+  bgColor = e.target.value;
+  document.documentElement.style.setProperty('--bg-color', bgColor);
+});
+
+document.getElementById('start-button').addEventListener('click', function () {
+  if (selectedImage) {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('game-screen').style.display = 'block';
+    initGame();
+  }
+});
+
+document.getElementById('retry-button').addEventListener('click', function () {
+  restartGame();
+});
+
+document.getElementById('reset-button').addEventListener('click', function () {
+  restartGame();
+});
+
+function initGame() {
+  imageCounter++;
+  imageKey = 'puzzleImage_' + imageCounter;
+
+  const config = {
+    type: Phaser.AUTO,
+    width: gameWidth,
+    height: gameHeight * 2, // 高さを2倍に設定してスクロール可能に
+    parent: 'game-container',
+    backgroundColor: bgColor, // 背景色を設定
+    scene: {
+      preload: preload,
+      create: create
+    }
+  };
+
+  gameInstance = new Phaser.Game(config);
+}
+
+function restartGame() {
+  if (gameInstance) {
+    gameInstance.destroy(true);
+  }
+  initGame();
+}
+
+function preload() {
+  // 既存のテクスチャを削除
+  if (this.textures.exists(imageKey)) {
+    this.textures.remove(imageKey);
+  }
+}
+
+function create() {
+  const scene = this;
+
+  // シーン全体の背景色を設定
+  scene.cameras.main.setBackgroundColor(bgColor); // 背景色を設定
+
+  // 画像を新しいImageオブジェクトとしてロード
+  const img = new Image();
+  img.onload = function () {
+    // 画像に外枠線を追加（太さ4ピクセル）
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width + 8; // 左右に4ピクセルずつ追加
+    canvas.height = img.height + 8; // 上下に4ピクセルずつ追加
+    const ctx = canvas.getContext('2d');
+
+    // 外枠線を描画
+    ctx.fillStyle = COLORS.border; // 枠線の色（黒）
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 元の画像を中央に描画
+    ctx.drawImage(img, 4, 4);
+
+    // 新しい画像をテクスチャとして追加
+    scene.textures.addImage(imageKey, canvas);
+
+    const texture = scene.textures.get(imageKey).getSourceImage();
+
+    // 完成画像のデータURLを保存
+    completedImageURL = canvas.toDataURL();
+
+    // 画像サイズをゲーム画面にフィットさせる
+    const scaleX = (gameWidth * 0.8) / texture.width;
+    const scaleY = (gameHeight * 0.4) / texture.height; // 上部に配置するため0.4に変更
+    const scale = Math.min(scaleX, scaleY);
+
+    const imageWidth = texture.width * scale;
+    const imageHeight = texture.height * scale;
+
+    pieceWidth = Math.floor(imageWidth / cols);
+    pieceHeight = Math.floor(imageHeight / rows);
+
+    // パズルの枠を描画
+    const frameX = (gameWidth - imageWidth) / 2; // 中央に配置
+    const frameY = 10; // 上からの位置
+
+    // 枠のサイズを設定
+    const frameWidth = pieceWidth * cols;
+    const frameHeight = pieceHeight * rows;
+
+    // 枠を描画
+    const graphics = scene.add.graphics();
+    graphics.lineStyle(4, COLOR_VALUES.button); // 枠線を太くし、明るいオレンジ色に設定
+    graphics.strokeRect(frameX, frameY, frameWidth, frameHeight);
+    graphics.fillStyle(COLOR_VALUES.gameBg, 1); // 背景色を紫色に変更
+    graphics.fillRect(frameX, frameY, frameWidth, frameHeight);
+    graphics.setDepth(0);
+
+    // 格子状のガイドラインを描画
+    graphics.lineStyle(1, COLOR_VALUES.text, 0.5); // 白色のガイドライン
+    // 垂直線
+    for (let i = 1; i < cols; i++) {
+      const x = frameX + i * pieceWidth;
+      graphics.moveTo(x, frameY);
+      graphics.lineTo(x, frameY + frameHeight);
     }
 
     initGame() {
