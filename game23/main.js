@@ -1,3 +1,16 @@
+const rootStyle = getComputedStyle(document.documentElement);
+const COLORS = {
+  gameBg: rootStyle.getPropertyValue('--game-bg-color').trim(),
+  button: rootStyle.getPropertyValue('--button-color').trim(),
+  text: rootStyle.getPropertyValue('--text-color').trim(),
+  border: rootStyle.getPropertyValue('--border-color').trim()
+};
+const COLOR_VALUES = {
+  gameBg: Phaser.Display.Color.HexStringToColor(COLORS.gameBg).color,
+  button: Phaser.Display.Color.HexStringToColor(COLORS.button).color,
+  text: Phaser.Display.Color.HexStringToColor(COLORS.text).color
+};
+
 let selectedImage = null;
 let rows = 3;
 let cols = 4;
@@ -65,7 +78,7 @@ function initGame() {
     width: gameWidth,
     height: gameHeight * 2, // 高さを2倍に設定してスクロール可能に
     parent: 'game-container',
-    backgroundColor: '#8E24AA', // 背景色を紫色に設定
+    backgroundColor: COLORS.gameBg, // 背景色を紫色に設定
     scene: {
       preload: preload,
       create: create
@@ -86,7 +99,7 @@ function create() {
   const scene = this;
 
   // シーン全体の背景色を設定
-  scene.cameras.main.setBackgroundColor('#8E24AA'); // 背景色を紫色に設定
+  scene.cameras.main.setBackgroundColor(COLORS.gameBg); // 背景色を紫色に設定
 
   // 画像を新しいImageオブジェクトとしてロード
   const img = new Image();
@@ -98,7 +111,7 @@ function create() {
     const ctx = canvas.getContext('2d');
 
     // 外枠線を描画
-    ctx.fillStyle = '#000000'; // 枠線の色（黒）
+    ctx.fillStyle = COLORS.border; // 枠線の色（黒）
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 元の画像を中央に描画
@@ -133,14 +146,14 @@ function create() {
 
     // 枠を描画
     const graphics = scene.add.graphics();
-    graphics.lineStyle(4, 0xFFB74D); // 枠線を太くし、明るいオレンジ色に設定
+    graphics.lineStyle(4, COLOR_VALUES.button); // 枠線を太くし、明るいオレンジ色に設定
     graphics.strokeRect(frameX, frameY, frameWidth, frameHeight);
-    graphics.fillStyle(0x8E24AA, 1); // 背景色を紫色に変更
+    graphics.fillStyle(COLOR_VALUES.gameBg, 1); // 背景色を紫色に変更
     graphics.fillRect(frameX, frameY, frameWidth, frameHeight);
     graphics.setDepth(0);
 
     // 格子状のガイドラインを描画
-    graphics.lineStyle(1, 0xFFFFFF, 0.5); // 白色のガイドライン
+    graphics.lineStyle(1, COLOR_VALUES.text, 0.5); // 白色のガイドライン
     // 垂直線
     for (let i = 1; i < cols; i++) {
       const x = frameX + i * pieceWidth;
