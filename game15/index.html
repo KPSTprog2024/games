@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掛け算学習アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="app-header">
+            <h1>掛け算を学ぼう！</h1>
+            <div class="theme-selector">
+                <button class="theme-btn" data-theme="apple">🍎</button>
+                <button class="theme-btn" data-theme="star">⭐</button>
+                <button class="theme-btn" data-theme="heart">💖</button>
+            </div>
+        </header>
+
+        <!-- 上半分：グリッドエリア -->
+        <div class="upper-section">
+            <!-- グリッド -->
+            <div class="grid-container">
+                <div class="grid" id="multiplication-grid">
+                    <!-- グリッドセルはJavaScriptで生成 -->
+                </div>
+            </div>
+
+            <!-- 計算式表示 -->
+            <div class="formula-display">
+                <div class="multiplication-formula" id="multiplication-formula">
+                    範囲を選択してください
+                </div>
+                <div class="addition-formula" id="addition-formula">
+                </div>
+            </div>
+        </div>
+
+        <!-- 下半分：数字一覧と設定 -->
+        <div class="lower-section">
+            <!-- 設定コントロール -->
+            <div class="controls">
+                <div class="column-control">
+                    <label for="column-slider">列数：<span id="column-count">10</span>列</label>
+                    <input type="range" id="column-slider" min="5" max="20" value="10" class="slider">
+                </div>
+            </div>
+
+            <!-- 数字一覧 -->
+            <div class="numbers-container">
+                <div class="numbers-grid" id="numbers-grid">
+                    <!-- 数字はJavaScriptで生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
