@@ -101,7 +101,7 @@ class MultiplicationApp {
         multiplicationFormula.textContent = `${this.selectedRow} × ${this.selectedCol} = ${result}`;
         
         // 足し算式を生成
-        const additionTerms = Array(this.selectedRow).fill(this.selectedCol);
+        const additionTerms = Array(this.selectedCol).fill(this.selectedRow);
         const additionExpression = additionTerms.join(' + ');
         additionFormula.textContent = `${additionExpression} = ${result}`;
     }
