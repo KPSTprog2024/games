@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅の言葉</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>✈️ 旅の言葉 🗾</h1>
+        </header>
+        
+        <main class="main-content">
+            <div class="quote-card hidden" id="quoteCard">
+                <div class="quote-scene" id="quoteScene"></div>
+                <div class="quote-text" id="quoteText"></div>
+                <div class="quote-author" id="quoteAuthor"></div>
+                <div class="quote-explanation" id="quoteExplanation"></div>
+            </div>
+            
+            <div class="button-grid">
+                <button class="btn btn--scene" data-category="出発・準備">
+                    <span class="button-icon">🎒</span>
+                    出発・準備
+                </button>
+                
+                <button class="btn btn--scene" data-category="移動中">
+                    <span class="button-icon">🚃</span>
+                    移動中
+                </button>
+                
+                <button class="btn btn--scene" data-category="観光・発見">
+                    <span class="button-icon">🏛️</span>
+                    観光・発見
+                </button>
+                
+                <button class="btn btn--scene" data-category="食事・文化">
+                    <span class="button-icon">🍽️</span>
+                    食事・文化
+                </button>
+                
+                <button class="btn btn--scene" data-category="困った時">
+                    <span class="button-icon">😰</span>
+                    困った時
+                </button>
+                
+                <button class="btn btn--scene" data-category="新しい挑戦">
+                    <span class="button-icon">🌟</span>
+                    新しい挑戦
+                </button>
+                
+                <button class="btn btn--scene" data-category="思い出作り">
+                    <span class="button-icon">📸</span>
+                    思い出作り
+                </button>
+                
+                <button class="btn btn--scene" data-category="帰る時">
+                    <span class="button-icon">🏠</span>
+                    帰る時
+                </button>
+                
+                <button class="btn btn--scene" data-category="家族時間">
+                    <span class="button-icon">👨‍👩‍👧‍👦</span>
+                    家族時間
+                </button>
+                
+                <button class="btn btn--scene" data-category="自然体験">
+                    <span class="button-icon">🌿</span>
+                    自然体験
+                </button>
+            </div>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
