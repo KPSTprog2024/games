@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コスパ計算機</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>コスパ計算機</h1>
+        </header>
+        
+        <!-- 入力エリア -->
+        <section class="input-section">
+            <div class="form-group">
+                <label class="form-label" for="itemName">物品名</label>
+                <input type="text" id="itemName" class="form-control" placeholder="例：ワイヤレスイヤホン">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="purchasePrice">購入価格（円）</label>
+                <input type="number" id="purchasePrice" class="form-control" placeholder="10000" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">計算方法</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="calculationMethod" value="frequency" checked>
+                        <span class="radio-text">回数ベース</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="calculationMethod" value="period">
+                        <span class="radio-text">期間ベース</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 回数ベース入力 -->
+            <div id="frequency-inputs" class="frequency-inputs">
+                <div class="form-group">
+                    <label class="form-label" for="frequencyType">使用頻度</label>
+                    <select id="frequencyType" class="form-control">
+                        <option value="daily">1日あたり</option>
+                        <option value="weekly">1週間あたり</option>
+                        <option value="monthly">1ヶ月あたり</option>
+                        <option value="yearly">1年あたり</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="frequencyCount">使用回数</label>
+                    <input type="number" id="frequencyCount" class="form-control" placeholder="1" min="0.1" step="0.1" value="1">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="startDate">使用開始日</label>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-option">
+                    <input type="checkbox" id="stillInUse">
+                    <span class="checkbox-text">現在も使用中</span>
+                </label>
+            </div>
+            
+            <div id="end-date-group" class="form-group">
+                <label class="form-label" for="endDate">使用終了日</label>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+        </section>
+        
+        <!-- 結果表示エリア -->
+        <section class="result-section">
+            <div class="cost-display">
+                <div class="cost-item primary">
+                    <span class="cost-label">1回あたりのコスト</span>
+                    <span class="cost-value" id="costPerUse">¥0</span>
+                </div>
+                <div class="cost-item secondary">
+                    <span class="cost-label">1日あたりのコスト</span>
+                    <span class="cost-value" id="costPerDay">¥0</span>
+                </div>
+            </div>
+            
+            <div class="evaluation-container">
+                <div class="evaluation-badge" id="evaluationBadge">データを入力してください</div>
+            </div>
+            
+            <div class="detail-info">
+                <div class="info-item">
+                    <span class="info-label">使用期間</span>
+                    <span class="info-value" id="usagePeriod">0日</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">総使用回数</span>
+                    <span class="info-value" id="totalUsage">0回</span>
+                </div>
+            </div>
+            
+            <button type="button" id="resetBtn" class="btn btn--secondary btn--full-width reset-btn">
+                リセット
+            </button>
+        </section>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
