@@ -141,6 +141,7 @@ class Game{
     this.hitWindowMsMap = { easy: 120, normal: 80, hard: 55 };
     this.hitWindowMs = this.hitWindowMsMap[this.difficulty];
     this.latencyMs = this.audio.latencyCompMs; // positive means user taps late
+    this.calibrating = false;
 
     // learning stats
     this.statsEnabled = true;
@@ -268,6 +269,7 @@ class Game{
   }
 
   jump(){
+    if(this.calibrating) return;
     if(!this.started || this.paused) return;
     const now = performance.now();
     const nearest = this.metro.nearestBeatTimeMs(now);
@@ -371,16 +373,18 @@ class Game{
   }
 
   async calibrate(){
+    if(this.calibrating) return;
     if(!this.audio.ctx){ await this.audio.ensure(); }
     const bpm = parseInt(document.getElementById('bpm').value,10);
     this.metro.setBpm(bpm);
     const N = 12;
     const samples = [];
     showToast('キャリブレーション：リズムに合わせて12回タップしてください');
+    this.calibrating = true;
     this.metro.start();
     this.started = true; this.paused = false;
 
-    const onTap = (e)=>{
+    const onTap = ()=>{
       const now = performance.now();
       const nearest = this.metro.nearestBeatTimeMs(now);
       samples.push(now - nearest);
@@ -393,9 +397,9 @@ class Game{
     };
     const onTapCap = (e)=>{
       if(e.target.tagName==='INPUT' || e.target.tagName==='BUTTON') return;
-      onTap(e);
+      onTap();
     };
-    const onKey = (e)=>{ if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); onTap(e);} };
+    const onKey = (e)=>{ if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); onTap();} };
     document.addEventListener('touchstart', onTapCap, {passive:true});
     document.addEventListener('mousedown', onTap);
     document.addEventListener('keydown', onKey);
@@ -406,6 +410,12 @@ class Game{
       localStorage.setItem(LS.LATENCY, String(this.latencyMs));
       const dropped = samples.length - kept;
       showToast(`補正: ${value.toFixed(0)}ms（中央値${kept>0?`・外れ値${dropped}件除外`:''}）を適用しました`);
+      this.calibrating = false;
+      this.metro.stop();
+      this.started = false;
+      this.reset();
+      document.getElementById('combo').textContent = '0';
+      document.getElementById('judge').textContent = '-';
     };
   }
 }
