@@ -1,4 +1,4 @@
-<!-- ===== FILE: assets/js/app.js ===== -->
+// ===== FILE: assets/js/app.js =====
 // Utility
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const lerp = (a,b,t) => a + (b-a)*t;
