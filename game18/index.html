@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>季節の行事クイズゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <div class="start-content">
+                <h1 class="game-title">季節の行事<br>クイズゲーム</h1>
+                <p class="game-description">季節の行事が何月か当ててみよう！</p>
+                <button id="start-button" class="btn btn--primary btn--lg">ゲームを始める</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <button id="back-to-start" class="btn btn--outline btn--sm">さいしょにもどる</button>
+                <div id="progress-indicator" class="progress">1/14問目</div>
+            </div>
+
+            <div class="game-content">
+                <div class="event-display">
+                    <img id="event-image" src="" alt="" class="event-image">
+                    <p id="event-name" class="event-name"></p>
+                </div>
+
+                <div class="months-grid">
+                    <div class="season-group spring">
+                        <h3 class="season-title">はる</h3>
+                        <div class="month-buttons">
+                            <button class="month-btn" data-month="3">3月</button>
+                            <button class="month-btn" data-month="4">4月</button>
+                            <button class="month-btn" data-month="5">5月</button>
+                        </div>
+                    </div>
+
+                    <div class="season-group summer">
+                        <h3 class="season-title">なつ</h3>
+                        <div class="month-buttons">
+                            <button class="month-btn" data-month="6">6月</button>
+                            <button class="month-btn" data-month="7">7月</button>
+                            <button class="month-btn" data-month="8">8月</button>
+                        </div>
+                    </div>
+
+                    <div class="season-group autumn">
+                        <h3 class="season-title">あき</h3>
+                        <div class="month-buttons">
+                            <button class="month-btn" data-month="9">9月</button>
+                            <button class="month-btn" data-month="10">10月</button>
+                            <button class="month-btn" data-month="11">11月</button>
+                        </div>
+                    </div>
+
+                    <div class="season-group winter">
+                        <h3 class="season-title">ふゆ</h3>
+                        <div class="month-buttons">
+                            <button class="month-btn" data-month="12">12月</button>
+                            <button class="month-btn" data-month="1">1月</button>
+                            <button class="month-btn" data-month="2">2月</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="score-display" class="score">スコア: <span id="current-score">0</span>/14</div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen hidden">
+            <div class="results-content">
+                <div id="celebration-message" class="celebration-message"></div>
+                <div class="final-score">
+                    <p>最終スコア</p>
+                    <p id="final-score-display" class="score-number">0/14</p>
+                </div>
+                <button id="play-again" class="btn btn--primary btn--lg">さいしょにもどる</button>
+            </div>
+            <div id="celebration-effects" class="celebration-effects"></div>
+        </div>
+
+        <!-- Feedback Modal -->
+        <div id="feedback-modal" class="feedback-modal hidden">
+            <div id="feedback-message" class="feedback-message"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
