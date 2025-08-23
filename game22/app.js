@@ -362,7 +362,7 @@ function renderEnhancedTimeline() {
   const html = `
     <div class="timeline-section">
       <div class="timeline-header">
-        <h2>ゲーテ年表強化版</h2>
+        <h2>ゲーテ年表</h2>
         <p>ヨハン・ヴォルフガング・フォン・ゲーテ（1749-1832）の生涯を世界史・日本史と併記</p>
       </div>
       
