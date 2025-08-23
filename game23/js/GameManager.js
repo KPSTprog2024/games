@@ -93,6 +93,8 @@ export class GameManager {
       if (dist < this.config.snapDistance) {
         gameObject.x = gameObject.correctX;
         gameObject.y = gameObject.correctY;
+        gameObject.disableInteractive();
+        scene.input.setDraggable(gameObject, false);
         this.effects.playPlaceSound();
         this.uiManager.updateRemainingPieces(--this.gameState.remainingPieces);
         if (this.gameState.remainingPieces === 0) this.handleClear(scene);
