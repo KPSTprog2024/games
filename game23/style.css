@@ -47,8 +47,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #FFB74D; /* 明るいオレンジ */
-  color: white;
+  background-color: var(--button-color); /* 明るいオレンジ */
+  color: var(--text-color);
   width: 250px; /* ボタンの幅を調整 */
   height: 150px; /* ボタンの高さを統一 */
   font-size: 24px; /* フォントサイズを大きく */
@@ -60,7 +60,7 @@ body {
 
 /* ボタンのホバー効果 */
 .tile-button:hover {
-  background-color: #FFD54F; /* より明るいオレンジ */
+  background-color: var(--highlight-color); /* より明るいオレンジ */
 }
 
 /* ラベル内のselect要素とinput要素を非表示に */
@@ -77,8 +77,8 @@ body {
 
 /* スタートボタンのスタイル調整 */
 #start-button {
-  background-color: #FFB74D;
-  color: white;
+  background-color: var(--button-color);
+  color: var(--text-color);
   width: 250px; /* ボタンの幅を調整 */
   height: 150px; /* ボタンの高さを統一 */
   font-size: 24px;
@@ -88,18 +88,18 @@ body {
 }
 
 #start-button:disabled {
-  background-color: #ccc;
+  background-color: var(--disabled-color);
   cursor: not-allowed;
 }
 
 #start-button:hover:enabled {
-  background-color: #FFD54F;
+  background-color: var(--highlight-color);
 }
 
 /* ゲーム画面のボタンスタイル */
 #reset-button, #retry-button {
-  background-color: #FFB74D; /* 明るいオレンジ */
-  color: white;
+  background-color: var(--button-color); /* 明るいオレンジ */
+  color: var(--text-color);
   padding: 15px 30px; /* ボタンを大きく */
   font-size: 20px; /* フォントサイズを大きく */
   border: none;
@@ -108,7 +108,7 @@ body {
 }
 
 #reset-button:hover, #retry-button:hover {
-  background-color: #FFD54F; /* より明るいオレンジ */
+  background-color: var(--highlight-color); /* より明るいオレンジ */
 }
 
 #reset-button {
@@ -123,12 +123,12 @@ body {
 }
 
 h1, label, select, button {
-  color: #FFFFFF;
+  color: var(--text-color);
 }
 
 select {
-  background-color: #AB47BC; /* 明るめのパープル */
-  color: #FFFFFF;
+  background-color: var(--select-bg-color); /* 明るめのパープル */
+  color: var(--text-color);
   border: none;
   padding: 10px;
   font-size: 24px; /* フォントサイズを大きく */
@@ -137,13 +137,13 @@ select {
 }
 
 option {
-  background-color: #AB47BC; /* 明るめのパープル */
-  color: #FFFFFF;
+  background-color: var(--select-bg-color); /* 明るめのパープル */
+  color: var(--text-color);
   font-size: 24px; /* フォントサイズを大きく */
 }
 
 #game-clear-screen h1 {
-  color: #FFB74D; /* 明るいオレンジ */
+  color: var(--button-color); /* 明るいオレンジ */
 }
 
 #game-clear-screen img {
@@ -154,5 +154,5 @@ option {
 
 button:focus, .tile-button:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 5px #FFB74D;
+  box-shadow: 0 0 5px var(--button-color);
 }
