@@ -185,131 +185,200 @@ function create() {
       graphics.moveTo(x, frameY);
       graphics.lineTo(x, frameY + frameHeight);
     }
-    // 水平線
-    for (let i = 1; i < rows; i++) {
-      const y = frameY + i * pieceHeight;
-      graphics.moveTo(frameX, y);
-      graphics.lineTo(frameX + frameWidth, y);
+
+    initGame() {
+      this.imageCounter++;
+      this.imageKey = 'puzzleImage_' + this.imageCounter;
+
+      const self = this;
+      const config = {
+        type: Phaser.AUTO,
+        width: this.gameWidth,
+        height: this.gameHeight * 2,
+        parent: 'game-container',
+        backgroundColor: '#8E24AA',
+        scene: {
+          preload: function () {
+            self.preload(this);
+          },
+          create: function () {
+            self.create(this);
+          },
+        },
+      };
+
+      new Phaser.Game(config);
     }
-    graphics.strokePath();
 
-    // 完成形の画像を表示（1/1サイズ）
-    const previewX = (gameWidth - imageWidth) / 2;
-    const previewY = frameY + frameHeight + 20; // 枠の下に表示
-
-    const previewImage = scene.add.image(previewX, previewY, imageKey);
-    previewImage.setOrigin(0, 0);
-    previewImage.setScale(scale);
-    previewImage.setDepth(0);
-
-    // ピースを生成
-    piecesGroup = scene.add.group();
-    puzzleGroup = scene.add.group();
-
-    let id = 0;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const x = frameX + col * pieceWidth;
-        const y = frameY + row * pieceHeight;
-
-        // ピースを作成
-        const pieceTextureKey = imageKey + '_piece_' + id;
-
-        // ピースのテクスチャを作成
-        const canvasTexture = scene.textures.createCanvas(pieceTextureKey, pieceWidth, pieceHeight);
-        const ctx = canvasTexture.context;
-        ctx.drawImage(
-          texture,
-          (col * pieceWidth) / scale,
-          (row * pieceHeight) / scale,
-          pieceWidth / scale,
-          pieceHeight / scale,
-          0,
-          0,
-          pieceWidth,
-          pieceHeight
-        );
-        canvasTexture.refresh();
-
-        // ピーススプライトを作成
-        const piece = scene.add.image(0, 0, pieceTextureKey);
-        piece.setOrigin(0);
-        piece.setInteractive({ draggable: true });
-        scene.input.setDraggable(piece);
-
-        // 正しい位置を記録
-        piece.correctX = x;
-        piece.correctY = y;
-
-        // ランダムな位置に配置（画面上部に配置）
-        const posX = Phaser.Math.Between(20, gameWidth - pieceWidth - 20);
-        const posY = frameY + frameHeight + imageHeight + 40 + Phaser.Math.Between(0, 100);
-
-        piece.x = posX;
-        piece.y = posY;
-
-        piecesGroup.add(piece);
-
-        id++;
+    preload(scene) {
+      if (scene.textures.exists(this.imageKey)) {
+        scene.textures.remove(this.imageKey);
       }
     }
 
-    // ドラッグイベント
-    scene.input.on('dragstart', function (pointer, gameObject) {
-      gameObject.setDepth(1);
-    });
+    create(scene) {
+      scene.cameras.main.setBackgroundColor('#8E24AA');
 
-    scene.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-      gameObject.x = dragX;
-      gameObject.y = dragY;
-    });
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width + 8;
+        canvas.height = img.height + 8;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 4, 4);
+        scene.textures.addImage(this.imageKey, canvas);
 
-    scene.input.on('dragend', function (pointer, gameObject) {
-      // 正しい位置に近いか確認
-      const distance = Phaser.Math.Distance.Between(
-        gameObject.x,
-        gameObject.y,
-        gameObject.correctX,
-        gameObject.correctY
-      );
+        const texture = scene.textures.get(this.imageKey).getSourceImage();
+        this.completedImageURL = canvas.toDataURL();
 
-      if (distance < 30) {
-        // スナップ
-        gameObject.x = gameObject.correctX;
-        gameObject.y = gameObject.correctY;
-        gameObject.setDepth(0);
-        puzzleGroup.add(gameObject);
-        piecesGroup.remove(gameObject);
+        const scaleX = (this.gameWidth * 0.8) / texture.width;
+        const scaleY = (this.gameHeight * 0.4) / texture.height;
+        const scale = Math.min(scaleX, scaleY);
 
-        // すべてのピースが配置されたか確認
-        if (piecesGroup.getChildren().length === 0) {
-          scene.time.delayedCall(500, () => {
-            // クリア画面に完成した画像を表示
-            document.getElementById('completed-image').src = completedImageURL;
+        const imageWidth = texture.width * scale;
+        const imageHeight = texture.height * scale;
 
-            // ランダムなメッセージを表示
-            const messages = [
-              'クリア！ がんばったね！',
-              'すごい！ 完璧だよ！',
-              'やったね！ おめでとう！',
-              '素晴らしい！ よくできました！',
-              '最高！ 天才だね！',
-              'すごい集中力！',
-              '素敵なパズルが完成したね！',
-              '驚いた！ とても早かったよ！',
-              '大成功！ 楽しかったかな？',
-              'やった！ 次も挑戦してみよう！'
-            ];
-            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-            document.getElementById('clear-message').textContent = randomMessage;
+        this.pieceWidth = Math.floor(imageWidth / this.cols);
+        this.pieceHeight = Math.floor(imageHeight / this.rows);
 
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('game-clear-screen').style.display = 'block';
-          });
+        const frameWidth = this.pieceWidth * this.cols;
+        const frameHeight = this.pieceHeight * this.rows;
+        const frameX = (this.gameWidth - frameWidth) / 2;
+        const frameY = 10;
+
+        const graphics = scene.add.graphics();
+        graphics.lineStyle(4, 0xffb74d);
+        graphics.strokeRect(frameX, frameY, frameWidth, frameHeight);
+        graphics.fillStyle(0x8e24aa, 1);
+        graphics.fillRect(frameX, frameY, frameWidth, frameHeight);
+        graphics.setDepth(0);
+
+        graphics.lineStyle(1, 0xffffff, 0.5);
+        for (let i = 1; i < this.cols; i++) {
+          const x = frameX + i * this.pieceWidth;
+          graphics.moveTo(x, frameY);
+          graphics.lineTo(x, frameY + frameHeight);
         }
-      }
-    });
-  };
+        for (let i = 1; i < this.rows; i++) {
+          const y = frameY + i * this.pieceHeight;
+          graphics.moveTo(frameX, y);
+          graphics.lineTo(frameX + frameWidth, y);
+        }
+        graphics.strokePath();
 
-  img.src = selectedImage;
-}
+        const previewX = (this.gameWidth - imageWidth) / 2;
+        const previewY = frameY + frameHeight + 20;
+        const previewImage = scene.add.image(previewX, previewY, this.imageKey);
+        previewImage.setOrigin(0, 0);
+        previewImage.setScale(scale);
+        previewImage.setDepth(0);
+
+        this.piecesGroup = scene.add.group();
+        this.puzzleGroup = scene.add.group();
+
+        let id = 0;
+        for (let row = 0; row < this.rows; row++) {
+          for (let col = 0; col < this.cols; col++) {
+            const x = frameX + col * this.pieceWidth;
+            const y = frameY + row * this.pieceHeight;
+
+            const pieceTextureKey = this.imageKey + '_piece_' + id;
+            const canvasTexture = scene.textures.createCanvas(
+              pieceTextureKey,
+              this.pieceWidth,
+              this.pieceHeight
+            );
+            const ctxPiece = canvasTexture.context;
+            ctxPiece.drawImage(
+              texture,
+              (col * this.pieceWidth) / scale,
+              (row * this.pieceHeight) / scale,
+              this.pieceWidth / scale,
+              this.pieceHeight / scale,
+              0,
+              0,
+              this.pieceWidth,
+              this.pieceHeight
+            );
+            canvasTexture.refresh();
+
+            const piece = scene.add.image(0, 0, pieceTextureKey);
+            piece.setOrigin(0);
+            piece.setInteractive({ draggable: true });
+            scene.input.setDraggable(piece);
+
+            piece.correctX = x;
+            piece.correctY = y;
+
+            const posX = Phaser.Math.Between(20, this.gameWidth - this.pieceWidth - 20);
+            const posY =
+              frameY + frameHeight + imageHeight + 40 + Phaser.Math.Between(0, 100);
+
+            piece.x = posX;
+            piece.y = posY;
+
+            this.piecesGroup.add(piece);
+            id++;
+          }
+        }
+
+        scene.input.on('dragstart', (_pointer, gameObject) => {
+          gameObject.setDepth(1);
+        });
+
+        scene.input.on('drag', (_pointer, gameObject, dragX, dragY) => {
+          gameObject.x = dragX;
+          gameObject.y = dragY;
+        });
+
+        scene.input.on('dragend', (_pointer, gameObject) => {
+          const distance = Phaser.Math.Distance.Between(
+            gameObject.x,
+            gameObject.y,
+            gameObject.correctX,
+            gameObject.correctY
+          );
+
+          if (distance < 30) {
+            gameObject.x = gameObject.correctX;
+            gameObject.y = gameObject.correctY;
+            gameObject.setDepth(0);
+            this.puzzleGroup.add(gameObject);
+            this.piecesGroup.remove(gameObject);
+
+            if (this.piecesGroup.getChildren().length === 0) {
+              scene.time.delayedCall(500, () => {
+                document.getElementById('completed-image').src = this.completedImageURL;
+                const messages = [
+                  'クリア！ がんばったね！',
+                  'すごい！ 完璧だよ！',
+                  'やったね！ おめでとう！',
+                  '素晴らしい！ よくできました！',
+                  '最高！ 天才だね！',
+                  'すごい集中力！',
+                  '素敵なパズルが完成したね！',
+                  '驚いた！ とても早かったよ！',
+                  '大成功！ 楽しかったかな？',
+                  'やった！ 次も挑戦してみよう！',
+                ];
+                const randomMessage =
+                  messages[Math.floor(Math.random() * messages.length)];
+                document.getElementById('clear-message').textContent = randomMessage;
+
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('game-clear-screen').style.display = 'block';
+              });
+            }
+          }
+        });
+      };
+
+      img.src = this.selectedImage;
+    }
+  }
+
+  new PuzzleGame();
+})();
+
