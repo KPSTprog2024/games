@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>放射状点アニメーター - 直径線完全準拠版</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>放射状点アニメーター</h1>
+            <p class="subtitle">直径線完全準拠版</p>
+        </header>
+
+        <div class="main-content">
+            <div class="animation-container">
+                <canvas id="animationCanvas" width="600" height="600"></canvas>
+                <div class="status-display">
+                    <span>直径線数: <span id="lineCount">8</span></span>
+                    <span>速度: <span id="speedDisplay">1.0</span>x</span>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-section">
+                    <h3>基本制御</h3>
+                    <div class="control-group">
+                        <button id="playPauseBtn" class="btn btn--primary">再生</button>
+                        <button id="resetBtn" class="btn btn--secondary">リセット</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="speedSlider" class="form-label">速度: <span id="speedValue">1.0</span>x</label>
+                        <input type="range" id="speedSlider" class="form-control" min="0.2" max="3.0" step="0.1" value="1.0">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>構造制御</h3>
+                    <div class="form-group">
+                        <label for="divisionSlider" class="form-label">分割数: <span id="divisionValue">8</span>本</label>
+                        <input type="range" id="divisionSlider" class="form-control" min="4" max="32" step="2" value="8">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="autoIncrementCheck" checked> 自動分割
+                        </label>
+                    </div>
+                    
+                    <div class="form-group" id="intervalGroup">
+                        <label for="intervalSlider" class="form-label">間隔: <span id="intervalValue">3.0</span>秒</label>
+                        <input type="range" id="intervalSlider" class="form-control" min="1000" max="10000" step="500" value="3000">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>プリセット</h3>
+                    <div class="preset-buttons">
+                        <button class="btn btn--outline preset-btn" data-preset="0">シンプル</button>
+                        <button class="btn btn--outline preset-btn" data-preset="1">標準</button>
+                        <button class="btn btn--outline preset-btn" data-preset="2">複雑</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>状態表示</h3>
+                    <div class="status-info">
+                        <div class="status-item">
+                            <span class="status-label">見えるボール:</span>
+                            <span id="visibleBallCount" class="status-value">8</span>個
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">角速度:</span>
+                            <span id="angularVelocityDisplay" class="status-value">0.020</span> rad/frame
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">位相:</span>
+                            <span id="phaseDisplay" class="status-value">0.00</span> rad
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>※見えないボールは内部制御のみで画面に表示されません</p>
+            <p>直径線: 円周上の対向する2点を結ぶ線分</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
