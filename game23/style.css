@@ -1,13 +1,5 @@
-
 :root {
-  --bg-color: #6A1B9A;
-  --game-bg-color: #8E24AA;
-  --button-color: #FFB74D;
-  --highlight-color: #FFD54F;
-  --text-color: #FFFFFF;
-  --disabled-color: #ccc;
-  --select-bg-color: #AB47BC;
-  --border-color: #000000;
+  --bg-color: #8E24AA;
 }
 
 body {
@@ -15,7 +7,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color); /* 明るめのパープル */
-  color: var(--text-color); /* 白いテキスト */
+  color: #FFFFFF; /* 白いテキスト */
   overflow: auto; /* 画面をスクロール可能にする */
 }
 
@@ -38,7 +30,7 @@ body {
   height: auto; /* 高さを自動調整 */
   overflow: visible; /* コンテンツが溢れた場合でも表示 */
   position: relative;
-  background-color: var(--game-bg-color); /* 紫色に近いハロウィンカラー */
+  background-color: var(--bg-color); /* 紫色に近いハロウィンカラー */
 }
 
 /* ボタンコンテナのスタイル */

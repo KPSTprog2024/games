@@ -5,7 +5,7 @@
   <title>こどもむけジグソーパズルゲーム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- CSSの読み込み -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
   <!-- Phaser.jsの読み込み（CDN） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
 </head>
@@ -22,6 +22,11 @@
         <option value="4x5">20ピース（4×5）</option>
         <option value="6x8">48ピース（6×8）</option>
       </select>
+    </label>
+
+    <label for="bg-color" class="tile-button">
+      うしろのいろをえらんでね
+      <input type="color" id="bg-color" value="#8E24AA">
     </label>
 
     <label for="upload-image" class="tile-button">
