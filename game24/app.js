@@ -125,7 +125,7 @@ store.subscribe((state) => {
 });
 
 // UI
-const pane = initPanel(document.getElementById("controls"), store, {
+initPanel(document.getElementById("controls"), store, {
   onRandomColors: () => store.replaceState(randomColorsOnly(store.getState())),
   onRandomAll: () => store.replaceState(randomAll(store.getState())),
   onPreset: (presetState) => store.replaceState(presetState),
