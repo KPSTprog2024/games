@@ -15,7 +15,6 @@ const initial = loadFromHash() ?? defaultState;
 const store = createStore(initial);
 
 const stageEl = document.getElementById("stage");
-const panelEl = document.getElementById("panel");
 const tipsEl = document.getElementById("tips");
 const badge = document.getElementById("badge-over");
 
@@ -126,7 +125,7 @@ store.subscribe((state) => {
 });
 
 // UI
-const pane = initPanel(panelEl, store, {
+const pane = initPanel(document.getElementById("controls"), store, {
   onRandomColors: () => store.replaceState(randomColorsOnly(store.getState())),
   onRandomAll: () => store.replaceState(randomAll(store.getState())),
   onPreset: (presetState) => store.replaceState(presetState),
