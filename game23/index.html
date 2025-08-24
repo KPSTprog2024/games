@@ -2,63 +2,79 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>きょうのジグソーパズル ✨ Special Edition</title>
+  <title>こどもむけジグソーパズルゲーム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind & Phaser -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font (読みやすく安心感のある丸み) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Phaser.js（据え置き） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-gradient-to-r from-purple-700 via-pink-600 to-blue-600 min-h-screen text-white">
+<body>
 
-  <!-- Start Screen -->
-  <div id="start-screen" class="flex flex-col items-center justify-center min-h-screen">
-    <h1 class="text-5xl font-bold mb-6">きょうのジグソーパズル</h1>
+<!-- グローバル・トースト（成功メッセージ用） -->
+<div id="toast" class="toast" aria-live="polite">ぴったり！</div>
 
-    <select id="piece-count" class="p-2 rounded bg-purple-800 mb-4">
-      <option value="3x4">🌟 12ピース（かんたん）</option>
-      <option value="4x5">⭐⭐ 20ピース（ふつう）</option>
-      <option value="6x8">⭐⭐⭐ 48ピース（むずかしい）</option>
-    </select>
+<!-- スタート画面 -->
+<div id="start-screen" class="screen card">
+  <h1>きょうのジグソーパズル</h1>
+  <p class="subtitle">2025のトレンド / モダン / ミニマル / 子供向けに楽しく</p>
 
-    <input type="file" id="upload-image" accept="image/png, image/jpeg" class="mb-4 text-black">
+  <div class="button-container">
+    <label for="piece-count" class="tile-button">
+      ピースのかずをえらんでね
+      <select id="piece-count" aria-label="ピース数を選ぶ">
+        <option value="3x4">12ピース（3×4）</option>
+        <option value="4x5">20ピース（4×5）</option>
+        <option value="6x8">48ピース（6×8）</option>
+      </select>
+    </label>
 
-    <button id="start-button" disabled class="bg-yellow-400 text-black px-6 py-3 rounded font-bold">
-      🎮 はじめる！
-    </button>
+    <label for="upload-image" class="tile-button">
+      がぞうをいれる
+      <input type="file" id="upload-image" accept="image/png, image/jpeg" aria-label="画像を選ぶ">
+    </label>
+
+    <!-- 画像プレビュー -->
+    <div id="image-preview" class="preview card" aria-hidden="true">
+      <img id="preview-img" alt="プレビュー画像">
+    </div>
+
+    <button id="start-button" disabled class="tile-button primary" aria-disabled="true">はじめる</button>
+  </div>
+</div>
+
+<!-- パズルプレイ画面 -->
+<div id="game-screen" class="screen" style="display:none;">
+  <div class="game-header card">
+    <div class="title-wrap">
+      <h1 id="game-title">きょうのジグソーパズル</h1>
+      <div class="progress">
+        <div class="progress-bar" id="progress-bar" style="width:0%;"></div>
+      </div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+    <button id="reset-button" class="btn ghost" aria-label="やりなおす">🔁 やりなおす</button>
   </div>
 
-  <!-- Game Screen -->
-  <div id="game-screen" class="hidden min-h-screen flex flex-col items-center">
-    <h2 class="text-3xl mt-4 mb-2">🧩 のこり <span id="remaining-pieces">0</span> ピース</h2>
-    <div id="game-container" class="w-full flex-1"></div>
+  <div id="game-container" class="card game-container" role="application" aria-label="パズルエリア">
+    <!-- Phaserの描画領域 -->
   </div>
+</div>
 
-  <!-- Clear Screen -->
-  <div id="game-clear-screen" class="hidden flex flex-col items-center justify-center min-h-screen">
-    <h2 class="text-5xl font-bold mb-6">🎉 やったね！</h2>
-    <button id="new-game" class="bg-green-400 text-black px-6 py-3 rounded font-bold">
-      🔄 もういちど
-    </button>
-  </div>
+<!-- ゲームクリア画面 -->
+<div id="game-clear-screen" class="screen card" style="display:none;">
+  <h1 id="clear-message"></h1>
+  <img id="completed-image" alt="完成したパズル">
+  <br>
+  <button id="retry-button" class="btn primary">もういちどあそぶ</button>
+</div>
 
-  <!-- JS -->
-  <script type="module">
-    import { GameManager } from "./js/GameManager.js";
-    import { UIManager } from "./js/UIManager.js";
-    import { Effects } from "./js/Effects.js";
+<!-- 紙吹雪コンテナ -->
+<div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
 
-    const effects = new Effects();
-    const uiManager = new UIManager(effects);
-    const gameManager = new GameManager(uiManager, effects);
-
-    document.getElementById("new-game").addEventListener("click", () => {
-      uiManager.showScreen("start-screen");
-    });
-  </script>
+<!-- スクリプト -->
+<script src="main.js"></script>
 </body>
 </html>
