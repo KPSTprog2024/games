@@ -83,7 +83,8 @@ function initGame() {
     width: gameWidth,
     height: gameHeight * 2, // スクロール可能
     parent: 'game-container',
-    backgroundColor: '#00000000', // CSS背景と調和させる
+    // 明るい背景色でCSSの --bg と調和させる
+    backgroundColor: 0xf9fbff,
     scene: { preload, create }
   };
   new Phaser.Game(config);
@@ -97,7 +98,8 @@ function preload() {
 
 function create() {
   const scene = this;
-  scene.cameras.main.setBackgroundColor('#00000000');
+  // ゲーム全体の背景色を統一
+  scene.cameras.main.setBackgroundColor(0xf9fbff);
 
   const img = new Image();
   img.onload = function () {
