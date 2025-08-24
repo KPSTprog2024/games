@@ -19,6 +19,7 @@ const elPreviewImg = document.getElementById('preview-img');
 const elToast = document.getElementById('toast');
 const elProgBar = document.getElementById('progress-bar');
 const elProgText = document.getElementById('progress-text');
+const elZoom = document.getElementById('zoom-slider');
 
 document.getElementById('piece-count').addEventListener('change', function (e) {
   const value = e.target.value;
@@ -100,6 +101,12 @@ function create() {
   const scene = this;
   // ゲーム全体の背景色を統一
   scene.cameras.main.setBackgroundColor(0xf9fbff);
+
+  if (elZoom) {
+    elZoom.addEventListener('input', e => {
+      scene.cameras.main.setZoom(parseFloat(e.target.value));
+    });
+  }
 
   const img = new Image();
   img.onload = function () {
