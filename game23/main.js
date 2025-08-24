@@ -20,17 +20,26 @@ const elToast = document.getElementById('toast');
 const elProgBar = document.getElementById('progress-bar');
 const elProgText = document.getElementById('progress-text');
 const elZoom = document.getElementById('zoom-slider');
-
-document.getElementById('piece-count').addEventListener('change', function (e) {
-  const value = e.target.value;
-  if (value === '3x4') { rows = 3; cols = 4; }
-  else if (value === '4x5') { rows = 4; cols = 5; }
-  else if (value === '6x8') { rows = 6; cols = 8; }
-  // プログレス初期化
-  totalPieces = rows * cols;
-  placedCount = 0;
-  updateProgress();
-});
+const elPieceSelect = document.getElementById('piece-count');
+const elPieceDisplay = document.getElementById('piece-count-display');
+if (elPieceSelect) {
+  if (elPieceDisplay) {
+    elPieceDisplay.textContent = elPieceSelect.options[elPieceSelect.selectedIndex].textContent;
+  }
+  elPieceSelect.addEventListener('change', function (e) {
+    const value = e.target.value;
+    if (value === '3x4') { rows = 3; cols = 4; }
+    else if (value === '4x5') { rows = 4; cols = 5; }
+    else if (value === '6x8') { rows = 6; cols = 8; }
+    // プログレス初期化
+    totalPieces = rows * cols;
+    placedCount = 0;
+    updateProgress();
+    if (elPieceDisplay) {
+      elPieceDisplay.textContent = e.target.options[e.target.selectedIndex].textContent;
+    }
+  });
+}
 
 // 画像選択 → プレビュー＆開始ボタン有効化
 document.getElementById('upload-image').addEventListener('change', function (e) {
