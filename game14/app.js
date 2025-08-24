@@ -17,7 +17,7 @@ class DiameterLineAnimator {
         
         // 見えるボール管理（各直径線に1つ）
         this.visibleBalls = [];             // 位置・色情報
-        this.firstBallColor = '#ff0000';    // 水平線上で位置が変わらないボールの色
+        this.horizontalBallColor = '#ff0000'; // 水平線上で位置が変わらないボールの色
         this.defaultBallColor = 'white';    // その他のボールの色
         
         // アニメーション制御
@@ -94,25 +94,26 @@ class DiameterLineAnimator {
     calculateVisibleBallPositions() {
         this.visibleBalls = [];
         
-        this.lineAngles.forEach((lineAngle, index) => {
+        this.lineAngles.forEach((lineAngle) => {
             // 見えないボールとの位相差
             let phaseDiff = this.invisibleBallPhase - lineAngle;
-            
+
             // -π〜π範囲に正規化
             while (phaseDiff > Math.PI) phaseDiff -= 2 * Math.PI;
             while (phaseDiff < -Math.PI) phaseDiff += 2 * Math.PI;
-            
+
             // cosine投影で直径線上の位置を計算
             const normalizedPosition = Math.cos(phaseDiff);
-            
+
             // 直径線上の位置（-radius ～ +radius の範囲）
             const radialDistance = normalizedPosition * this.radius;
-            
+
             // 直径線上の実際の座標
             const x = this.centerX + radialDistance * Math.cos(lineAngle);
             const y = this.centerY + radialDistance * Math.sin(lineAngle);
 
-            const color = index === 0 ? this.firstBallColor : this.defaultBallColor;
+            const isHorizontal = Math.abs(Math.sin(lineAngle)) < 1e-10;
+            const color = isHorizontal ? this.horizontalBallColor : this.defaultBallColor;
 
             this.visibleBalls.push({
                 x: x,
