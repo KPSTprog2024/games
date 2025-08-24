@@ -179,6 +179,9 @@ function create() {
           pieceWidth / scale, pieceHeight / scale,
           0, 0, pieceWidth, pieceHeight
         );
+        cctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        cctx.lineWidth = 0.5;          // 極細ライン
+        cctx.strokeRect(0, 0, pieceWidth, pieceHeight);
         canvasTexture.refresh();
 
         const piece = scene.add.image(0, 0, pieceTextureKey);
