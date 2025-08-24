@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>正方形・糸掛け曼荼羅ラボ</title>
+  <title>糸掛け曼荼羅ラボ</title>
   <style>
     :root{
       --bg:#0b0d10; --panel:#111418; --ink:#e6edf3; --muted:#97a1ab;
@@ -52,7 +52,7 @@
 <body>
   <header>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="url(#g)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6ee7ff"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
-    <h1>正方形・糸掛け曼荼羅ラボ</h1>
+    <h1>糸掛け曼荼羅ラボ</h1>
     <div class="sub">X/Y でピン間隔を個別調整・単一ピンの扇出し対応</div>
   </header>
 
@@ -66,8 +66,10 @@
   <aside>
     <div class="group">
       <h2>ボードとピン</h2>
-      <div class="row"><label>キャンバス解像度</label><div class="val"><span id="resVal">1024</span>px</div></div>
-      <input type="range" id="res" min="512" max="2048" step="64" value="1024"/>
+      <div class="row"><label>キャンバス幅</label><div class="val"><span id="resXVal">1024</span>px</div></div>
+      <input type="range" id="resX" min="512" max="2048" step="64" value="1024"/>
+      <div class="row"><label>キャンバス高さ</label><div class="val"><span id="resYVal">1024</span>px</div></div>
+      <input type="range" id="resY" min="512" max="2048" step="64" value="1024"/>
 
       <div class="cols">
         <div>
@@ -96,7 +98,7 @@
 
     <div class="group">
       <h2>パターン（周回インデックス）</h2>
-      <p class="desc">ピンを正方形の外周に並べ、<em>i</em>番ピンから <em>(i × 乗数 + オフセット)</em> 番へ線を結びます。扇出しは「本数」と「ステップ」で制御。</p>
+      <p class="desc">ピンを長方形の外周に並べ、<em>i</em>番ピンから <em>(i × 乗数 + オフセット)</em> 番へ線を結びます。扇出しは「本数」と「ステップ」で制御。</p>
       <div class="row"><label>乗数 (multiplier)</label><div class="val"><span id="mulVal">2.000</span></div></div>
       <input type="range" id="mul" min="0" max="20" step="0.001" value="2"/>
 
@@ -197,7 +199,8 @@
   const ctx = C.getContext('2d');
 
   const ui = {
-    res: dom('res'), resVal: dom('resVal'),
+    resX: dom('resX'), resXVal: dom('resXVal'),
+    resY: dom('resY'), resYVal: dom('resYVal'),
     pinsX: dom('pinsX'), nxVal: dom('nxVal'),
     pinsY: dom('pinsY'), nyVal: dom('nyVal'),
     margin: dom('margin'), marginVal: dom('marginVal'),
@@ -239,22 +242,25 @@
 
   function sizeCanvas(){
     const box = W.getBoundingClientRect();
-    // keep canvas square, fit width column
-    const side = Math.min(box.width, box.height || box.width);
-    C.style.width = side + 'px';
-    C.style.height = side + 'px';
-    const res = +ui.res.value;
-    C.width = res; C.height = res;
-    ui.resVal.textContent = res;
+    const resX = +ui.resX.value;
+    const resY = +ui.resY.value;
+    C.width = resX; C.height = resY;
+    const width = box.width;
+    const height = box.width * resY / resX;
+    C.style.width = width + 'px';
+    C.style.height = height + 'px';
+    ui.resXVal.textContent = resX;
+    ui.resYVal.textContent = resY;
   }
 
   function computePins(){
     const nX = +ui.pinsX.value; ui.nxVal.textContent = nX;
     const nY = +ui.pinsY.value; ui.nyVal.textContent = nY;
-    const res = +ui.res.value; ui.resVal.textContent = res;
+    const resX = +ui.resX.value; ui.resXVal.textContent = resX;
+    const resY = +ui.resY.value; ui.resYVal.textContent = resY;
     const m = +ui.margin.value; ui.marginVal.textContent = m;
 
-    const L = m, R = res - m, T = m, B = res - m;
+    const L = m, R = resX - m, T = m, B = resY - m;
 
     const pins = [];
     // Top edge: left->right, include corners
@@ -309,18 +315,21 @@
   }
 
   function draw(){
-    const res = +ui.res.value;
+    const resX = +ui.resX.value;
+    const resY = +ui.resY.value;
     const pins = state.pins;
     const total = state.total;
     const pinR = +ui.pinR.value; ui.pinRVal.textContent = pinR;
 
     // background
-    ctx.clearRect(0,0,res,res);
+    ctx.clearRect(0,0,resX,resY);
     // Very soft vignette
-    const g = ctx.createRadialGradient(res*0.5, res*0.5, res*0.1, res*0.5, res*0.5, res*0.7);
+    const minR = Math.min(resX, resY);
+    const maxR = Math.max(resX, resY);
+    const g = ctx.createRadialGradient(resX*0.5, resY*0.5, minR*0.1, resX*0.5, resY*0.5, maxR*0.7);
     g.addColorStop(0, '#0c0f14');
     g.addColorStop(1, '#0a0d12');
-    ctx.fillStyle = g; ctx.fillRect(0,0,res,res);
+    ctx.fillStyle = g; ctx.fillRect(0,0,resX,resY);
 
     const lw = +ui.lw.value; ui.lwVal.textContent = lw.toFixed(2);
     ctx.lineWidth = lw;
@@ -414,7 +423,8 @@
   bindVal(ui.pinsY, ui.nyVal);
   bindVal(ui.margin, ui.marginVal);
   bindVal(ui.pinR, ui.pinRVal);
-  bindVal(ui.res, ui.resVal);
+  bindVal(ui.resX, ui.resXVal);
+  bindVal(ui.resY, ui.resYVal);
 
   bindVal(ui.mul, ui.mulVal, v=>(+v).toFixed(3));
   bindVal(ui.offset, ui.offVal);
@@ -436,7 +446,7 @@
     // create a temporary link
     const url = C.toDataURL('image/png');
     const a = document.createElement('a');
-    a.href = url; a.download = `square-string-art_${Date.now()}.png`;
+    a.href = url; a.download = `string-art_${Date.now()}.png`;
     a.click();
   });
 
