@@ -805,8 +805,8 @@ select.form-control {
     flex-direction: column;
     align-items: center;
     margin-bottom: var(--space-16);
-    height: 45vh;
-    max-height: 450px;
+    height: 55vh;
+    max-height: 400px;
 }
 
 /* グリッドコンテナ */
@@ -824,7 +824,7 @@ select.form-control {
     border: 2px solid var(--color-border);
     border-radius: var(--radius-base);
     padding: 1px;
-    width: min(90vmin, 350px);
+    width: min(70vmin, 260px);
     aspect-ratio: 1 / 1;
 }
 
@@ -837,7 +837,7 @@ select.form-control {
     transition: all var(--duration-fast) var(--ease-standard);
     aspect-ratio: 1 / 1;
     line-height: 1;
-    font-size: calc((min(90vmin, 350px) / 10) * 0.8);
+    font-size: calc((min(70vmin, 260px) / 10) * 0.8);
     border-radius: var(--radius-sm);
     user-select: none;
 }
@@ -864,17 +864,17 @@ select.form-control {
 }
 
 .multiplication-formula {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     color: var(--color-text);
-    margin-bottom: var(--space-8);
-    min-height: 28px;
+    margin-bottom: var(--space-6);
+    min-height: 24px;
 }
 
 .addition-formula {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     color: var(--color-text-secondary);
-    min-height: 24px;
+    min-height: 20px;
 }
 
 /* 下半分のセクション */
@@ -883,7 +883,7 @@ select.form-control {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    height: calc(55vh - 80px);
+    height: calc(45vh - 80px);
 }
 
 /* コントロール */
@@ -906,7 +906,7 @@ select.form-control {
 }
 
 .slider {
-    width: 200px;
+    width: 160px;
     height: 8px;
     border-radius: var(--radius-full);
     background: var(--color-secondary);
@@ -958,14 +958,14 @@ select.form-control {
     background-color: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-base);
-    padding: var(--space-6);
+    padding: var(--space-4);
     text-align: center;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
     color: var(--color-text);
     transition: all var(--duration-fast) var(--ease-standard);
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 28px;
+    min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
