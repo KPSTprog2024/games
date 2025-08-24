@@ -139,12 +139,16 @@ mountPresetGallery(document.getElementById("preset-gallery"), (name) => {
 document.getElementById("btn-save").addEventListener("click", async () => {
   const scale = Number(document.getElementById("save-scale").value || 2);
   const transparent = document.getElementById("save-transparent").checked;
-  const blob = await exportPNG(pixi.app, store.getState(), scale, transparent);
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "itokake.png"; a.click();
-  URL.revokeObjectURL(url);
-  toast("PNGを書き出しました");
+  try {
+    const blob = await exportPNG(pixi.app, store.getState(), scale, transparent);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "itokake.png"; a.click();
+    URL.revokeObjectURL(url);
+    toast("PNGを書き出しました");
+  } catch (err) {
+    alert("PNGの書き出しに失敗しました: " + (err && err.message ? err.message : err));
+  }
 });
 document.getElementById("btn-share").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(location.href); toast("共有リンクをコピーしました"); }

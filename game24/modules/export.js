@@ -39,6 +39,7 @@ export async function exportPNG(app, state, scale=2, transparent=false) {
   app.renderer.render(root, { renderTexture: rt, clear: true });
   const cvs = app.renderer.extract.canvas(rt);
   const blob = await new Promise(res => cvs.toBlob(b => res(b), "image/png"));
+  if (!blob) throw new Error("Canvas toBlob() returned null");
   rt.destroy(true);
   root.destroy({ children:true });
   return blob;
