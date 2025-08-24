@@ -2,7 +2,7 @@ import { createStore } from "./modules/state.js";
 import { defaultState } from "./modules/presets.js";
 import { pinsCircle } from "./modules/geometry.js";
 import { sequence, validateParams } from "./modules/mapping.js";
-import { buildLayer, drawLayer, attachLayers, bakeToTexture, unbakeToLive, composeEnv, createPixiApp } from "./modules/render.js";
+import { buildLayer, attachLayers, bakeToTexture, unbakeToLive, composeEnv, createPixiApp, renderLive } from "./modules/render.js";
 import { exportPNG } from "./modules/export.js";
 import { initPanel, mountPresetGallery } from "./modules/ui.js";
 import { buildTips } from "./modules/tips.js";
@@ -49,7 +49,7 @@ function tick(delta) {
       anyAdvanced = true;
     }
   }
-  if (anyAdvanced) renderLive(true);
+  if (anyAdvanced) renderLive(composer, true);
 }
 
 function rebuildGeometry(state) {
@@ -86,10 +86,6 @@ function rebuildLayers(state) {
   attachLayers(pixi.app, composer, layers);
 }
 
-function renderLive(animated) {
-  for (const rt of layers) drawLayer(rt, animated);
-}
-
 function applyState(state) {
   pixi.setBackground(state.bg);
 
@@ -104,10 +100,10 @@ function applyState(state) {
   if (state.animate) {
     unbakeToLive(pixi.app, composer);
     animator.start();
-    renderLive(true);
+    renderLive(composer, true);
   } else {
     animator.stop();
-    renderLive(false);
+    renderLive(composer, false);
     bakeToTexture(pixi.app, composer);
   }
 
