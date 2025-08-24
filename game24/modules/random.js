@@ -3,6 +3,8 @@ import { clamp } from "./mapping.js";
 function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
+const candidateN = [48, 60, 64, 72, 96];
+
 const PALETTES = [
   { type:"palette", name:"rainbow-soft" },
   { type:"palette", name:"candy-pop" },
@@ -21,7 +23,7 @@ export function randomColorsOnly(state){
 
 export function randomAll(state){
   const s = JSON.parse(JSON.stringify(state));
-  s.N = [48,60,64,72,96][Math.floor(Math.random()*5)];
+  s.N = pick(candidateN);
   s.layers = s.layers.map((l, i) => ({
     ...l,
     k: clamp(randInt(1, s.N-1), 1, s.N-1),
