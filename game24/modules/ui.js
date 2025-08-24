@@ -21,10 +21,20 @@ export function initPanel(container, store, handlers) {
     fLayers.children.forEach(c => fLayers.remove(c));
     const st = store.getState();
     st.layers.forEach((layer, idx) => {
-      const fd = fLayers.addFolder({ title: `Layer ${idx+1}` });
-      const ctrlK = fd.addInput(layer, "k", { label: "歩幅 k", min: 1, max: Math.max(1, st.N-1), step: 1 });
-      const ctrlW = fd.addInput(layer, "width", { label: "線幅", min: 0.3, max: 6.0, step: 0.1 });
-      const ctrlA = fd.addInput(layer, "alpha", { label: "透明度", min: 0.1, max: 1.0, step: 0.05 });
+        const fd = fLayers.addFolder({ title: `Layer ${idx+1}` });
+        const ctrlK = fd.addInput(layer, "k", { label: "歩幅 k", min: 1, max: Math.max(1, st.N-1), step: 1 });
+        const ctrlW = fd.addInput(layer, "width", { label: "線幅", min: 0.3, max: 6.0, step: 0.1 });
+        const ctrlA = fd.addInput(layer, "alpha", { label: "透明度", min: 0.1, max: 1.0, step: 0.05 });
+        const ctrlB = fd.addInput(layer, "blend", {
+          label: "ブレンド",
+          options: {
+            通常: "normal",
+            加算: "add",
+            乗算: "multiply",
+            スクリーン: "screen",
+            ライト: "lighter",
+          },
+        });
       // 色：簡易（単色/グラデ/パレットを直接JSON編集する代わりに3ボタン）
       const grp = fd.addFolder({ title: "色" });
       grp.addButton({ title: "単色: 白" }).on("click", ()=> patch(idx, { color: { type:"solid", value:"#F2F2F2" } }));
@@ -32,9 +42,10 @@ export function initPanel(container, store, handlers) {
       grp.addButton({ title: "パレット: Aurora" }).on("click", ()=> patch(idx, { color: { type:"palette", name:"aurora" } }));
       fd.addButton({ title: "削除" }).on("click", () => removeLayer(idx));
 
-      ctrlK.on("change", ev => patch(idx, { k: ev.value }));
-      ctrlW.on("change", ev => patch(idx, { width: ev.value }));
-      ctrlA.on("change", ev => patch(idx, { alpha: ev.value }));
+        ctrlK.on("change", ev => patch(idx, { k: ev.value }));
+        ctrlW.on("change", ev => patch(idx, { width: ev.value }));
+        ctrlA.on("change", ev => patch(idx, { alpha: ev.value }));
+        ctrlB.on("change", ev => patch(idx, { blend: ev.value }));
     });
     fLayers.addButton({ title: "＋ 追加" }).on("click", addLayer);
   }
@@ -46,7 +57,7 @@ export function initPanel(container, store, handlers) {
   function addLayer() {
     const st = store.getState();
     if (st.layers.length >= 3) return;
-    const base = st.layers[st.layers.length-1] ?? { k:17, width:1.2, alpha:1.0, color:{ type:"gradient", from:"#FFD76A", to:"#2F6BFF"} };
+      const base = st.layers[st.layers.length-1] ?? { k:17, width:1.2, alpha:1.0, color:{ type:"gradient", from:"#FFD76A", to:"#2F6BFF"}, blend:"normal" };
     const layer = { ...base, k: Math.min(st.N-1, base.k + 4) };
     store.setState({ layers: [...st.layers, layer] });
   }

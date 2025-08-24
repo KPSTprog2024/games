@@ -30,12 +30,14 @@ export function createPixiApp(container) {
 
 export function buildLayer(pins, seq, spec) {
   const g = new PIXI.Graphics();
+  g.blendMode = PIXI.BLEND_MODES[spec.blend?.toUpperCase?.() || "NORMAL"];
   return { g, pins, seq, style: spec, tMax: 1 };
 }
 
 export function drawLayer(rt, animated) {
   const { g, pins, seq, style, tMax } = rt;
   g.clear();
+  g.blendMode = PIXI.BLEND_MODES[style.blend?.toUpperCase?.() || "NORMAL"];
   const width = style.width;
   const L = Math.min(tMax, seq.length - 1);
   if (L <= 0) return;
