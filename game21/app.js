@@ -199,7 +199,6 @@ async function bootstrap(lang = 'ja') {
     buildQueues(allQuotes);
     quotesLoaded = true;
     console.log(`Loaded ${allQuotes.length} quotes.`);
-    quotesLoaded = true;
     sceneButtons.forEach(btn => btn.disabled = false);
     return true;
   } catch (err) {
