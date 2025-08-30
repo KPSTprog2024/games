@@ -212,23 +212,21 @@ const quoteText = document.getElementById('quoteText');
 const quoteAuthor = document.getElementById('quoteAuthor');
 const quoteExplanation = document.getElementById('quoteExplanation');
 
+// 状態管理用の変数
 let currentCategory = null;
-
 // カテゴリ別の使用済み名言のインデックスを追跡
 let usedQuotesByCategory = {};
-let currentCategory = null;
-
-let currentCategory = null;
-let touchStartX = 0;
+let usedQuotesAll = [];
+let swipeStartX = 0;
 
 // スワイプ操作を検知
 quoteCard.addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].clientX;
+  swipeStartX = e.changedTouches[0].clientX;
 });
 
 quoteCard.addEventListener('touchend', (e) => {
   const touchEndX = e.changedTouches[0].clientX;
-  const swipeDistance = touchEndX - touchStartX;
+  const swipeDistance = touchEndX - swipeStartX;
   if (Math.abs(swipeDistance) > 50) {
     showNextQuote();
   }
@@ -365,19 +363,19 @@ sceneButtons.forEach(button => {
 });
 
 // 画面端のタップで次の名言を表示（スワイプは除外）
-let touchStartX = 0;
+let tapStartX = 0;
 let touchMoved = false;
 const swipeThreshold = 30;
 const edgeOffset = 50;
 
 document.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
+  tapStartX = e.touches[0].clientX;
   touchMoved = false;
 });
 
 document.addEventListener('touchmove', e => {
   const moveX = e.touches[0].clientX;
-  if (Math.abs(moveX - touchStartX) > swipeThreshold) {
+  if (Math.abs(moveX - tapStartX) > swipeThreshold) {
     touchMoved = true;
   }
 });
