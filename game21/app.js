@@ -197,6 +197,7 @@ async function bootstrap(lang = 'ja') {
       for (const q of converted) byId.set(q.id, q);
     }
     buildQueues(allQuotes);
+    quotesLoaded = true;
     console.log(`Loaded ${allQuotes.length} quotes.`);
   } catch (err) {
     console.error(err);
