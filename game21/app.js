@@ -122,9 +122,15 @@ function renderQuote(q, mode = (langSelect?.value || 'both')) {
 
 // ====================== データ読み込み（packs or legacy） ======================
 async function fetchJson(url) {
-  const r = await fetch(url, { cache: 'force-cache' });
-  if (!r.ok) throw new Error(`${url} ${r.status}`);
-  return r.json();
+  try {
+    const r = await fetch(url, { cache: 'force-cache' });
+    if (!r.ok) throw new Error(`${url} ${r.status}`);
+    return await r.json();
+  } catch (err) {
+    console.error(err);
+    alert('データを読み込めませんでした');
+    throw err;
+  }
 }
 
 async function loadManifest() {
@@ -171,24 +177,30 @@ function legacyToNewSchema(legacy) {
 }
 
 async function bootstrap(lang = 'ja') {
-  const mf = await loadManifest();
-  if (mf && Array.isArray(mf.packs)) {
-    // マニフェストがある：言語＋group=core優先でロード
-    const initial = mf.packs.filter(p => p.lang === lang && p.group === 'core');
-    if (initial.length === 0) {
-      // 何もなければ全言語から最初の1パック
-      if (mf.packs[0]) initial.push(mf.packs[0]);
+  try {
+    const mf = await loadManifest();
+    if (mf && Array.isArray(mf.packs)) {
+      // マニフェストがある：言語＋group=core優先でロード
+      const initial = mf.packs.filter(p => p.lang === lang && p.group === 'core');
+      if (initial.length === 0) {
+        // 何もなければ全言語から最初の1パック
+        if (mf.packs[0]) initial.push(mf.packs[0]);
+      }
+      for (const p of initial) await loadPack(p.path);
+    } else {
+      // フォールバック：従来 quotes.json を読む
+      const legacy = await fetchJson('./quotes.json');
+      const converted = legacyToNewSchema(legacy);
+      allQuotes = converted;
+      for (const q of converted) byId.set(q.id, q);
     }
-    for (const p of initial) await loadPack(p.path);
-  } else {
-    // フォールバック：従来 quotes.json を読む
-    const legacy = await fetchJson('./quotes.json');
-    const converted = legacyToNewSchema(legacy);
-    allQuotes = converted;
-    for (const q of converted) byId.set(q.id, q);
+    buildQueues(allQuotes);
+    console.log(`Loaded ${allQuotes.length} quotes.`);
+  } catch (err) {
+    console.error(err);
+    alert('データを読み込めませんでした');
+    sceneButtons.forEach(btn => btn.disabled = true);
   }
-  buildQueues(allQuotes);
-  console.log(`Loaded ${allQuotes.length} quotes.`);
 }
 
 // ====================== 取得＆表示 ======================
