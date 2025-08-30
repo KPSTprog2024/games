@@ -1,0 +1,6 @@
+{
+  "version": "2025-08-30",
+  "packs": [
+    { "id": "ja-core", "path": "packs/ja-core.json", "lang": "ja", "group": "core", "count": 25, "sha256": "" }
+  ]
+}
