@@ -212,8 +212,28 @@ const quoteText = document.getElementById('quoteText');
 const quoteAuthor = document.getElementById('quoteAuthor');
 const quoteExplanation = document.getElementById('quoteExplanation');
 
+let currentCategory = null;
+
 // カテゴリ別の使用済み名言のインデックスを追跡
 let usedQuotesByCategory = {};
+let currentCategory = null;
+
+let currentCategory = null;
+let touchStartX = 0;
+
+// スワイプ操作を検知
+quoteCard.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+});
+
+quoteCard.addEventListener('touchend', (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const swipeDistance = touchEndX - touchStartX;
+  if (Math.abs(swipeDistance) > 50) {
+    showNextQuote();
+  }
+});
+
 
 // 指定されたカテゴリからランダムな名言を取得する関数
 function getRandomQuoteByCategory(category) {
@@ -252,7 +272,35 @@ function getRandomQuoteByCategory(category) {
     quote.quote === selectedQuote.quote && quote.author === selectedQuote.author
   );
   usedQuotesByCategory[category].push(originalIndex);
-  
+
+  return selectedQuote;
+}
+
+// 全てのカテゴリからランダムな名言を取得する関数
+function getRandomQuoteAll() {
+  if (quotesData.quotes.length === 0) {
+    return null;
+  }
+
+  // 全ての名言を使い切った場合はリセット
+  if (usedQuotesAll.length >= quotesData.quotes.length) {
+    usedQuotesAll = [];
+  }
+
+  // 未使用の名言を取得
+  let availableQuotes = quotesData.quotes.filter((quote, index) => {
+    return !usedQuotesAll.includes(index);
+  });
+
+  const randomIndex = Math.floor(Math.random() * availableQuotes.length);
+  const selectedQuote = availableQuotes[randomIndex];
+
+  // 使用済みリストに追加
+  const originalIndex = quotesData.quotes.findIndex(q =>
+    q.quote === selectedQuote.quote && q.author === selectedQuote.author
+  );
+  usedQuotesAll.push(originalIndex);
+
   return selectedQuote;
 }
 
@@ -278,6 +326,18 @@ function displayQuote(quote) {
   }, 50);
 }
 
+// 現在のカテゴリで次の名言を表示
+
+function showNextQuote() {
+  if (!currentCategory) {
+    return;
+  }
+  const randomQuote = getRandomQuoteByCategory(currentCategory);
+  if (randomQuote) {
+    displayQuote(randomQuote);
+  }
+}
+
 // ボタンのパルスアニメーション
 function pulseButton(button) {
   button.classList.add('pulse');
@@ -290,18 +350,55 @@ function pulseButton(button) {
 sceneButtons.forEach(button => {
   button.addEventListener('click', () => {
     const category = button.getAttribute('data-category');
+    currentCategory = category;
     
     // ボタンアニメーション
     pulseButton(button);
-    
+
     // 少し遅延してから名言を表示
     setTimeout(() => {
-      const randomQuote = getRandomQuoteByCategory(category);
-      if (randomQuote) {
-        displayQuote(randomQuote);
-      }
+
+      showNextQuote();
+
     }, 150);
   });
+});
+
+// 画面端のタップで次の名言を表示（スワイプは除外）
+let touchStartX = 0;
+let touchMoved = false;
+const swipeThreshold = 30;
+const edgeOffset = 50;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchMoved = false;
+});
+
+document.addEventListener('touchmove', e => {
+  const moveX = e.touches[0].clientX;
+  if (Math.abs(moveX - touchStartX) > swipeThreshold) {
+    touchMoved = true;
+  }
+});
+
+document.addEventListener('touchend', e => {
+  if (touchMoved) {
+    return;
+  }
+  const x = e.changedTouches[0].clientX;
+  const width = window.innerWidth;
+  if (x < edgeOffset || x > width - edgeOffset) {
+    showNextQuote();
+  }
+});
+
+document.addEventListener('click', e => {
+  const x = e.clientX;
+  const width = window.innerWidth;
+  if (x < edgeOffset || x > width - edgeOffset) {
+    showNextQuote();
+  }
 });
 
 // 初期化

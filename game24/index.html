@@ -67,7 +67,7 @@
     <div class="group">
       <h2>モード</h2>
       <p class="desc">操作を簡略化するモードです。</p>
-      <div class="row"><label class="toggle"><input type="checkbox" id="easy"> 簡単モード</label><div class="val"></div></div>
+      <div class="row"><button id="easyToggle" class="btn primary">簡単モード</button></div>
     </div>
     <div class="group">
       <h2>ボードとピン</h2>
@@ -101,7 +101,7 @@
       <div class="row"><label class="toggle"><input type="checkbox" id="showPins"> ピンを表示</label><div class="val"></div></div>
     </div>
 
-    <div class="group">
+    <div class="group advanced">
       <h2>パターン（周回インデックス）</h2>
       <p class="desc">ピンを長方形の外周に並べ、<em>i</em>番ピンから <em>(i × 乗数 + オフセット)</em> 番へ線を結びます。扇出しは「本数」と「ステップ」で制御。</p>
       <div class="row"><label>乗数 (multiplier)</label><div class="val"><span id="mulVal">2.000</span></div></div>
@@ -135,7 +135,7 @@
       </div>
     </div>
 
-    <div class="group">
+    <div class="group advanced">
       <h2>色と描画</h2>
       <div class="row"><label>色モード</label>
         <select id="colorMode" class="btn">
@@ -206,7 +206,7 @@
 
   const ui = {
 
-    easy: dom('easy'),
+    easyToggle: dom('easyToggle'),
 
     resX: dom('resX'), resXVal: dom('resXVal'),
     resY: dom('resY'), resYVal: dom('resYVal'),
@@ -240,6 +240,32 @@
     pins: [], // {x,y,side}
     total: 0,
     selectedIndex: 0,
+
+    animId: null,
+    t: 0,
+    easy: true,
+  };
+
+  const saved = {};
+  const easyDefaults = {
+    mul: 2,
+    offset: 0,
+    fan: 1,
+    fanStep: 1,
+    colorMode: 'solid',
+    hue: 200,
+    span: 180,
+    sat: 85,
+    lit: 65,
+    alpha: 0.65,
+    lw: 0.65,
+    glow: true,
+    animate: false,
+    speed: 0.06,
+    solo: false,
+    selected: 0,
+    skipSame: false,
+
   };
 
   // Utility: map value
@@ -247,7 +273,28 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function lerp(a,b,t){return a+(b-a)*t}
 
   function applyMode(){
+
     const simple = ui.easy.checked;
+    document.querySelectorAll('.advanced').forEach(el => {
+      el.style.display = simple ? 'none' : '';
+    });
+    if(simple){
+      for(const k in easyDefaults){
+        const el = ui[k];
+        if(!el) continue;
+        saved[k] = el.type === 'checkbox' ? el.checked : el.value;
+        if(el.type === 'checkbox') el.checked = easyDefaults[k];
+        else el.value = easyDefaults[k];
+      }
+    } else {
+      for(const k in saved){
+        const el = ui[k];
+        if(!el) continue;
+        if(el.type === 'checkbox') el.checked = saved[k];
+        else el.value = saved[k];
+      }
+    }
+
     if(simple){
       ui.resX.min = ui.resY.min = 100;
       ui.resX.max = ui.resY.max = 2000;
@@ -269,6 +316,7 @@ function lerp(a,b,t){return a+(b-a)*t}
     ui.resYVal.textContent = ui.resY.value;
     ui.nxVal.textContent = ui.pinsX.value;
     ui.nyVal.textContent = ui.pinsY.value;
+    ui.animate.dispatchEvent(new Event('change'));
   }
 
   function sizeCanvas(){
@@ -469,7 +517,7 @@ function lerp(a,b,t){return a+(b-a)*t}
   bindVal(ui.lit, ui.litVal);
   bindVal(ui.alpha, ui.alphaVal, v=>(+v).toFixed(2));
   ['showPins','skipSame','solo','glow','colorMode'].forEach(id=> ui[id].addEventListener('change', rebuildAndDraw));
-  ui.easy.addEventListener('change', ()=>{ applyMode(); rebuildAndDraw(); });
+  ui.easyToggle.addEventListener('click', ()=>{ state.easy = !state.easy; applyMode(); rebuildAndDraw(); });
 
   ui.redraw.addEventListener('click', rebuildAndDraw);
 
