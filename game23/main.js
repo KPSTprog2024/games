@@ -12,6 +12,7 @@ let imageCounter = 0;
 let completedImageURL = ''; // 完成画像
 let totalPieces = 0;
 let placedCount = 0;
+let previewPosition = 'bottom';
 
 const elStartBtn = document.getElementById('start-button');
 const elPreviewWrap = document.getElementById('image-preview');
@@ -22,6 +23,8 @@ const elProgText = document.getElementById('progress-text');
 const elZoom = document.getElementById('zoom-slider');
 const elPieceSelect = document.getElementById('piece-count');
 const elPieceDisplay = document.getElementById('piece-count-display');
+const elPreviewPosSelect = document.getElementById('preview-position');
+const elPreviewPosDisplay = document.getElementById('preview-position-display');
 if (elPieceSelect) {
   if (elPieceDisplay) {
     elPieceDisplay.textContent = elPieceSelect.options[elPieceSelect.selectedIndex].textContent;
@@ -37,6 +40,19 @@ if (elPieceSelect) {
     updateProgress();
     if (elPieceDisplay) {
       elPieceDisplay.textContent = e.target.options[e.target.selectedIndex].textContent;
+    }
+  });
+}
+
+if (elPreviewPosSelect) {
+  if (elPreviewPosDisplay) {
+    elPreviewPosDisplay.textContent = elPreviewPosSelect.options[elPreviewPosSelect.selectedIndex].textContent;
+  }
+  previewPosition = elPreviewPosSelect.value;
+  elPreviewPosSelect.addEventListener('change', function (e) {
+    previewPosition = e.target.value;
+    if (elPreviewPosDisplay) {
+      elPreviewPosDisplay.textContent = e.target.options[e.target.selectedIndex].textContent;
     }
   });
 }
@@ -133,8 +149,13 @@ function create() {
     completedImageURL = canvas.toDataURL();
 
     // 画像サイズをフィット
-    const scaleX = (gameWidth * 0.8) / texture.width;
-    const scaleY = (gameHeight * 0.4) / texture.height;
+    let scaleX, scaleY;
+    if (previewPosition === 'left' || previewPosition === 'right') {
+      scaleX = (gameWidth * 0.8 - 20) / (texture.width * 2);
+    } else {
+      scaleX = (gameWidth * 0.8) / texture.width;
+    }
+    scaleY = (gameHeight * 0.4) / texture.height;
     const scale = Math.min(scaleX, scaleY);
     const imageWidth = texture.width * scale;
     const imageHeight = texture.height * scale;
@@ -142,10 +163,38 @@ function create() {
     pieceWidth = Math.floor(imageWidth / cols);
     pieceHeight = Math.floor(imageHeight / rows);
 
-    const frameX = (gameWidth - imageWidth) / 2;
-    const frameY = 10;
+    let frameX, frameY, previewX, previewY, piecesStartY;
     const frameWidth = pieceWidth * cols;
     const frameHeight = pieceHeight * rows;
+    switch (previewPosition) {
+      case 'top':
+        frameX = (gameWidth - imageWidth) / 2;
+        frameY = imageHeight + 40;
+        previewX = (gameWidth - imageWidth) / 2;
+        previewY = 10;
+        piecesStartY = frameY + frameHeight + 40;
+        break;
+      case 'right':
+        frameY = 10;
+        frameX = (gameWidth - (imageWidth * 2 + 20)) / 2;
+        previewX = frameX + imageWidth + 20;
+        previewY = frameY;
+        piecesStartY = frameY + Math.max(frameHeight, imageHeight) + 40;
+        break;
+      case 'left':
+        frameY = 10;
+        previewX = (gameWidth - (imageWidth * 2 + 20)) / 2;
+        frameX = previewX + imageWidth + 20;
+        previewY = frameY;
+        piecesStartY = frameY + Math.max(frameHeight, imageHeight) + 40;
+        break;
+      default: // bottom
+        frameX = (gameWidth - imageWidth) / 2;
+        frameY = 10;
+        previewX = (gameWidth - imageWidth) / 2;
+        previewY = frameY + frameHeight + 20;
+        piecesStartY = previewY + imageHeight + 40;
+    }
 
     // パズル枠（淡色）
     const graphics = scene.add.graphics();
@@ -168,8 +217,6 @@ function create() {
     graphics.strokePath();
 
     // 完成形のプレビュー（淡く）
-    const previewX = (gameWidth - imageWidth) / 2;
-    const previewY = frameY + frameHeight + 20;
     const previewImage = scene.add.image(previewX, previewY, imageKey);
     previewImage.setOrigin(0, 0);
     previewImage.setScale(scale);
@@ -208,9 +255,9 @@ function create() {
         piece.correctX = x;
         piece.correctY = y;
 
-        // ランダム配置（プレビュー下に帯で）
+        // ランダム配置（プレビューの下に帯で）
         const posX = Phaser.Math.Between(20, gameWidth - pieceWidth - 20);
-        const posY = previewY + imageHeight + 40 + Phaser.Math.Between(0, 100);
+        const posY = piecesStartY + Phaser.Math.Between(0, 100);
         piece.x = posX;
         piece.y = posY;
 
