@@ -123,21 +123,21 @@ function renderQuote(q, mode = (langSelect?.value || 'both')) {
 }
 
 // ====================== データ読み込み（packs or legacy） ======================
-async function fetchJson(url) {
+async function fetchJson(url, quiet = false) {
   try {
     const r = await fetch(url, { cache: 'force-cache' });
     if (!r.ok) throw new Error(`${url} ${r.status}`);
     return await r.json();
   } catch (err) {
     console.error(err);
-    alert('データを読み込めませんでした');
+    if (!quiet) alert('データを読み込めませんでした');
     throw err;
   }
 }
 
 async function loadManifest() {
   try {
-    manifest = await fetchJson('data/manifest.json');
+    manifest = await fetchJson('data/manifest.json', true);
     return manifest;
   } catch {
     return null; // 無ければレガシーへ
@@ -145,7 +145,7 @@ async function loadManifest() {
 }
 
 async function loadPack(relPath) {
-  const data = await fetchJson(`data/${relPath}`);
+  const data = await fetchJson(`data/${relPath}`, true);
   const quotes = Array.isArray(data) ? data : data.quotes;
   for (const q of quotes) {
     byId.set(q.id, q);
@@ -191,7 +191,7 @@ async function bootstrap(lang = 'ja') {
       for (const p of initial) await loadPack(p.path);
     } else {
       // フォールバック：従来 quotes.json を読む
-      const legacy = await fetchJson('./quotes.json');
+      const legacy = await fetchJson('./quotes.json', true);
       const converted = legacyToNewSchema(legacy);
       allQuotes = converted;
       for (const q of converted) byId.set(q.id, q);
