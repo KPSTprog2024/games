@@ -994,3 +994,39 @@ body::before {
     font-size: var(--font-size-lg);
   }
 }
+
+/* === Travel Words addons === */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  background: rgba(var(--color-success-rgb), 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(var(--color-success-rgb), 0.25);
+  margin: 0 4px;
+}
+.badge--warn {
+  background: rgba(var(--color-warning-rgb), 0.15);
+  color: var(--color-warning);
+  border-color: rgba(var(--color-warning-rgb), 0.25);
+}
+.badge--alert {
+  background: rgba(var(--color-error-rgb), 0.15);
+  color: var(--color-error);
+  border-color: rgba(var(--color-error-rgb), 0.25);
+}
+
+.quote-original {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  margin-bottom: var(--space-8);
+  color: var(--travel-dark-slate);
+}
+.quote-translit {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+}
