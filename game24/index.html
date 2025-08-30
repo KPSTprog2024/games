@@ -64,6 +64,7 @@
   </main>
 
   <aside>
+    <div class="row"><label class="toggle"><input type="checkbox" id="easy"> 簡単モード</label><div class="val"></div></div>
     <div class="group">
       <h2>ボードとピン</h2>
       <div class="row"><label>キャンバス幅</label><div class="val"><span id="resXVal">1024</span>px</div></div>
@@ -199,6 +200,9 @@
   const ctx = C.getContext('2d');
 
   const ui = {
+
+    easy: dom('easy'),
+
     resX: dom('resX'), resXVal: dom('resXVal'),
     resY: dom('resY'), resYVal: dom('resYVal'),
     pinsX: dom('pinsX'), nxVal: dom('nxVal'),
@@ -237,8 +241,33 @@
   };
 
   // Utility: map value
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  function lerp(a,b,t){return a+(b-a)*t}
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function lerp(a,b,t){return a+(b-a)*t}
+
+  function applyMode(){
+    const simple = ui.easy.checked;
+    if(simple){
+      ui.resX.min = ui.resY.min = 100;
+      ui.resX.max = ui.resY.max = 2000;
+      ui.resX.step = ui.resY.step = 100;
+      ui.pinsX.max = ui.pinsY.max = 60;
+    } else {
+      ui.resX.min = ui.resY.min = 512;
+      ui.resX.max = ui.resY.max = 2048;
+      ui.resX.step = ui.resY.step = 64;
+      ui.pinsX.max = ui.pinsY.max = 400;
+    }
+    const stepX = +ui.resX.step;
+    const stepY = +ui.resY.step;
+    ui.resX.value = clamp(Math.round(+ui.resX.value / stepX) * stepX, +ui.resX.min, +ui.resX.max);
+    ui.resY.value = clamp(Math.round(+ui.resY.value / stepY) * stepY, +ui.resY.min, +ui.resY.max);
+    ui.pinsX.value = clamp(+ui.pinsX.value, 4, +ui.pinsX.max);
+    ui.pinsY.value = clamp(+ui.pinsY.value, 4, +ui.pinsY.max);
+    ui.resXVal.textContent = ui.resX.value;
+    ui.resYVal.textContent = ui.resY.value;
+    ui.nxVal.textContent = ui.pinsX.value;
+    ui.nyVal.textContent = ui.pinsY.value;
+  }
 
   function sizeCanvas(){
     const box = W.getBoundingClientRect();
@@ -439,6 +468,7 @@
   bindVal(ui.alpha, ui.alphaVal, v=>(+v).toFixed(2));
   bindVal(ui.speed, ui.speedVal);
   ['showPins','skipSame','solo','glow','colorMode'].forEach(id=> ui[id].addEventListener('change', rebuildAndDraw));
+  ui.easy.addEventListener('change', ()=>{ applyMode(); rebuildAndDraw(); });
 
   ui.redraw.addEventListener('click', rebuildAndDraw);
 
@@ -488,6 +518,7 @@
   ro.observe(W);
 
   // First paint
+  applyMode();
   rebuildAndDraw();
 })();
 </script>
