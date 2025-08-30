@@ -212,8 +212,11 @@ const quoteText = document.getElementById('quoteText');
 const quoteAuthor = document.getElementById('quoteAuthor');
 const quoteExplanation = document.getElementById('quoteExplanation');
 
+let currentCategory = null;
+
 // カテゴリ別の使用済み名言のインデックスを追跡
 let usedQuotesByCategory = {};
+
 let currentCategory = null;
 let touchStartX = 0;
 
@@ -229,6 +232,7 @@ quoteCard.addEventListener('touchend', (e) => {
     showNextQuote();
   }
 });
+
 
 // 指定されたカテゴリからランダムな名言を取得する関数
 function getRandomQuoteByCategory(category) {
@@ -267,7 +271,35 @@ function getRandomQuoteByCategory(category) {
     quote.quote === selectedQuote.quote && quote.author === selectedQuote.author
   );
   usedQuotesByCategory[category].push(originalIndex);
-  
+
+  return selectedQuote;
+}
+
+// 全てのカテゴリからランダムな名言を取得する関数
+function getRandomQuoteAll() {
+  if (quotesData.quotes.length === 0) {
+    return null;
+  }
+
+  // 全ての名言を使い切った場合はリセット
+  if (usedQuotesAll.length >= quotesData.quotes.length) {
+    usedQuotesAll = [];
+  }
+
+  // 未使用の名言を取得
+  let availableQuotes = quotesData.quotes.filter((quote, index) => {
+    return !usedQuotesAll.includes(index);
+  });
+
+  const randomIndex = Math.floor(Math.random() * availableQuotes.length);
+  const selectedQuote = availableQuotes[randomIndex];
+
+  // 使用済みリストに追加
+  const originalIndex = quotesData.quotes.findIndex(q =>
+    q.quote === selectedQuote.quote && q.author === selectedQuote.author
+  );
+  usedQuotesAll.push(originalIndex);
+
   return selectedQuote;
 }
 
@@ -323,7 +355,9 @@ sceneButtons.forEach(button => {
 
     // 少し遅延してから名言を表示
     setTimeout(() => {
+
       showNextQuote();
+
     }, 150);
   });
 });
