@@ -2,6 +2,8 @@ let quotesLoaded = false;
 
 // ====================== 基本DOM参照 ======================
 const sceneButtons = document.querySelectorAll('.btn--scene');
+// 初期状態では HTML 側で disabled だが、念のため JS でも無効化しておく
+sceneButtons.forEach(btn => btn.disabled = true);
 const quoteCard = document.getElementById('quoteCard');
 const quoteScene = document.getElementById('quoteScene');
 const quoteOriginal = document.getElementById('quoteOriginal');
