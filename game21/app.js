@@ -332,7 +332,9 @@ function showNextQuote() {
   if (!currentCategory) {
     return;
   }
-  const randomQuote = getRandomQuoteByCategory(currentCategory);
+  const randomQuote = currentCategory === 'all'
+    ? getRandomQuoteAll()
+    : getRandomQuoteByCategory(currentCategory);
   if (randomQuote) {
     displayQuote(randomQuote);
   }
