@@ -214,6 +214,21 @@ const quoteExplanation = document.getElementById('quoteExplanation');
 
 // カテゴリ別の使用済み名言のインデックスを追跡
 let usedQuotesByCategory = {};
+let currentCategory = null;
+let touchStartX = 0;
+
+// スワイプ操作を検知
+quoteCard.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+});
+
+quoteCard.addEventListener('touchend', (e) => {
+  const touchEndX = e.changedTouches[0].clientX;
+  const swipeDistance = touchEndX - touchStartX;
+  if (Math.abs(swipeDistance) > 50) {
+    showNextQuote();
+  }
+});
 
 // 指定されたカテゴリからランダムな名言を取得する関数
 function getRandomQuoteByCategory(category) {
@@ -278,6 +293,17 @@ function displayQuote(quote) {
   }, 50);
 }
 
+// 選択中のカテゴリから次の名言を表示
+function showNextQuote() {
+  if (!currentCategory) {
+    return;
+  }
+  const randomQuote = getRandomQuoteByCategory(currentCategory);
+  if (randomQuote) {
+    displayQuote(randomQuote);
+  }
+}
+
 // ボタンのパルスアニメーション
 function pulseButton(button) {
   button.classList.add('pulse');
@@ -290,16 +316,14 @@ function pulseButton(button) {
 sceneButtons.forEach(button => {
   button.addEventListener('click', () => {
     const category = button.getAttribute('data-category');
-    
+    currentCategory = category;
+
     // ボタンアニメーション
     pulseButton(button);
-    
+
     // 少し遅延してから名言を表示
     setTimeout(() => {
-      const randomQuote = getRandomQuoteByCategory(category);
-      if (randomQuote) {
-        displayQuote(randomQuote);
-      }
+      showNextQuote();
     }, 150);
   });
 });
