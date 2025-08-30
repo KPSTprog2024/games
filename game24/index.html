@@ -67,7 +67,7 @@
     <div class="group">
       <h2>モード</h2>
       <p class="desc">操作を簡略化するモードです。</p>
-      <div class="row"><label class="toggle"><input type="checkbox" id="easy"> 簡単モード</label><div class="val"></div></div>
+      <div class="row"><button id="easyToggle" class="btn primary">簡単モード</button></div>
     </div>
     <div class="group">
       <h2>ボードとピン</h2>
@@ -212,7 +212,7 @@
 
   const ui = {
 
-    easy: dom('easy'),
+    easyToggle: dom('easyToggle'),
 
     resX: dom('resX'), resXVal: dom('resXVal'),
     resY: dom('resY'), resYVal: dom('resYVal'),
@@ -249,6 +249,7 @@
     selectedIndex: 0,
     animId: null,
     t: 0,
+    easy: true,
   };
 
   const saved = {};
@@ -277,6 +278,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function lerp(a,b,t){return a+(b-a)*t}
 
   function applyMode(){
+
     const simple = ui.easy.checked;
     document.querySelectorAll('.advanced').forEach(el => {
       el.style.display = simple ? 'none' : '';
@@ -297,6 +299,7 @@ function lerp(a,b,t){return a+(b-a)*t}
         else el.value = saved[k];
       }
     }
+
     if(simple){
       ui.resX.min = ui.resY.min = 100;
       ui.resX.max = ui.resY.max = 2000;
@@ -520,7 +523,7 @@ function lerp(a,b,t){return a+(b-a)*t}
   bindVal(ui.alpha, ui.alphaVal, v=>(+v).toFixed(2));
   bindVal(ui.speed, ui.speedVal);
   ['showPins','skipSame','solo','glow','colorMode'].forEach(id=> ui[id].addEventListener('change', rebuildAndDraw));
-  ui.easy.addEventListener('change', ()=>{ applyMode(); rebuildAndDraw(); });
+  ui.easyToggle.addEventListener('click', ()=>{ state.easy = !state.easy; applyMode(); rebuildAndDraw(); });
 
   ui.redraw.addEventListener('click', rebuildAndDraw);
 
