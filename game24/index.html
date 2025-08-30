@@ -107,9 +107,6 @@
       <div class="row"><label>乗数 (multiplier)</label><div class="val"><span id="mulVal">2.000</span></div></div>
       <input type="range" id="mul" min="0" max="20" step="0.001" value="2"/>
 
-      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション</label><div class="val"></div></div>
-      <div class="row"><label>速度</label><div class="val"><span id="speedVal">0.06</span></div></div>
-      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
 
       <div class="cols">
         <div>
@@ -177,9 +174,6 @@
         </div>
         <div class="row"><label class="toggle"><input type="checkbox" id="glow" checked> 軽いグロー</label><div class="val"></div></div>
       </div>
-      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション</label><div class="val"></div></div>
-      <div class="row"><label>速度</label><div class="val"><span id="speedVal">0.06</span></div></div>
-      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
     </div>
 
     <div class="group">
@@ -239,7 +233,6 @@
     glow: dom('glow'),
 
     redraw: dom('redraw'), save: dom('save'),
-    animate: dom('animate'), speed: dom('speed'), speedVal: dom('speedVal'),
     random: dom('random'), clearSel: dom('clearSel'),
   };
 
@@ -247,6 +240,7 @@
     pins: [], // {x,y,side}
     total: 0,
     selectedIndex: 0,
+
     animId: null,
     t: 0,
     easy: true,
@@ -271,6 +265,7 @@
     solo: false,
     selected: 0,
     skipSame: false,
+
   };
 
   // Utility: map value
@@ -521,7 +516,6 @@ function lerp(a,b,t){return a+(b-a)*t}
   bindVal(ui.sat, ui.satVal);
   bindVal(ui.lit, ui.litVal);
   bindVal(ui.alpha, ui.alphaVal, v=>(+v).toFixed(2));
-  bindVal(ui.speed, ui.speedVal);
   ['showPins','skipSame','solo','glow','colorMode'].forEach(id=> ui[id].addEventListener('change', rebuildAndDraw));
   ui.easyToggle.addEventListener('click', ()=>{ state.easy = !state.easy; applyMode(); rebuildAndDraw(); });
 
@@ -552,20 +546,6 @@ function lerp(a,b,t){return a+(b-a)*t}
     ui.lit.value = rand(45, 75, 1);
     ui.alpha.value = (Math.random()*0.5 + 0.35).toFixed(2);
     rebuildAndDraw();
-  });
-
-  // Animation of multiplier
-  function tick(){
-    if(!ui.animate.checked){ state.animId = null; return; }
-    state.t += +ui.speed.value;
-    ui.mul.value = (Math.sin(state.t)*0.5 + 0.5) * 10 + 0.5; // oscillate ~0.5..10.5
-    draw();
-    state.animId = requestAnimationFrame(tick);
-  }
-
-  ui.animate.addEventListener('change', ()=>{
-    if(ui.animate.checked && !state.animId){ state.t = 0; state.animId = requestAnimationFrame(tick); }
-    else if(!ui.animate.checked && state.animId){ cancelAnimationFrame(state.animId); state.animId=null; }
   });
 
   // Resize observer: keep canvas square to container
