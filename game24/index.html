@@ -47,6 +47,7 @@
 
     footer{grid-column:1/-1; text-align:center; color:#718096; font-size:12px; padding-top:8px}
     a{color:#91caff; text-decoration:none}
+    .help{margin-left:4px;color:#6ee7ff;font-weight:bold;cursor:help}
   </style>
 </head>
 <body>
@@ -67,66 +68,71 @@
     <div class="group">
       <h2>モード</h2>
       <p class="desc">操作を簡略化するモードです。</p>
-      <div class="row"><button id="easyToggle" class="btn primary">簡単モード</button></div>
+      <div class="row"><label class="toggle"><input type="checkbox" id="easy"> 簡単モード <a class="help" href="docs/easy.html" target="_blank">?</a></label><div class="val"></div></div>
+
     </div>
     <div class="group">
       <h2>ボードとピン</h2>
-      <div class="row"><label>キャンバス幅</label><div class="val"><span id="resXVal">1024</span>px</div></div>
+      <div class="row"><label>キャンバス幅 <a class="help" href="docs/resolution.html" target="_blank">?</a></label><div class="val"><span id="resXVal">1024</span>px</div></div>
       <input type="range" id="resX" min="512" max="2048" step="64" value="1024"/>
-      <div class="row"><label>キャンバス高さ</label><div class="val"><span id="resYVal">1024</span>px</div></div>
+      <div class="row"><label>キャンバス高さ <a class="help" href="docs/resolution.html" target="_blank">?</a></label><div class="val"><span id="resYVal">1024</span>px</div></div>
       <input type="range" id="resY" min="512" max="2048" step="64" value="1024"/>
 
       <div class="cols">
         <div>
-          <div class="row"><label>上/下のピン数 (X)</label><div class="val"><span id="nxVal">120</span></div></div>
+          <div class="row"><label>上/下のピン数 (X) <a class="help" href="docs/pins.html" target="_blank">?</a></label><div class="val"><span id="nxVal">120</span></div></div>
           <input type="range" id="pinsX" min="4" max="400" step="1" value="120"/>
         </div>
         <div>
-          <div class="row"><label>左/右のピン数 (Y)</label><div class="val"><span id="nyVal">120</span></div></div>
+          <div class="row"><label>左/右のピン数 (Y) <a class="help" href="docs/pins.html" target="_blank">?</a></label><div class="val"><span id="nyVal">120</span></div></div>
           <input type="range" id="pinsY" min="4" max="400" step="1" value="120"/>
         </div>
       </div>
 
       <div class="cols">
         <div>
-          <div class="row"><label>内側マージン</label><div class="val"><span id="marginVal">28</span>px</div></div>
+          <div class="row"><label>内側マージン <a class="help" href="docs/pins.html" target="_blank">?</a></label><div class="val"><span id="marginVal">28</span>px</div></div>
           <input type="range" id="margin" min="0" max="120" step="2" value="28"/>
         </div>
         <div>
-          <div class="row"><label>ピン半径</label><div class="val"><span id="pinRVal">0</span>px</div></div>
+          <div class="row"><label>ピン半径 <a class="help" href="docs/pins.html" target="_blank">?</a></label><div class="val"><span id="pinRVal">0</span>px</div></div>
           <input type="range" id="pinR" min="0" max="4" step="1" value="0"/>
         </div>
       </div>
 
-      <div class="row"><label class="toggle"><input type="checkbox" id="showPins"> ピンを表示</label><div class="val"></div></div>
+      <div class="row"><label class="toggle"><input type="checkbox" id="showPins"> ピンを表示 <a class="help" href="docs/pins.html" target="_blank">?</a></label><div class="val"></div></div>
     </div>
 
     <div class="group advanced">
       <h2>パターン（周回インデックス）</h2>
       <p class="desc">ピンを長方形の外周に並べ、<em>i</em>番ピンから <em>(i × 乗数 + オフセット)</em> 番へ線を結びます。扇出しは「本数」と「ステップ」で制御。</p>
-      <div class="row"><label>乗数 (multiplier)</label><div class="val"><span id="mulVal">2.000</span></div></div>
+      <div class="row"><label>乗数 (multiplier) <a class="help" href="docs/multiplier.html" target="_blank">?</a></label><div class="val"><span id="mulVal">2.000</span></div></div>
       <input type="range" id="mul" min="0" max="20" step="0.001" value="2"/>
+
+      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション <a class="help" href="docs/animation.html" target="_blank">?</a></label><div class="val"></div></div>
+      <div class="row"><label>速度 <a class="help" href="docs/animation.html" target="_blank">?</a></label><div class="val"><span id="speedVal">0.06</span></div></div>
+      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
 
 
       <div class="cols">
         <div>
-          <div class="row"><label>オフセット</label><div class="val"><span id="offVal">0</span></div></div>
+          <div class="row"><label>オフセット <a class="help" href="docs/offset.html" target="_blank">?</a></label><div class="val"><span id="offVal">0</span></div></div>
           <input type="range" id="offset" min="0" max="800" step="1" value="0"/>
         </div>
         <div>
-          <div class="row"><label>線の本数/ピン</label><div class="val"><span id="fanVal">1</span></div></div>
+          <div class="row"><label>線の本数/ピン <a class="help" href="docs/fan.html" target="_blank">?</a></label><div class="val"><span id="fanVal">1</span></div></div>
           <input type="range" id="fan" min="1" max="32" step="1" value="1"/>
         </div>
       </div>
 
-      <div class="row"><label>ステップ（扇の開き）</label><div class="val"><span id="stepVal">1</span></div></div>
+      <div class="row"><label>ステップ（扇の開き） <a class="help" href="docs/fan.html" target="_blank">?</a></label><div class="val"><span id="stepVal">1</span></div></div>
       <input type="range" id="fanStep" min="1" max="400" step="1" value="1"/>
 
       <div class="cols">
-        <div class="row"><label class="toggle"><input type="checkbox" id="solo"> ソロモード</label><div class="val"></div></div>
-        <div class="row"><label class="toggle"><input type="checkbox" id="skipSame"> 同一辺への接続を避ける</label><div class="val"></div></div>
+        <div class="row"><label class="toggle"><input type="checkbox" id="solo"> ソロモード <a class="help" href="docs/solo.html" target="_blank">?</a></label><div class="val"></div></div>
+        <div class="row"><label class="toggle"><input type="checkbox" id="skipSame"> 同一辺への接続を避ける <a class="help" href="docs/solo.html" target="_blank">?</a></label><div class="val"></div></div>
       </div>
-      <div class="row"><label>選択ピン（ソロ）</label><div class="val"><span id="selVal">0</span></div></div>
+      <div class="row"><label>選択ピン（ソロ） <a class="help" href="docs/solo.html" target="_blank">?</a></label><div class="val"><span id="selVal">0</span></div></div>
       <input type="range" id="selected" min="0" max="100" step="1" value="0"/>
 
       <div class="cols">
@@ -137,7 +143,7 @@
 
     <div class="group advanced">
       <h2>色と描画</h2>
-      <div class="row"><label>色モード</label>
+      <div class="row"><label>色モード <a class="help" href="docs/color.html" target="_blank">?</a></label>
         <select id="colorMode" class="btn">
           <option value="solid">単色</option>
           <option value="start">開始ピン基準グラデ</option>
@@ -147,33 +153,37 @@
       </div>
       <div class="cols">
         <div>
-          <div class="row"><label>色相ベース</label><div class="val"><span id="hueVal">200</span>°</div></div>
+          <div class="row"><label>色相ベース <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="hueVal">200</span>°</div></div>
           <input type="range" id="hue" min="0" max="360" step="1" value="200"/>
         </div>
         <div>
-          <div class="row"><label>色相スパン</label><div class="val"><span id="spanVal">180</span>°</div></div>
+          <div class="row"><label>色相スパン <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="spanVal">180</span>°</div></div>
           <input type="range" id="span" min="0" max="360" step="1" value="180"/>
         </div>
       </div>
       <div class="cols">
         <div>
-          <div class="row"><label>彩度</label><div class="val"><span id="satVal">85</span>%</div></div>
+          <div class="row"><label>彩度 <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="satVal">85</span>%</div></div>
           <input type="range" id="sat" min="0" max="100" step="1" value="85"/>
         </div>
         <div>
-          <div class="row"><label>明度</label><div class="val"><span id="litVal">65</span>%</div></div>
+          <div class="row"><label>明度 <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="litVal">65</span>%</div></div>
           <input type="range" id="lit" min="0" max="100" step="1" value="65"/>
         </div>
       </div>
       <div class="cols">
         <div>
-          <div class="row"><label>不透明度</label><div class="val"><span id="alphaVal">0.65</span></div></div>
+          <div class="row"><label>不透明度 <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="alphaVal">0.65</span></div></div>
           <input type="range" id="alpha" min="0.05" max="1" step="0.05" value="0.65"/>
-          <div class="row"><label>線の太さ</label><div class="val"><span id="lwVal">0.65</span>px</div></div>
+          <div class="row"><label>線の太さ <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"><span id="lwVal">0.65</span>px</div></div>
           <input type="range" id="lw" min="0.2" max="2.0" step="0.05" value="0.65"/>
         </div>
-        <div class="row"><label class="toggle"><input type="checkbox" id="glow" checked> 軽いグロー</label><div class="val"></div></div>
+        <div class="row"><label class="toggle"><input type="checkbox" id="glow" checked> 軽いグロー <a class="help" href="docs/color.html" target="_blank">?</a></label><div class="val"></div></div>
       </div>
+      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション <a class="help" href="docs/animation.html" target="_blank">?</a></label><div class="val"></div></div>
+      <div class="row"><label>速度 <a class="help" href="docs/animation.html" target="_blank">?</a></label><div class="val"><span id="speedVal">0.06</span></div></div>
+      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
+
     </div>
 
     <div class="group">
