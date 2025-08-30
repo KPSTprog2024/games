@@ -181,6 +181,7 @@ function legacyToNewSchema(legacy) {
 async function bootstrap(lang = 'ja') {
   try {
     const mf = await loadManifest();
+    let loadedAny = false;
     if (mf && Array.isArray(mf.packs)) {
       // マニフェストがある：言語＋group=core優先でロード
       const initial = mf.packs.filter(p => p.lang === lang && p.group === 'core');
@@ -188,14 +189,23 @@ async function bootstrap(lang = 'ja') {
         // 何もなければ全言語から最初の1パック
         if (mf.packs[0]) initial.push(mf.packs[0]);
       }
-      for (const p of initial) await loadPack(p.path);
+      for (const p of initial) {
+        try {
+          await loadPack(p.path);
+          loadedAny = true;
+        } catch (err) {
+          console.error(err);
+        }
+      }
     } else {
       // フォールバック：従来 quotes.json を読む
       const legacy = await fetchJson('./quotes.json', true);
       const converted = legacyToNewSchema(legacy);
       allQuotes = converted;
       for (const q of converted) byId.set(q.id, q);
+      loadedAny = converted.length > 0;
     }
+    if (!loadedAny) throw new Error('No packs loaded');
     buildQueues(allQuotes);
     quotesLoaded = true;
     console.log(`Loaded ${allQuotes.length} quotes.`);
