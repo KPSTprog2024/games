@@ -174,13 +174,17 @@
         </div>
         <div class="row"><label class="toggle"><input type="checkbox" id="glow" checked> 軽いグロー</label><div class="val"></div></div>
       </div>
+      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション</label><div class="val"></div></div>
+      <div class="row"><label>速度</label><div class="val"><span id="speedVal">0.06</span></div></div>
+      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
+    </div>
+
+    <div class="group">
+      <h2>描画操作</h2>
       <div class="cols">
         <button class="btn primary" id="redraw">再描画</button>
         <button class="btn" id="save">PNG保存</button>
       </div>
-      <div class="row"><label class="toggle"><input type="checkbox" id="animate"> 乗数をアニメーション</label><div class="val"></div></div>
-      <div class="row"><label>速度</label><div class="val"><span id="speedVal">0.06</span></div></div>
-      <input type="range" id="speed" min="0.005" max="0.2" step="0.005" value="0.06"/>
     </div>
 
     <div class="group">
