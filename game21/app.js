@@ -214,6 +214,7 @@ const quoteExplanation = document.getElementById('quoteExplanation');
 
 // カテゴリ別の使用済み名言のインデックスを追跡
 let usedQuotesByCategory = {};
+let currentCategory = null;
 
 // 指定されたカテゴリからランダムな名言を取得する関数
 function getRandomQuoteByCategory(category) {
@@ -278,6 +279,17 @@ function displayQuote(quote) {
   }, 50);
 }
 
+// 現在のカテゴリで次の名言を表示
+function showNextQuote() {
+  if (!currentCategory) {
+    return;
+  }
+  const randomQuote = getRandomQuoteByCategory(currentCategory);
+  if (randomQuote) {
+    displayQuote(randomQuote);
+  }
+}
+
 // ボタンのパルスアニメーション
 function pulseButton(button) {
   button.classList.add('pulse');
@@ -290,6 +302,7 @@ function pulseButton(button) {
 sceneButtons.forEach(button => {
   button.addEventListener('click', () => {
     const category = button.getAttribute('data-category');
+    currentCategory = category;
     
     // ボタンアニメーション
     pulseButton(button);
@@ -302,6 +315,43 @@ sceneButtons.forEach(button => {
       }
     }, 150);
   });
+});
+
+// 画面端のタップで次の名言を表示（スワイプは除外）
+let touchStartX = 0;
+let touchMoved = false;
+const swipeThreshold = 30;
+const edgeOffset = 50;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchMoved = false;
+});
+
+document.addEventListener('touchmove', e => {
+  const moveX = e.touches[0].clientX;
+  if (Math.abs(moveX - touchStartX) > swipeThreshold) {
+    touchMoved = true;
+  }
+});
+
+document.addEventListener('touchend', e => {
+  if (touchMoved) {
+    return;
+  }
+  const x = e.changedTouches[0].clientX;
+  const width = window.innerWidth;
+  if (x < edgeOffset || x > width - edgeOffset) {
+    showNextQuote();
+  }
+});
+
+document.addEventListener('click', e => {
+  const x = e.clientX;
+  const width = window.innerWidth;
+  if (x < edgeOffset || x > width - edgeOffset) {
+    showNextQuote();
+  }
 });
 
 // 初期化
