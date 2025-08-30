@@ -1,3 +1,5 @@
+let quotesLoaded = false;
+
 // ====================== 基本DOM参照 ======================
 const sceneButtons = document.querySelectorAll('.btn--scene');
 const quoteCard = document.getElementById('quoteCard');
@@ -188,6 +190,7 @@ async function bootstrap(lang = 'ja') {
     for (const q of converted) byId.set(q.id, q);
   }
   buildQueues(allQuotes);
+  quotesLoaded = true;
   console.log(`Loaded ${allQuotes.length} quotes.`);
 }
 
@@ -217,6 +220,10 @@ function pulseButton(button) {
 
 sceneButtons.forEach(btn => {
   btn.addEventListener('click', () => {
+    if (!quotesLoaded) {
+      alert('読み込み中です…');
+      return;
+    }
     currentCategory = btn.getAttribute('data-category');
     pulseButton(btn);
     setTimeout(showNextQuote, 150);
