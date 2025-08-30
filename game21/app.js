@@ -221,7 +221,7 @@ let swipeStartX = 0;
 
 // スワイプ操作を検知
 quoteCard.addEventListener('touchstart', (e) => {
-  swipeStartX = e.changedTouches[0].clientX;
+  swipeStartX = e.touches[0].clientX;
 });
 
 quoteCard.addEventListener('touchend', (e) => {
