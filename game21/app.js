@@ -199,10 +199,29 @@ async function bootstrap(lang = 'ja') {
     buildQueues(allQuotes);
     quotesLoaded = true;
     console.log(`Loaded ${allQuotes.length} quotes.`);
+    quotesLoaded = true;
+    sceneButtons.forEach(btn => btn.disabled = false);
+    return true;
   } catch (err) {
     console.error(err);
-    alert('データを読み込めませんでした');
     sceneButtons.forEach(btn => btn.disabled = true);
+    quotesLoaded = false;
+    let errorEl = document.getElementById('loadError');
+    if (!errorEl) {
+      errorEl = document.createElement('div');
+      errorEl.id = 'loadError';
+      errorEl.innerHTML = `
+        <p>データを読み込めませんでした</p>
+        <button id="retryBootstrap" class="btn btn--outline" type="button">再読み込み</button>
+      `;
+      document.body.appendChild(errorEl);
+      const retryBtn = document.getElementById('retryBootstrap');
+      retryBtn.addEventListener('click', async () => {
+        const success = await bootstrap(lang);
+        if (success) errorEl.remove();
+      });
+    }
+    return false;
   }
 
 }
