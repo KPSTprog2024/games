@@ -396,6 +396,7 @@ document.addEventListener('touchend', e => {
 document.addEventListener('click', e => {
   const x = e.clientX;
   const width = window.innerWidth;
+  if (e.target.closest('.btn--scene')) return;
   if (x < edgeOffset || x > width - edgeOffset) {
     showNextQuote();
   }
