@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 虹色グリッドペイント（修正版）</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1>🌈 虹色グリッドペイント（修正版）</h1>
+            <p class="current-color">初期色：赤から開始</p>
+        </header>
+        
+        <main class="app-main">
+            <div class="controls-panel">
+                <div class="slider-control">
+                    <label for="cellSizeSlider" class="form-label">セル密度調整</label>
+                    <div class="slider-wrapper">
+                        <input type="range" 
+                               id="cellSizeSlider" 
+                               class="form-control slider-input"
+                               min="8" 
+                               max="24" 
+                               value="12" 
+                               step="1">
+                        <span id="cellSizeDisplay" class="slider-display">セルサイズ: 12px</span>
+                    </div>
+                </div>
+                
+                <div class="button-controls">
+                    <button id="clearBtn" class="btn btn--primary btn--lg">全部消す</button>
+                </div>
+            </div>
+            
+            <div id="canvas-container" class="canvas-container">
+                <!-- p5.jsキャンバスがここに挿入されます -->
+            </div>
+            
+            <div class="instructions">
+                <p>スライダーでセルの細かさを調整！画面をタップして赤から色を塗ろう✨</p>
+                <p class="instruction-detail">ドラッグでスムーズに描画できます</p>
+            </div>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
