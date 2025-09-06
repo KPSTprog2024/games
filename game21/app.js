@@ -146,8 +146,9 @@ async function loadManifest() {
   }
 }
 
-async function loadPack(relPath) {
-  const data = await fetchJson(`data/${relPath}`, true);
+async function loadPack(packPath) {
+  const normalized = packPath.startsWith('packs/') ? packPath : `packs/${packPath}`;
+  const data = await fetchJson(`data/${normalized}`, true);
   const quotes = Array.isArray(data) ? data : data.quotes;
   for (const q of quotes) {
     byId.set(q.id, q);
