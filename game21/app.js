@@ -96,9 +96,9 @@ function renderQuote(q, mode = (langSelect?.value || 'both')) {
 }
 
 // ====================== データ読み込み（packs or legacy） ======================
-async function fetchJson(url, quiet = false) {
+async function fetchJson(url, quiet = false, cache = 'no-cache') {
   try {
-    const r = await fetch(url, { cache: 'force-cache' });
+    const r = await fetch(url, { cache });
     if (!r.ok) throw new Error(`${url} ${r.status}`);
     return await r.json();
   } catch (err) {
@@ -108,40 +108,20 @@ async function fetchJson(url, quiet = false) {
   }
 }
 
-async function loadManifest() {
+async function loadManifest(cache) {
   try {
-    state.manifest = await fetchJson('data/manifest.json', true);
-    return state.manifest;
+    manifest = await fetchJson('data/manifest.json', true, cache);
+    return manifest;
   } catch {
     return null; // 無ければレガシーへ
   }
 }
 
-async function loadPack(relPath) {
-  const url = `data/${relPath}`;
-  try {
-    const r = await fetch(url, { cache: 'force-cache' });
-    if (!r.ok) throw new Error(`${url} ${r.status}`);
-    const buf = await r.arrayBuffer();
-    const packInfo = manifest?.packs?.find(p => p.path === relPath || p.file === relPath);
-    if (packInfo?.hash) {
-      const digest = await crypto.subtle.digest('SHA-256', buf);
-      const hashHex = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-      const fullHash = `sha256-${hashHex}`;
-      if (fullHash !== packInfo.hash) {
-        alert('データの整合性が確認できませんでした');
-        throw new Error(`Hash mismatch for ${relPath}`);
-      }
-    }
-    const data = JSON.parse(new TextDecoder().decode(buf));
-    const quotes = Array.isArray(data) ? data : data.quotes;
-    for (const q of quotes) {
-      byId.set(q.id, q);
-    }
-    allQuotes.push(...quotes);
-  } catch (err) {
-    console.error(err);
-    throw err;
+async function loadPack(relPath, cache) {
+  const data = await fetchJson(`data/${relPath}`, true, cache);
+  const quotes = Array.isArray(data) ? data : data.quotes;
+  for (const q of quotes) {
+    byId.set(q.id, q);
   }
 }
 
@@ -170,9 +150,9 @@ function legacyToNewSchema(legacy) {
   }));
 }
 
-async function bootstrap(lang = 'ja') {
+async function bootstrap(lang = 'ja', cache = 'no-cache') {
   try {
-    const mf = await loadManifest();
+    const mf = await loadManifest(cache);
     let loadedAny = false;
     if (mf && Array.isArray(mf.packs)) {
       // マニフェストがある：言語＋group=core優先でロード
@@ -183,7 +163,7 @@ async function bootstrap(lang = 'ja') {
       }
       for (const p of initial) {
         try {
-          await loadPack(p.path);
+          await loadPack(p.path, cache);
           loadedAny = true;
         } catch (err) {
           console.error(err);
@@ -191,7 +171,7 @@ async function bootstrap(lang = 'ja') {
       }
     } else {
       // フォールバック：従来 quotes.json を読む
-      const legacy = await fetchJson('./quotes.json', true);
+      const legacy = await fetchJson('./quotes.json', true, cache);
       const converted = legacyToNewSchema(legacy);
       state.allQuotes = converted;
       for (const q of converted) state.byId.set(q.id, q);
@@ -218,7 +198,7 @@ async function bootstrap(lang = 'ja') {
       document.body.appendChild(errorEl);
       const retryBtn = document.getElementById('retryBootstrap');
       retryBtn.addEventListener('click', async () => {
-        const success = await bootstrap(lang);
+        const success = await bootstrap(lang, cache);
         if (success) errorEl.remove();
       });
     }
@@ -307,6 +287,6 @@ toggleRtlBtn?.addEventListener('click', () => {
 
 // ====================== 初期化 ======================
 document.addEventListener('DOMContentLoaded', async () => {
-  await bootstrap('ja');
+  await bootstrap('ja', 'no-cache');
   console.log('旅の言葉アプリ：初期化完了');
 });
