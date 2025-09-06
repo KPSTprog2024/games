@@ -110,8 +110,8 @@ async function fetchJson(url, quiet = false, cache = 'no-cache') {
 
 async function loadManifest(cache) {
   try {
-    manifest = await fetchJson('data/manifest.json', true, cache);
-    return manifest;
+    state.manifest = await fetchJson('data/manifest.json', true, cache);
+    return state.manifest;
   } catch {
     return null; // 無ければレガシーへ
   }
@@ -161,20 +161,31 @@ async function bootstrap(lang = 'ja', cache = 'no-cache') {
     const mf = await loadManifest(cache);
     let loadedAny = false;
     if (mf && Array.isArray(mf.packs)) {
-      // マニフェストがある：言語＋group=core優先でロード
-      const initial = mf.packs.filter(p => p.lang === lang && p.group === 'core');
-      if (initial.length === 0) {
-        // 何もなければ全言語から最初の1パック
-        if (mf.packs[0]) initial.push(mf.packs[0]);
-      }
+      // マニフェストがある：対象言語またはmultiを優先してロード
+      const initial = mf.packs.filter(p => p.lang === lang || p.lang === 'multi');
+      if (initial.length === 0 && mf.packs[0]) initial.push(mf.packs[0]);
+
+      const loadedPaths = new Set();
       for (const p of initial) {
         try {
           await loadPack(p.path, cache);
-          loadedAny = true;
+          loadedPaths.add(p.path);
         } catch (err) {
           console.error(err);
         }
       }
+
+      for (const p of mf.packs) {
+        if (loadedPaths.has(p.path)) continue;
+        try {
+          await loadPack(p.path, cache);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      state.allQuotes = Array.from(state.byId.values());
+      loadedAny = state.allQuotes.length > 0;
     } else {
       // フォールバック：従来 quotes.json を読む
       const legacy = await fetchJson('./quotes.json', true, cache);
