@@ -3,41 +3,41 @@
   "packs": [
     {
       "id": "travel-quotes-001",
-      "file": "travel-quotes-001.json",
-      "lang_code": "multi",
-      "category": "mixed",
+      "path": "packs/travel-quotes-001.json",
+      "lang": "multi",
+      "group": "mixed",
       "count": 100,
       "hash": "sha256-5faacb125ae88731b1900cc9388bfbb80eb944ebf5bcbc05900bf9e45e3e3580"
     },
     {
       "id": "ja-core",
-      "file": "ja-core.json",
-      "lang_code": "ja",
-      "category": "core",
+      "path": "packs/ja-core.json",
+      "lang": "ja",
+      "group": "core",
       "count": 25,
       "hash": "sha256-43298997a518b134a5e3ece4fa198a1f7021476f2dec6db7b95b0666c007158c"
     },
     {
       "id": "enriched-core",
-      "file": "enriched_quotes_core.json",
-      "lang_code": "multi",
-      "category": "core",
+      "path": "packs/enriched_quotes_core.json",
+      "lang": "multi",
+      "group": "core",
       "count": 30,
       "hash": "sha256-8632cb9be979106d612edb557b32afd60b37b0a523c4a667d7d4ef5b3ef19aed"
     },
     {
       "id": "enriched-classics",
-      "file": "enriched_quotes_classics.json",
-      "lang_code": "multi",
-      "category": "classics",
+      "path": "packs/enriched_quotes_classics.json",
+      "lang": "multi",
+      "group": "classics",
       "count": 20,
       "hash": "sha256-f04143d3dcde215fcefd64298e6f7b22758a2c51d08a725bc9427ca249746265"
     },
     {
       "id": "enriched-literature",
-      "file": "enriched_quotes_literature.json",
-      "lang_code": "multi",
-      "category": "literature",
+      "path": "packs/enriched_quotes_literature.json",
+      "lang": "multi",
+      "group": "literature",
       "count": 25,
       "hash": "sha256-5f330ff176a2689c52698e1ed39bb4a63e0a8f85bf15098d6134956d170ef76e"
     }

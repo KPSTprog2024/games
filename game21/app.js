@@ -1,3 +1,6 @@
+import state from './state.js';
+import { shuffle, inferDirFromLang, toggleBadges, nextIdFrom } from './utils.js';
+
 let quotesLoaded = false;
 
 // ====================== 基本DOM参照 ======================
@@ -21,39 +24,10 @@ const langSelect = document.getElementById('langSelect');
 const toggleRtlBtn = document.getElementById('toggleRtl');
 
 // ====================== 状態管理 ======================
-let currentCategory = null;
-let allQuotes = [];         // 統合配列（packs or legacy）
-let byId = new Map();       // id -> quote
-let manifest = null;
-
-const queues = {            // 事前シャッフル＋ポインタ
-  all: { ids: [], cursor: 0 },
-  byCategory: new Map()     // category -> { ids: [], cursor: 0 }
-};
-
-// ====================== ユーティリティ ======================
-function shuffle(arr) { // Fisher–Yates
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = (Math.random() * (i + 1)) | 0;
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-function inferDirFromLang(lang) {
-  return /^(ar|he|fa|ur)(-|$)/.test(lang || '') ? 'rtl' : 'auto';
-}
-
-function toggleBadges(status) {
-  badgeVerification.hidden = badgeAttributed.hidden = badgeMisattr.hidden = true;
-  if (status === 'verified') badgeVerification.hidden = false;
-  else if (status === 'misattributed') badgeMisattr.hidden = false;
-  else badgeAttributed.hidden = false; // attributed/unknown
-}
-
 function buildQueues(quotes) {
   const idsAll = quotes.map(q => q.id);
   shuffle(idsAll);
-  queues.all = { ids: idsAll, cursor: 0 };
+  state.queues.all = { ids: idsAll, cursor: 0 };
   const buckets = new Map();
   for (const q of quotes) {
     if (!buckets.has(q.category)) buckets.set(q.category, []);
@@ -61,15 +35,8 @@ function buildQueues(quotes) {
   }
   for (const [cat, arr] of buckets.entries()) {
     shuffle(arr);
-    queues.byCategory.set(cat, { ids: arr, cursor: 0 });
+    state.queues.byCategory.set(cat, { ids: arr, cursor: 0 });
   }
-}
-
-function nextIdFrom(queue) {
-  if (!queue || queue.ids.length === 0) return null;
-  const id = queue.ids[queue.cursor++];
-  if (queue.cursor >= queue.ids.length) queue.cursor = 0; // 使い切ったらループ
-  return id;
 }
 
 // ====================== レンダリング ======================
@@ -113,7 +80,11 @@ function renderQuote(q, mode = (langSelect?.value || 'both')) {
   }
 
   // 検証バッジ
-  toggleBadges(q.verification_status || 'unknown');
+  toggleBadges(q.verification_status || 'unknown', {
+    badgeVerification,
+    badgeAttributed,
+    badgeMisattr,
+  });
 
   // 説明
   quoteExplanation.textContent = q.explanation || '';
@@ -152,7 +123,6 @@ async function loadPack(relPath, cache) {
   for (const q of quotes) {
     byId.set(q.id, q);
   }
-  allQuotes.push(...quotes);
 }
 
 function legacyToNewSchema(legacy) {
@@ -203,14 +173,14 @@ async function bootstrap(lang = 'ja', cache = 'no-cache') {
       // フォールバック：従来 quotes.json を読む
       const legacy = await fetchJson('./quotes.json', true, cache);
       const converted = legacyToNewSchema(legacy);
-      allQuotes = converted;
-      for (const q of converted) byId.set(q.id, q);
+      state.allQuotes = converted;
+      for (const q of converted) state.byId.set(q.id, q);
       loadedAny = converted.length > 0;
     }
     if (!loadedAny) throw new Error('No packs loaded');
-    buildQueues(allQuotes);
+    buildQueues(state.allQuotes);
     quotesLoaded = true;
-    console.log(`Loaded ${allQuotes.length} quotes.`);
+    console.log(`Loaded ${state.allQuotes.length} quotes.`);
     sceneButtons.forEach(btn => btn.disabled = false);
     return true;
   } catch (err) {
@@ -239,14 +209,14 @@ async function bootstrap(lang = 'ja', cache = 'no-cache') {
 
 // ====================== 取得＆表示 ======================
 function pickNextQuote() {
-  if (!currentCategory) return null;
-  if (currentCategory === 'all') {
-    const id = nextIdFrom(queues.all);
-    return byId.get(id);
+  if (!state.currentCategory) return null;
+  if (state.currentCategory === 'all') {
+    const id = nextIdFrom(state.queues.all);
+    return state.byId.get(id);
   } else {
-    const bucket = queues.byCategory.get(currentCategory);
+    const bucket = state.queues.byCategory.get(state.currentCategory);
     const id = nextIdFrom(bucket || { ids: [], cursor: 0 });
-    return byId.get(id);
+    return state.byId.get(id);
   }
 }
 
@@ -267,7 +237,7 @@ sceneButtons.forEach(btn => {
       alert('読み込み中です…');
       return;
     }
-    currentCategory = btn.getAttribute('data-category');
+    state.currentCategory = btn.getAttribute('data-category');
     pulseButton(btn);
     setTimeout(showNextQuote, 150);
   });
