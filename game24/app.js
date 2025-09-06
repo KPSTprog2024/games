@@ -84,11 +84,10 @@ class MultiLaserBilliards {
         
         // 初期描画
         this.drawStaticElements();
-        
+
         // アニメーションループ
         this.lastTime = performance.now();
-        this.animationId = null;
-        this.animate();
+        this.animationId = requestAnimationFrame(time => this.animate(time));
     }
     
     initializeLasers() {
@@ -722,7 +721,7 @@ class MultiLaserBilliards {
         }
     }
     
-    animate(currentTime) {
+    animate(currentTime = performance.now()) {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
