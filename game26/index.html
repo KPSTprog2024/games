@@ -139,20 +139,6 @@
       <label>グリッド拡縮揺らぎ: <span id="gScaleVarVal">0.00</span></label>
       <input type="range" id="gridScaleVar" min="0" max="1" step="0.01" value="0.00" />
     </div>
-    <div class="row">
-      <label>グリッド色1:</label><input type="color" id="gridColorStart" value="#ffffff" />
-      <label>色2:</label><input type="color" id="gridColorEnd" value="#66ccff" />
-    </div>
-    <div class="row">
-      <label>方向:</label>
-      <select id="gridColorDirection">
-        <option value="x">X</option>
-        <option value="y">Y</option>
-        <option value="diag">Diag</option>
-      </select>
-      <label>速度: <span id="gColorSpeedVal">0.00</span></label>
-      <input type="range" id="gridColorSpeed" min="0" max="5" step="0.1" value="0" />
-    </div>
   </div>
 
   <!-- 詳細（2.5 相当＋URL） -->
@@ -277,8 +263,7 @@
     colorPhaseAmt:0.60,
     mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2},
     noiseAmp:0.12, noiseFreq:0.80, noiseFlow:0.50,
-    gridFlow:0.50, gridAngle:0, gridScaleVar:0.00,
-    gridColorStart:'#ffffff', gridColorEnd:'#66ccff', gridColorDirection:'x', gridColorSpeed:0.0,
+    gridFlowX:0.50, gridFlowY:0.50, gridBaseAngle:0, gridAngle:0, gridScaleVar:0.00,
     crossover:true, coAmp:0.60,
     parallax:true, zSpread:0.70,
     cells:[], fps:0, totalPaths:0, safety:'OK',
@@ -350,25 +335,14 @@ function drawShape(ctx,shape,s){ switch(shape){
     const width=rect.width, height=rect.height;
     const base=Math.min(width,height)/state.gridX;
     const spacing=base*(1+Math.sin(t)*state.gridScaleVar);
-    const offset=(t*state.gridFlow*base)%spacing;
-    const angle=t*state.gridAngle*Math.PI/180;
-    const shift=(t*state.gridColorSpeed)%1;
+    const offsetX=(t*state.gridFlowX*base)%spacing;
+    const offsetY=(t*state.gridFlowY*base)%spacing;
+    const angle=(state.gridBaseAngle + t*state.gridAngle)*Math.PI/180;
     ctxBG.save();
     ctxBG.translate(width/2,height/2);
     ctxBG.rotate(angle);
     ctxBG.translate(-width/2,-height/2);
-    let grad;
-    if(state.gridColorDirection==='y'){
-      grad=ctxBG.createLinearGradient(0,-height*shift,0,height*(1-shift));
-    }else if(state.gridColorDirection==='diag'){
-      const d=Math.sqrt(width*width+height*height);
-      grad=ctxBG.createLinearGradient(-d*shift,-d*shift,d*(1-shift),d*(1-shift));
-    }else{
-      grad=ctxBG.createLinearGradient(-width*shift,0,width*(1-shift),0);
-    }
-    grad.addColorStop(0,rgba(state.gridColorStart,0.15));
-    grad.addColorStop(1,rgba(state.gridColorEnd,0.15));
-    ctxBG.strokeStyle=grad;
+    ctxBG.strokeStyle=rgba(state.colors[0],0.15);
     ctxBG.lineWidth=1;
     ctxBG.beginPath();
     for(let x=-spacing+offsetX; x<width+spacing; x+=spacing){ ctxBG.moveTo(x,0); ctxBG.lineTo(x,height); }
@@ -514,9 +488,6 @@ function drawShape(ctx,shape,s){ switch(shape){
     $('gridBaseAngle').value=state.gridBaseAngle; $('gBaseAngleVal').textContent=state.gridBaseAngle.toFixed(0);
     $('gridAngle').value=state.gridAngle; $('gAngleVal').textContent=state.gridAngle.toFixed(0);
     $('gridScaleVar').value=state.gridScaleVar; $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2);
-    $('gridColorStart').value=state.gridColorStart; $('gridColorEnd').value=state.gridColorEnd;
-    $('gridColorDirection').value=state.gridColorDirection;
-    $('gridColorSpeed').value=state.gridColorSpeed; $('gColorSpeedVal').textContent=state.gridColorSpeed.toFixed(2);
     $('phaseColor').value=state.colorPhaseAmt; $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2);
     $('wRotate').value=state.mixWeight.rotate; $('mwR').textContent=state.mixWeight.rotate.toFixed(2);
     $('wPulse').value=state.mixWeight.pulse; $('mwP').textContent=state.mixWeight.pulse.toFixed(2);
@@ -537,8 +508,7 @@ function drawShape(ctx,shape,s){ switch(shape){
   $('hardRand').onclick=()=>{ state.seed=(Math.random()*1e9|0)^Date.now(); rebuildLayout(); scheduleURLSync(); };
   $('applyPreset').onclick=()=>{ const p=$('preset').value; applyPreset(p); scheduleURLSync(); };
   function applyPreset(name){
-    const COMMON={trail:true,bgColor:'#000000',colors:['#ffffff','#66ccff','#ff66cc'],parallax:true,crossover:true,
-      gridColorStart:'#ffffff',gridColorEnd:'#66ccff',gridColorDirection:'x',gridColorSpeed:0.0};
+    const COMMON={trail:true,bgColor:'#000000',colors:['#ffffff','#66ccff','#ff66cc'],parallax:true,crossover:true};
     if(name==='nebula')Object.assign(state,COMMON,{shape:'random',motion:'mix',gridX:8,gridY:8,speed:1.0,lineWidth:1,trailFade:0.09,seed:321321,colorPhaseAmt:0.60,noiseAmp:0.12,noiseFreq:0.80,noiseFlow:0.50,coAmp:0.60,zSpread:0.70,mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2}});
     else if(name==='orbitTri')Object.assign(state,COMMON,{shape:'triangle',motion:'orbit',gridX:7,gridY:5,speed:1.1,lineWidth:1,trailFade:0.06,seed:246810,colorPhaseAmt:0.50,noiseAmp:0.10,noiseFreq:1.10,noiseFlow:0.70,coAmp:0.40,zSpread:0.65,mixWeight:{rotate:0.3,pulse:0.2,orbit:0.5}});
     else if(name==='pulseCircles')Object.assign(state,COMMON,{shape:'circle',motion:'pulse',gridX:6,gridY:6,speed:0.9,lineWidth:2,trailFade:0.10,seed:13579,colorPhaseAmt:0.65,noiseAmp:0.08,noiseFreq:0.70,noiseFlow:0.40,coAmp:0.30,zSpread:0.60,mixWeight:{rotate:0.2,pulse:0.6,orbit:0.2}});
@@ -570,10 +540,6 @@ function drawShape(ctx,shape,s){ switch(shape){
   $('gridBaseAngle').oninput=e=>{ state.gridBaseAngle=parseFloat(e.target.value); $('gBaseAngleVal').textContent=state.gridBaseAngle.toFixed(0); scheduleURLSync(); };
   $('gridAngle').oninput=e=>{ state.gridAngle=parseFloat(e.target.value); $('gAngleVal').textContent=state.gridAngle.toFixed(0); scheduleURLSync(); };
   $('gridScaleVar').oninput=e=>{ state.gridScaleVar=parseFloat(e.target.value); $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2); scheduleURLSync(); };
-  $('gridColorStart').oninput=e=>{ state.gridColorStart=e.target.value; scheduleURLSync(); };
-  $('gridColorEnd').oninput=e=>{ state.gridColorEnd=e.target.value; scheduleURLSync(); };
-  $('gridColorDirection').oninput=e=>{ state.gridColorDirection=e.target.value; scheduleURLSync(); };
-  $('gridColorSpeed').oninput=e=>{ state.gridColorSpeed=parseFloat(e.target.value); $('gColorSpeedVal').textContent=state.gridColorSpeed.toFixed(2); scheduleURLSync(); };
   $('phaseColor').oninput=e=>{ state.colorPhaseAmt=parseFloat(e.target.value); $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2); };
   $('wRotate').oninput=e=>{ state.mixWeight.rotate=parseFloat(e.target.value); $('mwR').textContent=state.mixWeight.rotate.toFixed(2); };
   $('wPulse').oninput=e=>{ state.mixWeight.pulse=parseFloat(e.target.value); $('mwP').textContent=state.mixWeight.pulse.toFixed(2); };
@@ -593,9 +559,8 @@ function drawShape(ctx,shape,s){ switch(shape){
     q.set('cm',state.colorMode); q.set('h',state.hue); q.set('s',state.sat); q.set('b',state.bri);
     q.set('nzA',state.noiseAmp.toFixed(2)); q.set('nzF',state.noiseFreq.toFixed(2)); q.set('nzW',state.noiseFlow.toFixed(2));
     q.set('colP',state.colorPhaseAmt.toFixed(2));
-    q.set('gF',state.gridFlow.toFixed(2)); q.set('gA',state.gridAngle.toFixed(1)); q.set('gS',state.gridScaleVar.toFixed(2));
-    q.set('gC1',state.gridColorStart.replace('#','')); q.set('gC2',state.gridColorEnd.replace('#',''));
-    q.set('gCD',state.gridColorDirection); q.set('gCS',state.gridColorSpeed.toFixed(2));
+    q.set('gFx',state.gridFlowX.toFixed(2)); q.set('gFy',state.gridFlowY.toFixed(2));
+    q.set('gBA',state.gridBaseAngle.toFixed(1)); q.set('gA',state.gridAngle.toFixed(1)); q.set('gS',state.gridScaleVar.toFixed(2));
     q.set('wR',state.mixWeight.rotate.toFixed(2)); q.set('wP',state.mixWeight.pulse.toFixed(2)); q.set('wO',state.mixWeight.orbit.toFixed(2));
     q.set('co',state.crossover?1:0); q.set('coA',state.coAmp.toFixed(2)); q.set('px',state.parallax?1:0); q.set('zS',state.zSpread.toFixed(2));
     // Auto-Mod（共有は最小限）
@@ -614,10 +579,9 @@ function drawShape(ctx,shape,s){ switch(shape){
     state.sat=clamp(getNum('s',state.sat,v=>parseInt(v,10)),0,100); state.bri=clamp(getNum('b',state.bri,v=>parseInt(v,10)),0,100);
     state.noiseAmp=clamp(getNum('nzA',state.noiseAmp),0,0.40); state.noiseFreq=clamp(getNum('nzF',state.noiseFreq),0.10,2.00); state.noiseFlow=clamp(getNum('nzW',state.noiseFlow),0,2.00);
     state.colorPhaseAmt=clamp(getNum('colP',state.colorPhaseAmt),0,1.50);
-    state.gridFlow=clamp(getNum('gF',state.gridFlow),0,3); state.gridAngle=clamp(getNum('gA',state.gridAngle),-180,180); state.gridScaleVar=clamp(getNum('gS',state.gridScaleVar),0,1);
-    state.gridColorStart=getHex('gC1',state.gridColorStart); state.gridColorEnd=getHex('gC2',state.gridColorEnd);
-    state.gridColorDirection=getStr('gCD',state.gridColorDirection);
-    state.gridColorSpeed=clamp(getNum('gCS',state.gridColorSpeed),0,5);
+    state.gridFlowX=clamp(getNum('gFx',state.gridFlowX),0,3); state.gridFlowY=clamp(getNum('gFy',state.gridFlowY),0,3);
+    state.gridBaseAngle=clamp(getNum('gBA',state.gridBaseAngle),-180,180);
+    state.gridAngle=clamp(getNum('gA',state.gridAngle),-180,180); state.gridScaleVar=clamp(getNum('gS',state.gridScaleVar),0,1);
     state.mixWeight.rotate=clamp(getNum('wR',state.mixWeight.rotate),0,1); state.mixWeight.pulse=clamp(getNum('wP',state.mixWeight.pulse),0,1); state.mixWeight.orbit=clamp(getNum('wO',state.mixWeight.orbit),0,1);
     state.crossover=getNum('co',state.crossover?1:0,v=>parseInt(v,10))===1; state.coAmp=clamp(getNum('coA',state.coAmp),0,2.00);
     state.parallax=getNum('px',state.parallax?1:0,v=>parseInt(v,10))===1; state.zSpread=clamp(getNum('zS',state.zSpread),0,1.00);
