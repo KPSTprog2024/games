@@ -11,21 +11,10 @@
   <div class="app-container">
     <header class="app-header">
       <h1>✈️ 旅の言葉 🗾</h1>
-
-      <!-- 追加：表示モード＆RTLトグル（任意で非表示にしてもOK） -->
-      <div class="controls" aria-label="表示設定">
-        <label>表示:
-          <select id="langSelect" class="form-control">
-            <option value="both" selected>原文＋日本語</option>
-            <option value="original">原文のみ</option>
-            <option value="ja">日本語のみ</option>
-          </select>
-        </label>
-        <button id="toggleRtl" class="btn btn--outline btn--sm" type="button" aria-pressed="false" aria-label="右から左の表記切替">RTL</button>
-      </div>
     </header>
 
     <main class="main-content">
+      <button class="btn btn--scene btn--random" data-category="all" disabled><span class="button-icon">🎲</span>ランダム</button>
       <article class="quote-card hidden" id="quoteCard" aria-live="polite">
         <div class="quote-scene" id="quoteScene"></div>
 
@@ -67,9 +56,20 @@
         <button class="btn btn--scene" data-category="帰る時" disabled><span class="button-icon">🏠</span>帰る時</button>
         <button class="btn btn--scene" data-category="家族時間" disabled><span class="button-icon">👨‍👩‍👧‍👦</span>家族時間</button>
         <button class="btn btn--scene" data-category="自然体験" disabled><span class="button-icon">🌿</span>自然体験</button>
-        <button class="btn btn--scene btn--all" data-category="all" disabled><span class="button-icon">🎲</span>おまかせ</button>
       </div>
     </main>
+    <footer class="app-footer">
+      <div class="controls" aria-label="表示設定">
+        <label>表示:
+          <select id="langSelect" class="form-control">
+            <option value="both" selected>原文＋日本語</option>
+            <option value="original">原文のみ</option>
+            <option value="ja">日本語のみ</option>
+          </select>
+        </label>
+        <button id="toggleRtl" class="btn btn--outline btn--sm" type="button" aria-pressed="false" aria-label="右から左の表記切替">RTL</button>
+      </div>
+    </footer>
   </div>
 
   <script type="module" src="app.js"></script>

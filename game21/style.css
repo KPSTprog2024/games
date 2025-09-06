@@ -800,6 +800,11 @@ body::before {
   gap: var(--space-32);
 }
 
+.app-footer {
+  text-align: center;
+  margin-top: var(--space-32);
+}
+
 .quote-card {
   display: block;
   background: var(--color-surface);
@@ -901,6 +906,16 @@ body::before {
   overflow: hidden;
   min-height: 80px;
   cursor: pointer;
+}
+
+.btn--random {
+  width: 100%;
+  max-width: 600px;
+  font-size: var(--font-size-lg);
+}
+
+.btn--random .button-icon {
+  font-size: var(--font-size-3xl);
 }
 
 .btn--scene::before {
