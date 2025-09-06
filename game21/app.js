@@ -110,8 +110,8 @@ async function fetchJson(url, quiet = false, cache = 'no-cache') {
 
 async function loadManifest(cache) {
   try {
-    manifest = await fetchJson('data/manifest.json', true, cache);
-    return manifest;
+    state.manifest = await fetchJson('data/manifest.json', true, cache);
+    return state.manifest;
   } catch {
     return null; // 無ければレガシーへ
   }
