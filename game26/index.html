@@ -7,11 +7,11 @@
 <style>
   :root{ --bg:#000; --panel:#0f1115; --panel-2:#151922; --muted:#8a93a5; }
   *{box-sizing:border-box} body{margin:0;background:#000;color:#eaeff7;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",sans-serif}
-  header{padding:10px 16px;background:linear-gradient(180deg,#0c0f14,#0a0d12);border-bottom:1px solid #1b2130;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  header h1{margin:0;font-size:16px;color:#e0f1ff}
   #stage{position:relative;width:100%;height:62vh;min-height:340px;background:#000;overflow:hidden}
   canvas{position:absolute;inset:0;width:100%;height:100%}
   #panel{padding:12px 16px 18px;background:linear-gradient(180deg,#0e1320,#0a0f19);border-top:1px solid #1b2130;display:grid;grid-template-columns:1.2fr 1.1fr 1fr;gap:14px}
+  #panel header{grid-column:1/-1;display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #1e2636}
+  #panel header h1{margin:0;font-size:16px;color:#e0f1ff}
   .card{background:var(--panel);border:1px solid #1e2636;border-radius:12px;padding:12px}
   .card h2{margin:0 0 8px;font-size:13px;color:#cfe7ff;letter-spacing:.3px}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
@@ -28,15 +28,6 @@
 </style>
 </head>
 <body>
-<header>
-  <h1>Interactive Geometric Art — Phase 2.6</h1>
-  <div class="meter" id="meter">
-    <span class="pill" id="fps">FPS: —</span>
-    <span class="pill" id="paths">総パス数: —</span>
-    <span class="pill" id="safety">セーフ: —</span>
-    <span class="pill mono" id="share">URL共有: ready</span>
-  </div>
-</header>
 
 <section id="stage">
   <canvas id="bg"></canvas>
@@ -44,6 +35,15 @@
 </section>
 
 <section id="panel">
+  <header>
+    <h1>Interactive Geometric Art — Phase 2.6</h1>
+    <div class="meter" id="meter">
+      <span class="pill" id="fps">FPS: —</span>
+      <span class="pill" id="paths">総パス数: —</span>
+      <span class="pill" id="safety">セーフ: —</span>
+      <span class="pill mono" id="share">URL共有: ready</span>
+    </div>
+  </header>
   <!-- 基本操作 -->
   <div class="card">
     <h2>基本操作</h2>
