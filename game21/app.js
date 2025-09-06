@@ -117,14 +117,32 @@ async function loadManifest() {
   }
 }
 
-async function loadPack(packPath) {
-  const normalized = packPath.startsWith('packs/') ? packPath : `packs/${packPath}`;
-  const data = await fetchJson(`data/${normalized}`, true);
-  const quotes = Array.isArray(data) ? data : data.quotes;
-  for (const q of quotes) {
-    state.byId.set(q.id, q);
+async function loadPack(relPath) {
+  const url = `data/${relPath}`;
+  try {
+    const r = await fetch(url, { cache: 'force-cache' });
+    if (!r.ok) throw new Error(`${url} ${r.status}`);
+    const buf = await r.arrayBuffer();
+    const packInfo = manifest?.packs?.find(p => p.path === relPath || p.file === relPath);
+    if (packInfo?.hash) {
+      const digest = await crypto.subtle.digest('SHA-256', buf);
+      const hashHex = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const fullHash = `sha256-${hashHex}`;
+      if (fullHash !== packInfo.hash) {
+        alert('データの整合性が確認できませんでした');
+        throw new Error(`Hash mismatch for ${relPath}`);
+      }
+    }
+    const data = JSON.parse(new TextDecoder().decode(buf));
+    const quotes = Array.isArray(data) ? data : data.quotes;
+    for (const q of quotes) {
+      byId.set(q.id, q);
+    }
+    allQuotes.push(...quotes);
+  } catch (err) {
+    console.error(err);
+    throw err;
   }
-  state.allQuotes.push(...quotes);
 }
 
 function legacyToNewSchema(legacy) {
