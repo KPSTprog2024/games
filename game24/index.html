@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レーザービリヤード</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>レーザービリヤード</h1>
+            <p class="subtitle">複数レーザー同時シミュレーション</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Canvas Area (65% height) -->
+            <div class="canvas-container">
+                <canvas id="laserCanvas" width="800" height="500"></canvas>
+                <div class="start-position" id="startPosition"></div>
+                <div class="aspect-ratio-display" id="aspectRatioDisplay">1.60:1.00</div>
+                <div class="laser-counter" id="laserCounter">レーザー数: 3</div>
+            </div>
+
+            <!-- Control Panel (35% height) -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <div class="button-group">
+                        <button id="playPauseBtn" class="btn btn--primary">再生</button>
+                        <button id="resetBtn" class="btn btn--secondary">リセット</button>
+                        <button id="snapshotBtn" class="btn btn--outline">スナップショット</button>
+                    </div>
+                </div>
+
+                <div class="controls-container">
+                    <!-- 複数レーザー設定セクション -->
+                    <div class="control-section">
+                        <h3 class="section-title">🌟 複数レーザー設定</h3>
+                        
+                        <div class="control-item">
+                            <label class="form-label">
+                                レーザー数: <span id="laserCountValue">3</span>本
+                            </label>
+                            <input type="range" id="laserCountSlider" class="form-control" 
+                                   min="1" max="30" step="1" value="3">
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">配置モード</label>
+                            <select id="placementModeSelect" class="form-control">
+                                <option value="radial" selected>放射 - 中心から放射状に発射</option>
+                                <option value="grid">格子 - グリッド状に配置</option>
+                                <option value="random">ランダム - ランダムな位置・角度</option>
+                                <option value="circle">円周 - 円周上から中心向きに発射</option>
+                                <option value="free">フリー - クリックで個別設定</option>
+                            </select>
+                        </div>
+
+                        <div class="control-item" id="angleFanControl">
+                            <label class="form-label">
+                                角度分散: <span id="angleFanValue">120</span>°
+                            </label>
+                            <input type="range" id="angleFanSlider" class="form-control"
+                                   min="10" max="360" step="5" value="120">
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">複数レーザープリセット</label>
+                            <select id="multiPresetSelect" class="form-control">
+                                <option value="">カスタム設定</option>
+                                <option value="symmetry3">シンメトリー3本</option>
+                                <option value="grid9">グリッド9本</option>
+                                <option value="goldenFan">ゴールデン・ファン</option>
+                                <option value="randomCloud">ランダム・クラウド</option>
+                                <option value="circleStorm">サークル・ストーム</option>
+                                <option value="neonDance">ネオン・ダンス</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- アスペクト比＋基本レーザー設定セクション -->
+                    <div class="control-section">
+                        <h3 class="section-title">🔧 アスペクト比＋レーザー設定</h3>
+                        
+                        <div class="control-item">
+                            <label class="form-label">プリセット選択</label>
+                            <select id="aspectPresetSelect" class="form-control">
+                                <option value="custom">カスタム</option>
+                                <option value="square">正方形 (1:1)</option>
+                                <option value="4:3">4:3 クラシック</option>
+                                <option value="16:10" selected>16:10 ワイド</option>
+                                <option value="golden">黄金比 (φ:1)</option>
+                                <option value="silver">√2:1 白銀比</option>
+                                <option value="3:2">3:2 写真</option>
+                            </select>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="control-item">
+                                <label class="form-label">
+                                    幅倍率: <span id="widthValue">1.6</span>
+                                </label>
+                                <input type="range" id="widthSlider" class="form-control" 
+                                       min="1.0" max="3.0" step="0.1" value="1.6">
+                            </div>
+
+                            <div class="control-item">
+                                <label class="form-label">
+                                    高さ倍率: <span id="heightValue">1.0</span>
+                                </label>
+                                <input type="range" id="heightSlider" class="form-control"
+                                       min="1.0" max="3.0" step="0.1" value="1.0">
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">
+                                基本角度: <span id="angleValue">33.0</span>°
+                            </label>
+                            <input type="range" id="angleSlider" class="form-control" 
+                                   min="0" max="179.9" step="0.1" value="33.0">
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">
+                                速度: <span id="speedValue">240</span> px/s
+                            </label>
+                            <input type="range" id="speedSlider" class="form-control"
+                                   min="20" max="1000" step="10" value="240">
+                        </div>
+                    </div>
+
+                    <!-- 描画設定セクション -->
+                    <div class="control-section">
+                        <h3 class="section-title">🎨 描画＋カラー設定</h3>
+
+                        <div class="control-item">
+                            <label class="form-label">カラーモード</label>
+                            <select id="colorModeSelect" class="form-control">
+                                <option value="rainbow" selected>レインボー - 各レーザーに異なる色相</option>
+                                <option value="gradient">グラデーション - 開始色から終了色へ</option>
+                                <option value="randomColor">ランダムカラー - 各レーザーにランダム色</option>
+                                <option value="monochrome">モノクローム - 全レーザー同色</option>
+                                <option value="hueShift">ヒューシフト - 各レーザーが異なる位相でサイクル</option>
+                            </select>
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">
+                                線の太さ: <span id="lineWidthValue">1.5</span>px
+                            </label>
+                            <input type="range" id="lineWidthSlider" class="form-control"
+                                   min="0.3" max="4.0" step="0.1" value="1.5">
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">
+                                フェード: <span id="fadeValue">0.06</span>
+                            </label>
+                            <input type="range" id="fadeSlider" class="form-control"
+                                   min="0" max="0.3" step="0.01" value="0.06">
+                        </div>
+
+                        <div class="control-item">
+                            <label class="form-label">
+                                最大バウンス: <span id="maxBouncesValue">200</span>
+                            </label>
+                            <input type="range" id="maxBouncesSlider" class="form-control"
+                                   min="50" max="500" step="10" value="200">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
