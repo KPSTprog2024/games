@@ -119,6 +119,18 @@
       <label>残像フェード</label>
       <input type="range" id="trailFade" min="0.02" max="0.30" step="0.01" value="0.09" />
     </div>
+    <div class="row">
+      <label>グリッド流速: <span id="gFlowVal">0.50</span></label>
+      <input type="range" id="gridFlow" min="0" max="3" step="0.05" value="0.50" />
+    </div>
+    <div class="row">
+      <label>グリッド角速度: <span id="gAngleVal">0</span>°/s</label>
+      <input type="range" id="gridAngle" min="-180" max="180" step="1" value="0" />
+    </div>
+    <div class="row">
+      <label>グリッド拡縮揺らぎ: <span id="gScaleVarVal">0.00</span></label>
+      <input type="range" id="gridScaleVar" min="0" max="1" step="0.01" value="0.00" />
+    </div>
   </div>
 
   <!-- 詳細（2.5 相当＋URL） -->
@@ -243,6 +255,7 @@
     colorPhaseAmt:0.60,
     mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2},
     noiseAmp:0.12, noiseFreq:0.80, noiseFlow:0.50,
+    gridFlow:0.50, gridAngle:0, gridScaleVar:0.00,
     crossover:true, coAmp:0.60,
     parallax:true, zSpread:0.70,
     cells:[], fps:0, totalPaths:0, safety:'OK',
@@ -303,11 +316,31 @@
   }
 
   // ===== Drawing =====
-  function drawShape(ctx,shape,s){ switch(shape){
+function drawShape(ctx,shape,s){ switch(shape){
     case'circle': ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.stroke(); break;
     case'triangle': ctx.beginPath(); ctx.moveTo(0,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); ctx.closePath(); ctx.stroke(); break;
     case'square': ctx.beginPath(); ctx.moveTo(-s,-s); ctx.lineTo(s,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); ctx.closePath(); ctx.stroke(); break;
   }}
+
+  function drawGrid(t){
+    const rect=stage.getBoundingClientRect();
+    const width=rect.width, height=rect.height;
+    const base=Math.min(width,height)/state.gridX;
+    const spacing=base*(1+Math.sin(t)*state.gridScaleVar);
+    const offset=(t*state.gridFlow*base)%spacing;
+    const angle=t*state.gridAngle*Math.PI/180;
+    ctxBG.save();
+    ctxBG.translate(width/2,height/2);
+    ctxBG.rotate(angle);
+    ctxBG.translate(-width/2,-height/2);
+    ctxBG.strokeStyle=rgba(state.colors[0],0.15);
+    ctxBG.lineWidth=1;
+    ctxBG.beginPath();
+    for(let x=-spacing+offset; x<width+spacing; x+=spacing){ ctxBG.moveTo(x,0); ctxBG.lineTo(x,height); }
+    for(let y=-spacing+offset; y<height+spacing; y+=spacing){ ctxBG.moveTo(0,y); ctxBG.lineTo(width,y); }
+    ctxBG.stroke();
+    ctxBG.restore();
+  }
 
   // ----- Auto-Mod engine -----
   function waveEval(kind, t, rate, ch){ // returns [-1,1]
@@ -348,6 +381,8 @@
     // 背景
     if(state.trail){ ctxBG.fillStyle = rgba(state.bgColor, state.trailFade); ctxBG.fillRect(0,0,bg.width,bg.height); }
     else{ ctxBG.fillStyle = state.bgColor; ctxBG.fillRect(0,0,bg.width,bg.height); }
+
+    drawGrid(t);
 
     // 前景
     ctxFG.clearRect(0,0,fg.width,fg.height);
@@ -439,6 +474,9 @@
     $('noiseAmp').value=state.noiseAmp; $('nzAmpVal').textContent=state.noiseAmp.toFixed(2);
     $('noiseFreq').value=state.noiseFreq; $('nzFreqVal').textContent=state.noiseFreq.toFixed(2);
     $('noiseFlow').value=state.noiseFlow; $('nzFlowVal').textContent=state.noiseFlow.toFixed(2);
+    $('gridFlow').value=state.gridFlow; $('gFlowVal').textContent=state.gridFlow.toFixed(2);
+    $('gridAngle').value=state.gridAngle; $('gAngleVal').textContent=state.gridAngle.toFixed(0);
+    $('gridScaleVar').value=state.gridScaleVar; $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2);
     $('phaseColor').value=state.colorPhaseAmt; $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2);
     $('wRotate').value=state.mixWeight.rotate; $('mwR').textContent=state.mixWeight.rotate.toFixed(2);
     $('wPulse').value=state.mixWeight.pulse; $('mwP').textContent=state.mixWeight.pulse.toFixed(2);
@@ -486,6 +524,9 @@
   $('noiseAmp').oninput=e=>{ state.noiseAmp=parseFloat(e.target.value); $('nzAmpVal').textContent=state.noiseAmp.toFixed(2); };
   $('noiseFreq').oninput=e=>{ state.noiseFreq=parseFloat(e.target.value); $('nzFreqVal').textContent=state.noiseFreq.toFixed(2); };
   $('noiseFlow').oninput=e=>{ state.noiseFlow=parseFloat(e.target.value); $('nzFlowVal').textContent=state.noiseFlow.toFixed(2); };
+  $('gridFlow').oninput=e=>{ state.gridFlow=parseFloat(e.target.value); $('gFlowVal').textContent=state.gridFlow.toFixed(2); };
+  $('gridAngle').oninput=e=>{ state.gridAngle=parseFloat(e.target.value); $('gAngleVal').textContent=state.gridAngle.toFixed(0); };
+  $('gridScaleVar').oninput=e=>{ state.gridScaleVar=parseFloat(e.target.value); $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2); };
   $('phaseColor').oninput=e=>{ state.colorPhaseAmt=parseFloat(e.target.value); $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2); };
   $('wRotate').oninput=e=>{ state.mixWeight.rotate=parseFloat(e.target.value); $('mwR').textContent=state.mixWeight.rotate.toFixed(2); };
   $('wPulse').oninput=e=>{ state.mixWeight.pulse=parseFloat(e.target.value); $('mwP').textContent=state.mixWeight.pulse.toFixed(2); };
@@ -505,6 +546,7 @@
     q.set('cm',state.colorMode); q.set('h',state.hue); q.set('s',state.sat); q.set('b',state.bri);
     q.set('nzA',state.noiseAmp.toFixed(2)); q.set('nzF',state.noiseFreq.toFixed(2)); q.set('nzW',state.noiseFlow.toFixed(2));
     q.set('colP',state.colorPhaseAmt.toFixed(2));
+    q.set('gF',state.gridFlow.toFixed(2)); q.set('gA',state.gridAngle.toFixed(1)); q.set('gS',state.gridScaleVar.toFixed(2));
     q.set('wR',state.mixWeight.rotate.toFixed(2)); q.set('wP',state.mixWeight.pulse.toFixed(2)); q.set('wO',state.mixWeight.orbit.toFixed(2));
     q.set('co',state.crossover?1:0); q.set('coA',state.coAmp.toFixed(2)); q.set('px',state.parallax?1:0); q.set('zS',state.zSpread.toFixed(2));
     // Auto-Mod（共有は最小限）
@@ -523,6 +565,7 @@
     state.sat=clamp(getNum('s',state.sat,v=>parseInt(v,10)),0,100); state.bri=clamp(getNum('b',state.bri,v=>parseInt(v,10)),0,100);
     state.noiseAmp=clamp(getNum('nzA',state.noiseAmp),0,0.40); state.noiseFreq=clamp(getNum('nzF',state.noiseFreq),0.10,2.00); state.noiseFlow=clamp(getNum('nzW',state.noiseFlow),0,2.00);
     state.colorPhaseAmt=clamp(getNum('colP',state.colorPhaseAmt),0,1.50);
+    state.gridFlow=clamp(getNum('gF',state.gridFlow),0,3); state.gridAngle=clamp(getNum('gA',state.gridAngle),-180,180); state.gridScaleVar=clamp(getNum('gS',state.gridScaleVar),0,1);
     state.mixWeight.rotate=clamp(getNum('wR',state.mixWeight.rotate),0,1); state.mixWeight.pulse=clamp(getNum('wP',state.mixWeight.pulse),0,1); state.mixWeight.orbit=clamp(getNum('wO',state.mixWeight.orbit),0,1);
     state.crossover=getNum('co',state.crossover?1:0,v=>parseInt(v,10))===1; state.coAmp=clamp(getNum('coA',state.coAmp),0,2.00);
     state.parallax=getNum('px',state.parallax?1:0,v=>parseInt(v,10))===1; state.zSpread=clamp(getNum('zS',state.zSpread),0,1.00);
