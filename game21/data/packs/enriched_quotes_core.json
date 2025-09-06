@@ -18,7 +18,7 @@
       "period": "Pre-Qin",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【371840679220454†L14-L17】",
+      "source_url": null,
       "explanation": "どんなに長い旅も一歩から始まるんだよ。今日も最初の一歩を踏み出そうね。"
     },
     {
@@ -39,7 +39,7 @@
       "period": "19th century",
       "verification_status": "verified",
       "source_type": "secondary",
-      "source_url": "【203293225791624†L152-L155】",
+      "source_url": null,
       "explanation": "食べ物にはその人の心や暮らしが表れているんだよ。新しい料理を味わって、その土地の人を知ろうね。"
     },
     {
@@ -60,7 +60,7 @@
       "period": "19th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【764620169306781†L132-L136】",
+      "source_url": null,
       "explanation": "旅をすると色々な人や文化を知って、心が広くなるよ。新しい場所で世界を知ろうね。"
     },
     {
@@ -81,11 +81,11 @@
       "period": "20th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【1421691728257†L398-L405】",
+      "source_url": null,
       "explanation": "旅の途中で道に迷っても、それはただの寄り道かもしれない。新しい発見があるかもしれないよ。"
     },
     {
-      "id": "ja-core-0005",
+      "id": "ja-enriched-core-0005",
       "scene": "移動中・電車や車",
       "category": "移動中",
       "situation": "長時間移動で退屈",
@@ -102,11 +102,11 @@
       "period": "Edo period",
       "verification_status": "verified",
       "source_type": "secondary",
-      "source_url": "【306389301861155†L112-L129】",
+      "source_url": null,
       "explanation": "旅は一緒に行く仲間がいると楽しいよ。そして世の中はお互い助け合うことが大事なんだ。"
     },
     {
-      "id": "ja-core-0006",
+      "id": "ja-enriched-core-0006",
       "scene": "観光地・新しい場所",
       "category": "観光・発見",
       "situation": "初めて見るものに驚いた時",
@@ -123,7 +123,7 @@
       "period": "1st century",
       "verification_status": "verified",
       "source_type": "secondary",
-      "source_url": "【616865087248851†L14-L48】",
+      "source_url": null,
       "explanation": "何度聞くよりも一度見てみる方がよくわかるんだよ。旅先での体験を大事にしようね。"
     },
     {
@@ -144,7 +144,7 @@
       "period": "20th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【295917037166768†L492-L495】",
+      "source_url": null,
       "explanation": "道中の出来事や旅そのものが人生なんだよ。遠くまで行くこと自体を楽しもうね。"
     },
     {
@@ -165,7 +165,7 @@
       "period": "20th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【130595950914006†L473-L479】",
+      "source_url": null,
       "explanation": "新しい発見は遠くへ行くことだけじゃなく、物の見方を変えることで生まれるんだよ。"
     },
     {
@@ -186,7 +186,7 @@
       "period": "19th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【806828661375599†L168-L171】",
+      "source_url": null,
       "explanation": "自然の中を歩いていると、想像以上の喜びや学びを得られるよ。山や森の教えを大切にしようね。"
     },
     {
@@ -207,7 +207,7 @@
       "period": "Pre-Qin",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【442886402494276†L648-L651】",
+      "source_url": null,
       "explanation": "良い旅人は予定にとらわれず、到着にこだわらないんだ。旅の途中を楽しもうね。"
     },
     {
@@ -228,7 +228,7 @@
       "period": "17th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【113771269056992†L108-L110】",
+      "source_url": null,
       "explanation": "旅は若い人には勉強になり、年を重ねると経験になるんだ。どんな年齢でも旅で学べるよ。"
     },
     {
@@ -249,11 +249,11 @@
       "period": "20th century",
       "verification_status": "verified",
       "source_type": "primary",
-      "source_url": "【711772629834030†L265-L268】",
+      "source_url": null,
       "explanation": "どれだけ探検しても、最後には出発地点に戻ってその場所を初めて知ることになるんだ。旅の終わりも新しい発見なんだよ。"
     },
     {
-      "id": "ja-core-0013",
+      "id": "ja-enriched-core-0013",
       "scene": "食事・地元料理",
       "category": "食事・文化",
       "situation": "初めての味に挑戦",
@@ -270,7 +270,7 @@
       "period": "Ancient",
       "verification_status": "verified",
       "source_type": "secondary",
-      "source_url": "【995976010028647†L128-L136】",
+      "source_url": null,
       "explanation": "新しい場所に行ったら、その土地のやり方や文化に合わせることが大切だよ。郷に入れば郷に従えだね。"
     },
     {
@@ -291,7 +291,7 @@
       "period": "Medieval",
       "verification_status": "attributed",
       "source_type": "tertiary",
-      "source_url": "【15670316585927†L45-L53】",
+      "source_url": null,
       "explanation": "旅は最初、言葉を失うほどの驚きをくれるけれど、やがてその体験を語る物語に変わるんだよ。"
     },
     {
@@ -312,7 +312,7 @@
       "period": "Renaissance",
       "verification_status": "attributed",
       "source_type": "tertiary",
-      "source_url": "【716603372023852†L28-L31】",
+      "source_url": null,
       "explanation": "旅は若い人を成長させてくれるんだよ。新しい経験を積んで自分を大きくしていこうね。"
     },
     {
@@ -333,11 +333,11 @@
       "period": "20th century",
       "verification_status": "verified",
       "source_type": "tertiary",
-      "source_url": "【296573078105478†L18-L27】",
+      "source_url": null,
       "explanation": "世界そのものが一番の見ものなんだよ。広い世界を自分の目で見てみよう。"
     },
     {
-      "id": "ja-core-0017",
+      "id": "ja-enriched-core-0017",
       "scene": "出発前・旅の準備",
       "category": "出発・準備",
       "situation": "荷物準備やワクワク感",
@@ -417,7 +417,7 @@
       "period": "Unknown",
       "verification_status": "misattributed",
       "source_type": "tertiary",
-      "source_url": "【913021686751179†L53-L58】",
+      "source_url": null,
       "explanation": "目的地に着くことよりも、そこへ行くまでの過程を楽しもうという意味なんだよ。"
     },
     {
@@ -438,7 +438,7 @@
       "period": "Late Antiquity",
       "verification_status": "misattributed",
       "source_type": "tertiary",
-      "source_url": "【660888613515789†L59-L63】",
+      "source_url": null,
       "explanation": "旅をすると新しいページをめくるように世界が広がるんだよ。今日も新しいページを読んでみようね。"
     },
     {
@@ -463,7 +463,7 @@
       "explanation": "子どもの目にはすべてが新しく、不思議でいっぱいなんだよ。君の目もそんなふうに輝いているね！"
     },
     {
-      "id": "ja-core-0023",
+      "id": "ja-enriched-core-0023",
       "scene": "食事・地元料理",
       "category": "食事・文化",
       "situation": "初めての味に挑戦",
@@ -480,11 +480,11 @@
       "period": "Ancient",
       "verification_status": "verified",
       "source_type": "tertiary",
-      "source_url": "【995976010028647†L128-L136】",
+      "source_url": null,
       "explanation": "新しい土地に行ったら、その土地の習慣や食文化に合わせることが大事だよ。挑戦してみようね！"
     },
     {
-      "id": "ja-core-0024",
+      "id": "ja-enriched-core-0024",
       "scene": "食事・地元料理",
       "category": "食事・文化",
       "situation": "食文化の理解",
@@ -505,7 +505,7 @@
       "explanation": "料理には作った人の愛情がこもっているんだよ。食事を通してその土地の人の気持ちを感じてみようね。"
     },
     {
-      "id": "ja-core-0025",
+      "id": "ja-enriched-core-0025",
       "scene": "困った時・トラブル",
       "category": "困った時",
       "situation": "道に迷った時",
