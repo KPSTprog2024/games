@@ -524,9 +524,9 @@ function drawShape(ctx,shape,s){ switch(shape){
   $('noiseAmp').oninput=e=>{ state.noiseAmp=parseFloat(e.target.value); $('nzAmpVal').textContent=state.noiseAmp.toFixed(2); };
   $('noiseFreq').oninput=e=>{ state.noiseFreq=parseFloat(e.target.value); $('nzFreqVal').textContent=state.noiseFreq.toFixed(2); };
   $('noiseFlow').oninput=e=>{ state.noiseFlow=parseFloat(e.target.value); $('nzFlowVal').textContent=state.noiseFlow.toFixed(2); };
-  $('gridFlow').oninput=e=>{ state.gridFlow=parseFloat(e.target.value); $('gFlowVal').textContent=state.gridFlow.toFixed(2); };
-  $('gridAngle').oninput=e=>{ state.gridAngle=parseFloat(e.target.value); $('gAngleVal').textContent=state.gridAngle.toFixed(0); };
-  $('gridScaleVar').oninput=e=>{ state.gridScaleVar=parseFloat(e.target.value); $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2); };
+  $('gridFlow').oninput=e=>{ state.gridFlow=parseFloat(e.target.value); $('gFlowVal').textContent=state.gridFlow.toFixed(2); scheduleURLSync(); };
+  $('gridAngle').oninput=e=>{ state.gridAngle=parseFloat(e.target.value); $('gAngleVal').textContent=state.gridAngle.toFixed(0); scheduleURLSync(); };
+  $('gridScaleVar').oninput=e=>{ state.gridScaleVar=parseFloat(e.target.value); $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2); scheduleURLSync(); };
   $('phaseColor').oninput=e=>{ state.colorPhaseAmt=parseFloat(e.target.value); $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2); };
   $('wRotate').oninput=e=>{ state.mixWeight.rotate=parseFloat(e.target.value); $('mwR').textContent=state.mixWeight.rotate.toFixed(2); };
   $('wPulse').oninput=e=>{ state.mixWeight.pulse=parseFloat(e.target.value); $('mwP').textContent=state.mixWeight.pulse.toFixed(2); };
