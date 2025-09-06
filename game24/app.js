@@ -555,6 +555,7 @@ class MultiLaserBilliards {
         this.initializeLasers();
         this.clearCanvas();
         this.drawStaticElements();
+        this.updateAspectRatioDisplay();
     }
     
     togglePlayPause() {
