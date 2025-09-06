@@ -1,13 +1,45 @@
 {
-  "version": "2025-08-30",
+  "version": "2025-09-06",
   "packs": [
     {
+      "id": "travel-quotes-001",
+      "file": "travel-quotes-001.json",
+      "lang_code": "multi",
+      "category": "mixed",
+      "count": 100,
+      "hash": "sha256-xxxxxxxx"
+    },
+    {
       "id": "ja-core",
-      "path": "packs/ja-core.json",
-      "lang": "ja",
-      "group": "core",
+      "file": "ja-core.json",
+      "lang_code": "ja",
+      "category": "core",
       "count": 25,
-      "sha256": "e4e1f90c7f36cfe32aa08fa430d9f8b80ba933c98b5c9532b2384f8d8cdeaf15"
+      "hash": "sha256-xxxxxxxx"
+    },
+    {
+      "id": "enriched-core",
+      "file": "enriched_quotes_core.json",
+      "lang_code": "multi",
+      "category": "core",
+      "count": 30,
+      "hash": "sha256-xxxxxxxx"
+    },
+    {
+      "id": "enriched-classics",
+      "file": "enriched_quotes_classics.json",
+      "lang_code": "multi",
+      "category": "classics",
+      "count": 20,
+      "hash": "sha256-xxxxxxxx"
+    },
+    {
+      "id": "enriched-literature",
+      "file": "enriched_quotes_literature.json",
+      "lang_code": "multi",
+      "category": "literature",
+      "count": 25,
+      "hash": "sha256-xxxxxxxx"
     }
   ]
 }
