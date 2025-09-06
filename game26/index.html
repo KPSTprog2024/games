@@ -115,19 +115,6 @@
       <label>S:</label><input type="range" id="sat" min="0" max="100" value="100" />
       <label>B:</label><input type="range" id="bri" min="0" max="100" value="100" />
     </div>
-    <div class="row" id="cyclePathRow">
-      <label>Cycle Path:</label>
-      <select id="cyclePath">
-        <option value="hue">Hue</option>
-        <option value="sat">Saturation</option>
-        <option value="bri">Brightness</option>
-        <option value="multiaxis">Multi-Axis</option>
-      </select>
-    </div>
-    <div class="row" id="cycleDurRow">
-      <label>Duration: <span id="cycleDurVal">10</span>s</label>
-      <input type="range" id="cycleDuration" min="1" max="30" value="10" />
-    </div>
     <div class="row">
       <label>残像フェード</label>
       <input type="range" id="trailFade" min="0.02" max="0.30" step="0.01" value="0.09" />
@@ -286,8 +273,7 @@
     seed:12345, rng:mulberry32(12345),
     trail:true, trailFade:0.09, bgColor:'#000000',
     colors:['#ffffff','#66ccff','#ff66cc'],
-    colorMode:'manual', hue:0, sat:100, bri:100,
-    cyclePath:'hue', cycleDuration:10,
+    colorMode:'manual', hue:0, sat:100, bri:100, hueSpeed:30,
     colorPhaseAmt:0.60,
     mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2},
     noiseAmp:0.12, noiseFreq:0.80, noiseFlow:0.50,
@@ -491,22 +477,8 @@ function drawShape(ctx,shape,s){ switch(shape){
   function hsb2hex(h,s,b){ s/=100; b/=100; const k=n=>(n+h/60)%6; const f=n=>b-b*s*Math.max(Math.min(k(n),4-k(n),1),0); const r=Math.round(255*f(5)),g=Math.round(255*f(3)),bl=Math.round(255*f(1)); return '#'+[r,g,bl].map(x=>x.toString(16).padStart(2,'0')).join(''); }
   function computeColors(time){
     if(state.colorMode==='cycle'){
-      const progress = (time % state.cycleDuration) / state.cycleDuration;
-      let h=state.hue, s=state.sat, b=state.bri;
-      switch(state.cyclePath){
-        case 'hue':
-          h = (state.hue + 360*progress)%360; break;
-        case 'sat':
-          s = progress*100; break;
-        case 'bri':
-          b = progress*100; break;
-        case 'multiaxis':
-          h = (state.hue + 360*progress)%360;
-          s = 50 + 50*Math.sin(progress*2*Math.PI);
-          b = 50 + 50*Math.cos(progress*2*Math.PI);
-          break;
-      }
-      return [0,1,2].map(i=>hsb2hex((h+i*120)%360,s,b));
+      const base=(state.hue + time*state.hueSpeed)%360;
+      return [0,1,2].map(i=>hsb2hex((base+i*120)%360,state.sat,state.bri));
     }else if(state.colorMode==='red'){
       return ['#ff0000','#aa0000','#ff5555'];
     }else if(state.colorMode==='gray'){
@@ -532,12 +504,7 @@ function drawShape(ctx,shape,s){ switch(shape){
     $('seed').value=state.seed; $('toggleTrail').textContent=state.trail?'✨ 残像: ON':'✨ 残像: OFF';
     $('trailFade').value=state.trailFade; $('bgColor').value=state.bgColor;
     $('color1').value=state.colors[0]; $('color2').value=state.colors[1]; $('color3').value=state.colors[2];
-    $('colorMode').value=state.colorMode; $('hue').value=state.hue; $('sat').value=state.sat; $('bri').value=state.bri;
-    $('hsbRow').style.display=state.colorMode==='cycle'?'flex':'none';
-    $('cyclePathRow').style.display=state.colorMode==='cycle'?'flex':'none';
-    $('cycleDurRow').style.display=state.colorMode==='cycle'?'flex':'none';
-    $('cyclePath').value=state.cyclePath;
-    $('cycleDuration').value=state.cycleDuration; $('cycleDurVal').textContent=state.cycleDuration;
+    $('colorMode').value=state.colorMode; $('hue').value=state.hue; $('sat').value=state.sat; $('bri').value=state.bri; $('hsbRow').style.display=state.colorMode==='cycle'?'flex':'none';
     $('shape').value=state.shape; $('motion').value=state.motion;
     $('noiseAmp').value=state.noiseAmp; $('nzAmpVal').textContent=state.noiseAmp.toFixed(2);
     $('noiseFreq').value=state.noiseFreq; $('nzFreqVal').textContent=state.noiseFreq.toFixed(2);
@@ -587,15 +554,13 @@ function drawShape(ctx,shape,s){ switch(shape){
   $('color1').oninput=e=>{ state.colors[0]=e.target.value; scheduleURLSync(); };
   $('color2').oninput=e=>{ state.colors[1]=e.target.value; scheduleURLSync(); };
   $('color3').oninput=e=>{ state.colors[2]=e.target.value; scheduleURLSync(); };
-$('colorMode').oninput=e=>{ state.colorMode=e.target.value; updateUIFromState(); scheduleURLSync(); };
-$('hue').oninput=e=>{ state.hue=parseInt(e.target.value,10); scheduleURLSync(); };
-$('sat').oninput=e=>{ state.sat=parseInt(e.target.value,10); scheduleURLSync(); };
-$('bri').oninput=e=>{ state.bri=parseInt(e.target.value,10); scheduleURLSync(); };
-$('cyclePath').oninput=e=>{ state.cyclePath=e.target.value; scheduleURLSync(); };
-$('cycleDuration').oninput=e=>{ state.cycleDuration=parseFloat(e.target.value); $('cycleDurVal').textContent=state.cycleDuration; scheduleURLSync(); };
-$('trailFade').oninput=e=>{ state.trailFade=parseFloat(e.target.value); scheduleURLSync(); };
-$('shape').oninput=e=>{ state.shape=e.target.value; rebuildLayout(); scheduleURLSync(); };
-$('motion').oninput=e=>{ state.motion=e.target.value; rebuildLayout(); scheduleURLSync(); };
+  $('colorMode').oninput=e=>{ state.colorMode=e.target.value; updateUIFromState(); scheduleURLSync(); };
+  $('hue').oninput=e=>{ state.hue=parseInt(e.target.value,10); scheduleURLSync(); };
+  $('sat').oninput=e=>{ state.sat=parseInt(e.target.value,10); scheduleURLSync(); };
+  $('bri').oninput=e=>{ state.bri=parseInt(e.target.value,10); scheduleURLSync(); };
+  $('trailFade').oninput=e=>{ state.trailFade=parseFloat(e.target.value); scheduleURLSync(); };
+  $('shape').oninput=e=>{ state.shape=e.target.value; rebuildLayout(); scheduleURLSync(); };
+  $('motion').oninput=e=>{ state.motion=e.target.value; rebuildLayout(); scheduleURLSync(); };
   $('applySeed').onclick=()=>{ const v=parseInt($('seed').value,10); if(Number.isFinite(v)){ state.seed=v; rebuildLayout(); scheduleURLSync(); } };
   $('noiseAmp').oninput=e=>{ state.noiseAmp=parseFloat(e.target.value); $('nzAmpVal').textContent=state.noiseAmp.toFixed(2); };
   $('noiseFreq').oninput=e=>{ state.noiseFreq=parseFloat(e.target.value); $('nzFreqVal').textContent=state.noiseFreq.toFixed(2); };
@@ -626,7 +591,6 @@ $('motion').oninput=e=>{ state.motion=e.target.value; rebuildLayout(); scheduleU
     q.set('trail',state.trail?1:0); q.set('tf',state.trailFade.toFixed(2));
     q.set('bg',state.bgColor.replace('#','')); q.set('c1',state.colors[0].replace('#','')); q.set('c2',state.colors[1].replace('#','')); q.set('c3',state.colors[2].replace('#',''));
     q.set('cm',state.colorMode); q.set('h',state.hue); q.set('s',state.sat); q.set('b',state.bri);
-    q.set('cp',state.cyclePath); q.set('cd',state.cycleDuration.toFixed(2));
     q.set('nzA',state.noiseAmp.toFixed(2)); q.set('nzF',state.noiseFreq.toFixed(2)); q.set('nzW',state.noiseFlow.toFixed(2));
     q.set('colP',state.colorPhaseAmt.toFixed(2));
     q.set('gF',state.gridFlow.toFixed(2)); q.set('gA',state.gridAngle.toFixed(1)); q.set('gS',state.gridScaleVar.toFixed(2));
@@ -648,7 +612,6 @@ $('motion').oninput=e=>{ state.motion=e.target.value; rebuildLayout(); scheduleU
     state.bgColor=getHex('bg',state.bgColor); state.colors[0]=getHex('c1',state.colors[0]); state.colors[1]=getHex('c2',state.colors[1]); state.colors[2]=getHex('c3',state.colors[2]);
     state.colorMode=getStr('cm',state.colorMode); state.hue=clamp(getNum('h',state.hue,v=>parseInt(v,10)),0,360);
     state.sat=clamp(getNum('s',state.sat,v=>parseInt(v,10)),0,100); state.bri=clamp(getNum('b',state.bri,v=>parseInt(v,10)),0,100);
-    state.cyclePath=getStr('cp',state.cyclePath); state.cycleDuration=clamp(getNum('cd',state.cycleDuration),1,30);
     state.noiseAmp=clamp(getNum('nzA',state.noiseAmp),0,0.40); state.noiseFreq=clamp(getNum('nzF',state.noiseFreq),0.10,2.00); state.noiseFlow=clamp(getNum('nzW',state.noiseFlow),0,2.00);
     state.colorPhaseAmt=clamp(getNum('colP',state.colorPhaseAmt),0,1.50);
     state.gridFlow=clamp(getNum('gF',state.gridFlow),0,3); state.gridAngle=clamp(getNum('gA',state.gridAngle),-180,180); state.gridScaleVar=clamp(getNum('gS',state.gridScaleVar),0,1);
