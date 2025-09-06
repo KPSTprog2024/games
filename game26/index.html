@@ -22,7 +22,7 @@
   button{background:#162133;color:#d8ecff;border:1px solid #2a3a55;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
   button.primary{background:#16324b;border-color:#2d4f74} button:hover{filter:brightness(1.08)}
   /* meter styles removed */
-  details{border:1px dashed #2a3852;border-radius:10px;padding:8px 10px} details>summary{cursor:pointer;color:#cfe7ff;margin:4px 0 8px}
+    #adv{border:1px dashed #2a3852;border-radius:10px;padding:8px 10px}
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
   @media (max-width:980px){:root{--stage-h:56vh}#panel{grid-template-columns:1fr}}
 </style>
@@ -144,7 +144,7 @@
   <!-- 詳細（2.5 相当＋URL） -->
   <div class="card">
     <h2>詳細設定（ノイズ/色/重み/越境/遠近/URL）</h2>
-    <details id="adv"><summary>開く</summary>
+    <div id="adv">
       <div class="row"><strong>グリッド揺らぎ（3Dノイズ）</strong></div>
       <div class="row"><label>ノイズ強度: <span id="nzAmpVal">0.12</span></label><input type="range" id="noiseAmp" min="0" max="0.40" step="0.01" value="0.12" /></div>
       <div class="row"><label>ノイズ周波数: <span id="nzFreqVal">0.80</span></label><input type="range" id="noiseFreq" min="0.10" max="2.00" step="0.05" value="0.80" /></div>
@@ -168,7 +168,7 @@
 
       <div class="row"><strong>URL共有</strong></div>
       <div class="row"><button id="copyURL">🔗 パラメータ付きURLをコピー</button><span class="muted">主要パラをクエリに保存します。</span></div>
-    </details>
+    </div>
   </div>
 
   <!-- Auto-Mod（新規） -->
