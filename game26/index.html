@@ -120,8 +120,16 @@
       <input type="range" id="trailFade" min="0.02" max="0.30" step="0.01" value="0.09" />
     </div>
     <div class="row">
-      <label>グリッド流速: <span id="gFlowVal">0.50</span></label>
-      <input type="range" id="gridFlow" min="0" max="3" step="0.05" value="0.50" />
+      <label>グリッドX流速: <span id="gFlowXVal">0.50</span></label>
+      <input type="range" id="gridFlowX" min="0" max="3" step="0.05" value="0.50" />
+    </div>
+    <div class="row">
+      <label>グリッドY流速: <span id="gFlowYVal">0.50</span></label>
+      <input type="range" id="gridFlowY" min="0" max="3" step="0.05" value="0.50" />
+    </div>
+    <div class="row">
+      <label>グリッド基準角度: <span id="gBaseAngleVal">0</span>°</label>
+      <input type="range" id="gridBaseAngle" min="-180" max="180" step="1" value="0" />
     </div>
     <div class="row">
       <label>グリッド角速度: <span id="gAngleVal">0</span>°/s</label>
@@ -363,8 +371,8 @@ function drawShape(ctx,shape,s){ switch(shape){
     ctxBG.strokeStyle=grad;
     ctxBG.lineWidth=1;
     ctxBG.beginPath();
-    for(let x=-spacing+offset; x<width+spacing; x+=spacing){ ctxBG.moveTo(x,0); ctxBG.lineTo(x,height); }
-    for(let y=-spacing+offset; y<height+spacing; y+=spacing){ ctxBG.moveTo(0,y); ctxBG.lineTo(width,y); }
+    for(let x=-spacing+offsetX; x<width+spacing; x+=spacing){ ctxBG.moveTo(x,0); ctxBG.lineTo(x,height); }
+    for(let y=-spacing+offsetY; y<height+spacing; y+=spacing){ ctxBG.moveTo(0,y); ctxBG.lineTo(width,y); }
     ctxBG.stroke();
     ctxBG.restore();
   }
@@ -501,7 +509,9 @@ function drawShape(ctx,shape,s){ switch(shape){
     $('noiseAmp').value=state.noiseAmp; $('nzAmpVal').textContent=state.noiseAmp.toFixed(2);
     $('noiseFreq').value=state.noiseFreq; $('nzFreqVal').textContent=state.noiseFreq.toFixed(2);
     $('noiseFlow').value=state.noiseFlow; $('nzFlowVal').textContent=state.noiseFlow.toFixed(2);
-    $('gridFlow').value=state.gridFlow; $('gFlowVal').textContent=state.gridFlow.toFixed(2);
+    $('gridFlowX').value=state.gridFlowX; $('gFlowXVal').textContent=state.gridFlowX.toFixed(2);
+    $('gridFlowY').value=state.gridFlowY; $('gFlowYVal').textContent=state.gridFlowY.toFixed(2);
+    $('gridBaseAngle').value=state.gridBaseAngle; $('gBaseAngleVal').textContent=state.gridBaseAngle.toFixed(0);
     $('gridAngle').value=state.gridAngle; $('gAngleVal').textContent=state.gridAngle.toFixed(0);
     $('gridScaleVar').value=state.gridScaleVar; $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2);
     $('gridColorStart').value=state.gridColorStart; $('gridColorEnd').value=state.gridColorEnd;
@@ -555,7 +565,9 @@ function drawShape(ctx,shape,s){ switch(shape){
   $('noiseAmp').oninput=e=>{ state.noiseAmp=parseFloat(e.target.value); $('nzAmpVal').textContent=state.noiseAmp.toFixed(2); };
   $('noiseFreq').oninput=e=>{ state.noiseFreq=parseFloat(e.target.value); $('nzFreqVal').textContent=state.noiseFreq.toFixed(2); };
   $('noiseFlow').oninput=e=>{ state.noiseFlow=parseFloat(e.target.value); $('nzFlowVal').textContent=state.noiseFlow.toFixed(2); };
-  $('gridFlow').oninput=e=>{ state.gridFlow=parseFloat(e.target.value); $('gFlowVal').textContent=state.gridFlow.toFixed(2); scheduleURLSync(); };
+  $('gridFlowX').oninput=e=>{ state.gridFlowX=parseFloat(e.target.value); $('gFlowXVal').textContent=state.gridFlowX.toFixed(2); scheduleURLSync(); };
+  $('gridFlowY').oninput=e=>{ state.gridFlowY=parseFloat(e.target.value); $('gFlowYVal').textContent=state.gridFlowY.toFixed(2); scheduleURLSync(); };
+  $('gridBaseAngle').oninput=e=>{ state.gridBaseAngle=parseFloat(e.target.value); $('gBaseAngleVal').textContent=state.gridBaseAngle.toFixed(0); scheduleURLSync(); };
   $('gridAngle').oninput=e=>{ state.gridAngle=parseFloat(e.target.value); $('gAngleVal').textContent=state.gridAngle.toFixed(0); scheduleURLSync(); };
   $('gridScaleVar').oninput=e=>{ state.gridScaleVar=parseFloat(e.target.value); $('gScaleVarVal').textContent=state.gridScaleVar.toFixed(2); scheduleURLSync(); };
   $('gridColorStart').oninput=e=>{ state.gridColorStart=e.target.value; scheduleURLSync(); };
