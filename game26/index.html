@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interactive Geometric Art — Phase 2.6 (Auto-Mod)</title>
+<style>
+  :root{ --bg:#000; --panel:#0f1115; --panel-2:#151922; --muted:#8a93a5; }
+  *{box-sizing:border-box} body{margin:0;background:#000;color:#eaeff7;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",Meiryo,"Noto Sans JP",sans-serif}
+  header{padding:10px 16px;background:linear-gradient(180deg,#0c0f14,#0a0d12);border-bottom:1px solid #1b2130;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  header h1{margin:0;font-size:16px;color:#e0f1ff}
+  #stage{position:relative;width:100%;height:62vh;min-height:340px;background:#000;overflow:hidden}
+  canvas{position:absolute;inset:0;width:100%;height:100%}
+  #panel{padding:12px 16px 18px;background:linear-gradient(180deg,#0e1320,#0a0f19);border-top:1px solid #1b2130;display:grid;grid-template-columns:1.2fr 1.1fr 1fr;gap:14px}
+  .card{background:var(--panel);border:1px solid #1e2636;border-radius:12px;padding:12px}
+  .card h2{margin:0 0 8px;font-size:13px;color:#cfe7ff;letter-spacing:.3px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  label{font-size:12px;color:#c0c9d8} .muted{color:var(--muted);font-size:12px}
+  input[type="range"]{width:160px}
+  input[type="number"],select{background:var(--panel-2);border:1px solid #2a344a;color:#e3ecf9;padding:6px 8px;border-radius:8px;min-width:64px}
+  button{background:#162133;color:#d8ecff;border:1px solid #2a3a55;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+  button.primary{background:#16324b;border-color:#2d4f74} button:hover{filter:brightness(1.08)}
+  .meter{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:#bcd0ea}
+  .pill{background:#132138;border:1px solid #294062;padding:4px 8px;border-radius:999px}
+  details{border:1px dashed #2a3852;border-radius:10px;padding:8px 10px} details>summary{cursor:pointer;color:#cfe7ff;margin:4px 0 8px}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  @media (max-width:980px){#panel{grid-template-columns:1fr}#stage{height:56vh}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Interactive Geometric Art — Phase 2.6</h1>
+  <div class="meter" id="meter">
+    <span class="pill" id="fps">FPS: —</span>
+    <span class="pill" id="paths">総パス数: —</span>
+    <span class="pill" id="safety">セーフ: —</span>
+    <span class="pill mono" id="share">URL共有: ready</span>
+  </div>
+</header>
+
+<section id="stage">
+  <canvas id="bg"></canvas>
+  <canvas id="fg"></canvas>
+</section>
+
+<section id="panel">
+  <!-- 基本操作 -->
+  <div class="card">
+    <h2>基本操作</h2>
+    <div class="row">
+      <button id="playPause" class="primary">⏸ 一時停止</button>
+      <button id="toggleTrail">✨ 残像: ON</button>
+      <button id="shot">📷 PNG保存</button>
+    </div>
+    <div class="row">
+      <button id="softRand">🎲 ランダマイズ（ソフト）</button>
+      <button id="hardRand">🧨 ランダマイズ（ハード）</button>
+    </div>
+    <div class="row">
+      <label>プリセット:</label>
+      <select id="preset">
+        <option value="nebula">Nebula（Mix/薄残像）</option>
+        <option value="orbitTri">Orbit Tri（三角/軌道）</option>
+        <option value="pulseCircles">Pulse Circles（円/脈動）</option>
+        <option value="spinSquares">Spin Squares（四角/回転）</option>
+        <option value="minimal">Minimal（静穏/低速）</option>
+      </select>
+      <button id="applyPreset">適用</button>
+    </div>
+    <div class="row">
+      <label>図形:</label>
+      <select id="shape"><option value="circle">円</option><option value="triangle">三角形</option><option value="square">四角形</option><option value="random">ランダム</option></select>
+      <label>動き:</label>
+      <select id="motion"><option value="mix">Mix</option><option value="rotate">Rotate</option><option value="pulse">Pulse</option><option value="orbit">Orbit</option></select>
+    </div>
+    <div class="row">
+      <label>seed:</label>
+      <input type="number" id="seed" value="12345" step="1" />
+      <button id="applySeed">seed固定</button>
+    </div>
+    <p class="muted">Soft: 位相/速度のみ再配分／Hard: seed刷新で全面再構成。</p>
+  </div>
+
+  <!-- キーパラ -->
+  <div class="card">
+    <h2>キーパラメータ</h2>
+    <div class="row">
+      <label>グリッド: <span id="gridVal">6</span> × <span id="gridValY">6</span></label>
+    </div>
+    <div class="row">
+      <input type="range" id="grid" min="1" max="10" value="6" />
+      <input type="range" id="gridY" min="1" max="10" value="6" />
+    </div>
+    <div class="row">
+      <label>速度: <span id="speedVal">1.0</span>x</label>
+      <input type="range" id="speed" min="0.2" max="2.0" step="0.05" value="1.0" />
+    </div>
+    <div class="row">
+      <label>線幅: <span id="lwVal">1</span>px</label>
+      <input type="range" id="lineWidth" min="1" max="4" value="1" />
+    </div>
+    <div class="row">
+      <label>背景色:</label><input type="color" id="bgColor" value="#000000" />
+      <label>線色1:</label><input type="color" id="color1" value="#ffffff" />
+      <label>線色2:</label><input type="color" id="color2" value="#66ccff" />
+      <label>線色3:</label><input type="color" id="color3" value="#ff66cc" />
+    </div>
+    <div class="row">
+      <label>残像フェード</label>
+      <input type="range" id="trailFade" min="0.02" max="0.30" step="0.01" value="0.09" />
+    </div>
+  </div>
+
+  <!-- 詳細（2.5 相当＋URL） -->
+  <div class="card">
+    <h2>詳細設定（ノイズ/色/重み/越境/遠近/URL）</h2>
+    <details id="adv"><summary>開く</summary>
+      <div class="row"><strong>グリッド揺らぎ（3Dノイズ）</strong></div>
+      <div class="row"><label>ノイズ強度: <span id="nzAmpVal">0.12</span></label><input type="range" id="noiseAmp" min="0" max="0.40" step="0.01" value="0.12" /></div>
+      <div class="row"><label>ノイズ周波数: <span id="nzFreqVal">0.80</span></label><input type="range" id="noiseFreq" min="0.10" max="2.00" step="0.05" value="0.80" /></div>
+      <div class="row"><label>流速: <span id="nzFlowVal">0.50</span></label><input type="range" id="noiseFlow" min="0.00" max="2.00" step="0.05" value="0.50" /></div>
+
+      <div class="row"><strong>色の位相差</strong></div>
+      <div class="row"><label>位相差量: <span id="phaseColVal">0.60</span></label><input type="range" id="phaseColor" min="0.00" max="1.50" step="0.05" value="0.60" /></div>
+
+      <div class="row"><strong>Mix重み</strong></div>
+      <div class="row">
+        <label>Rotate: <span id="mwR">0.50</span></label><input type="range" id="wRotate" min="0" max="1" step="0.05" value="0.50" />
+        <label>Pulse: <span id="mwP">0.30</span></label><input type="range" id="wPulse" min="0" max="1" step="0.05" value="0.30" />
+        <label>Orbit: <span id="mwO">0.20</span></label><input type="range" id="wOrbit" min="0" max="1" step="0.05" value="0.20" />
+      </div>
+
+      <div class="row"><strong>クロスオーバー（越境）</strong></div>
+      <div class="row"><label><input type="checkbox" id="crossover" checked /> 有効</label><label>強度: <span id="coAmpVal">0.60</span></label><input type="range" id="coAmp" min="0.00" max="2.00" step="0.05" value="0.60" /></div>
+
+      <div class="row"><strong>パララックス（遠近）</strong></div>
+      <div class="row"><label><input type="checkbox" id="parallax" checked /> 有効</label><label>深度幅: <span id="zSpreadVal">0.70</span></label><input type="range" id="zSpread" min="0.00" max="1.00" step="0.05" value="0.70" /></div>
+
+      <div class="row"><strong>URL共有</strong></div>
+      <div class="row"><button id="copyURL">🔗 パラメータ付きURLをコピー</button><span class="muted">主要パラをクエリに保存します。</span></div>
+    </details>
+  </div>
+
+  <!-- Auto-Mod（新規） -->
+  <div class="card">
+    <h2>Auto-Mod（スライダー自動化）</h2>
+    <div class="row">
+      <strong>Mod A</strong>
+      <label><input type="checkbox" id="modAEnable" /> 有効</label>
+      <label>対象</label>
+      <select id="modATarget">
+        <option value="speed">速度</option>
+        <option value="trailFade">残像フェード</option>
+        <option value="noiseAmp">ノイズ強度</option>
+        <option value="coAmp">越境強度</option>
+        <option value="zSpread">深度幅</option>
+        <option value="colorPhaseAmt">色位相差</option>
+      </select>
+      <label>波形</label>
+      <select id="modAWave">
+        <option value="sine">Sine</option>
+        <option value="smooth">SmoothNoise</option>
+        <option value="step">RandomStep</option>
+      </select>
+      <label>Rate(Hz)</label><input type="range" id="modARate" min="0.05" max="2.0" step="0.05" value="0.30" />
+      <label>Depth</label><input type="range" id="modADepth" min="0" max="1" step="0.02" value="0.60" />
+      <button id="modARecenter">Recenter</button>
+    </div>
+    <div class="row">
+      <strong>Mod B</strong>
+      <label><input type="checkbox" id="modBEnable" /> 有効</label>
+      <label>対象</label>
+      <select id="modBTarget">
+        <option value="speed">速度</option>
+        <option value="trailFade">残像フェード</option>
+        <option value="noiseAmp">ノイズ強度</option>
+        <option value="coAmp">越境強度</option>
+        <option value="zSpread">深度幅</option>
+        <option value="colorPhaseAmt">色位相差</option>
+      </select>
+      <label>波形</label>
+      <select id="modBWave">
+        <option value="sine">Sine</option>
+        <option value="smooth">SmoothNoise</option>
+        <option value="step">RandomStep</option>
+      </select>
+      <label>Rate(Hz)</label><input type="range" id="modBRate" min="0.05" max="2.0" step="0.05" value="0.15" />
+      <label>Depth</label><input type="range" id="modBDepth" min="0" max="1" step="0.02" value="0.45" />
+      <button id="modBRecenter">Recenter</button>
+    </div>
+    <p class="muted">Depthはそのパラメータのレンジの±50%を最大とする相対幅に対する割合です。Recenterで現在値を中心に再取得。</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  // ===== Utilities =====
+  function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296 } }
+  function randRange(rng,min,max){ return min+(max-min)*rng() }
+  function choice(rng,arr){ return arr[Math.floor(rng()*arr.length)] }
+  function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)) }
+  function lerp(a,b,t){ return a+(b-a)*t }
+  function smoothstep(t){ return t*t*(3-2*t) }
+
+  // 3D noise (for Phase2+) — lightweight
+  const p = new Uint8Array(512);
+  (function(){ const base=new Uint8Array(256); for(let i=0;i<256;i++) base[i]=i;
+    let r=mulberry32(0xDEADBEEF); for(let i=255;i>0;i--){ const j=Math.floor(r()*(i+1)); [base[i],base[j]]=[base[j],base[i]] }
+    for(let i=0;i<512;i++) p[i]=base[i&255];
+  })();
+  function grad(h,x,y,z){ const u=(h&15)<8?x:y, v=(h&15)<4?y:((h&15)===12||(h&15)===14?x:z); return ((h&1)?-u:u)+((h&2)?-v:v) }
+  function noise3(x,y,z){
+    const X=Math.floor(x)&255,Y=Math.floor(y)&255,Z=Math.floor(z)&255;
+    x-=Math.floor(x); y-=Math.floor(y); z-=Math.floor(z);
+    const u=smoothstep(x),v=smoothstep(y),w=smoothstep(z);
+    const A=p[X]+Y,AA=p[A]+Z,AB=p[A+1]+Z, B=p[X+1]+Y,BA=p[B]+Z,BB=p[B+1]+Z;
+    const L=(a,b,t)=>a+(b-a)*t;
+    const r=L( L(L(grad(p[AA],x,y,z),grad(p[BA],x-1,y,z),u), L(grad(p[AB],x,y-1,z),grad(p[BB],x-1,y-1,z),u), v),
+               L(L(grad(p[AA+1],x,y,z-1),grad(p[BA+1],x-1,y,z-1),u), L(grad(p[AB+1],x,y-1,z-1),grad(p[BB+1],x-1,y-1,z-1),u), v), w);
+    return (r+1)*0.5;
+  }
+
+  // ===== State =====
+  const state = {
+    running:true,
+    gridX:6, gridY:6,
+    speed:1.0, lineWidth:1,
+    shape:'circle', motion:'mix',
+    seed:12345, rng:mulberry32(12345),
+    trail:true, trailFade:0.09, bgColor:'#000000',
+    colors:['#ffffff','#66ccff','#ff66cc'],
+    colorPhaseAmt:0.60,
+    mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2},
+    noiseAmp:0.12, noiseFreq:0.80, noiseFlow:0.50,
+    crossover:true, coAmp:0.60,
+    parallax:true, zSpread:0.70,
+    cells:[], fps:0, totalPaths:0, safety:'OK',
+
+    // Auto-Mod（2系統）
+    modulators: [
+      {enabled:false,target:'speed',wave:'sine',rate:0.30,depth:0.60,center:null,lastStepTime:0},
+      {enabled:false,target:'trailFade',wave:'smooth',rate:0.15,depth:0.45,center:null,lastStepTime:0},
+    ],
+  };
+
+  // Param Registry（レンジ・getter/setter・UI部品ID）
+  const PARAMS = {
+    speed:        {min:0.2,max:2.0, get:()=>state.speed, set:v=>{state.speed=v;}, slider:'speed', label:'speedVal', fmt:v=>v.toFixed(2)},
+    trailFade:    {min:0.02,max:0.30, get:()=>state.trailFade, set:v=>{state.trailFade=v;}, slider:'trailFade'},
+    noiseAmp:     {min:0,max:0.40, get:()=>state.noiseAmp, set:v=>{state.noiseAmp=v;}, slider:'noiseAmp', label:'nzAmpVal', fmt:v=>v.toFixed(2)},
+    coAmp:        {min:0,max:2.00, get:()=>state.coAmp, set:v=>{state.coAmp=v;}, slider:'coAmp', label:'coAmpVal', fmt:v=>v.toFixed(2)},
+    zSpread:      {min:0,max:1.00, get:()=>state.zSpread, set:v=>{state.zSpread=v;}, slider:'zSpread', label:'zSpreadVal', fmt:v=>v.toFixed(2)},
+    colorPhaseAmt:{min:0,max:1.50, get:()=>state.colorPhaseAmt, set:v=>{state.colorPhaseAmt=v;}, slider:'phaseColor', label:'phaseColVal', fmt:v=>v.toFixed(2)},
+  };
+
+  // ===== Canvas =====
+  const bg=document.getElementById('bg'), fg=document.getElementById('fg'), stage=document.getElementById('stage');
+  const ctxBG=bg.getContext('2d'), ctxFG=fg.getContext('2d');
+
+  function resize(){
+    const dpr=Math.max(1,Math.min(window.devicePixelRatio||1,2));
+    const r=stage.getBoundingClientRect();
+    [bg,fg].forEach(c=>{ c.width=Math.floor(r.width*dpr); c.height=Math.floor(r.height*dpr); c.style.width=r.width+'px'; c.style.height=r.height+'px';
+      const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; });
+    ctxBG.fillStyle=state.bgColor; ctxBG.fillRect(0,0,bg.width,bg.height);
+  }
+
+  // ===== Layout =====
+  function mulMotion(rng,w){ const s=w.rotate+w.pulse+w.orbit||1; const r=rng()*s; if(r<w.rotate)return'rotate'; if(r<w.rotate+w.pulse)return'pulse'; return'orbit' }
+  function rebuildLayout(){
+    const rng=state.rng=mulberry32(state.seed); state.cells=[];
+    const rect=stage.getBoundingClientRect(); const cw=rect.width,ch=rect.height; const cellW=cw/state.gridX, cellH=ch/state.gridY;
+    for(let gy=0;gy<state.gridY;gy++) for(let gx=0;gx<state.gridX;gx++){
+      const cx=(gx+0.5)*cellW, cy=(gy+0.5)*cellH;
+      const phase=randRange(rng,0,Math.PI*2), speedMul=randRange(rng,0.6,1.4);
+      const orbitR=Math.min(cellW,cellH)*randRange(rng,0.10,0.23);
+      const baseScale=randRange(rng,0.35,0.90);
+      const motion=(state.motion==='mix')?mulMotion(rng,state.mixWeight):state.motion;
+      const shape=(state.shape==='random')?choice(rng,['circle','triangle','square']):state.shape;
+      const ang=randRange(rng,0,Math.PI*2), vmag=randRange(rng,0.05,0.12); const vzx=Math.cos(ang)*vmag, vzy=Math.sin(ang)*vmag;
+      const z=randRange(rng,0,1);
+      state.cells.push({gx,gy,cx,cy,phase,speedMul,orbitR,baseScale,motion,shape,vzx,vzy,z});
+    }
+    // cost
+    const cost=state.cells.reduce((s,c)=>s+({circle:1,triangle:3,square:4}[c.shape]||2),0);
+    state.totalPaths=cost; const TH=1100;
+    if(cost>TH){ state.safety='AUTO-SAFE'; state.lineWidth=Math.max(1,Math.floor(state.lineWidth*0.9)); state.trailFade=clamp(state.trailFade*1.2,0.06,0.30);
+      if(state.gridY>6) state.gridY=Math.max(6,Math.floor(state.gridY*0.9));
+      if(state.gridX>6) state.gridX=Math.max(6,Math.floor(state.gridX*0.95));
+      updateUIFromState();
+    } else state.safety='OK';
+  }
+
+  // ===== Drawing =====
+  function drawShape(ctx,shape,s){ switch(shape){
+    case'circle': ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.stroke(); break;
+    case'triangle': ctx.beginPath(); ctx.moveTo(0,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); ctx.closePath(); ctx.stroke(); break;
+    case'square': ctx.beginPath(); ctx.moveTo(-s,-s); ctx.lineTo(s,-s); ctx.lineTo(s,s); ctx.lineTo(-s,s); ctx.closePath(); ctx.stroke(); break;
+  }}
+
+  // ----- Auto-Mod engine -----
+  function waveEval(kind, t, rate, ch){ // returns [-1,1]
+    if(kind==='sine'){ return Math.sin(2*Math.PI*rate*t); }
+    if(kind==='smooth'){ return (noise3(ch, ch*3.1, t*rate*1.3)*2-1); }
+    // Random step (sample & hold)
+    return ( (Math.sin(2*Math.PI*rate*t) > 0 ? 1 : -1) ) * ( ( (Math.floor(t*rate)+ch*997) % 2 ) ? 1 : -1 );
+  }
+  function applyModulators(now){
+    const t = now/1000;
+    for(let i=0;i<state.modulators.length;i++){
+      const m = state.modulators[i]; if(!m.enabled) continue;
+      const meta = PARAMS[m.target]; if(!meta) continue;
+      if(m.center==null) m.center = meta.get();
+
+      const span = (meta.max - meta.min) * 0.5; // ±50%レンジ基準
+      let w = waveEval(m.wave, t, m.rate, i+1); // [-1,1]
+      const val = clamp(m.center + m.depth * span * w, meta.min, meta.max);
+      // set state
+      meta.set(val);
+      // reflect on UI slider/label (lightweight)
+      const sl = document.getElementById(meta.slider);
+      if(sl){ sl.value = val; }
+      if(meta.label){ const lb = document.getElementById(meta.label); if(lb){ lb.textContent = meta.fmt ? meta.fmt(val) : String(val) } }
+    }
+  }
+
+  let lastTime=performance.now(), frameCount=0, lastFpsTime=performance.now();
+  function loop(now){
+    if(!state.running){ requestAnimationFrame(loop); return; }
+
+    // Auto-Mod先に適用（描画前にstateが更新される）
+    applyModulators(now);
+
+    const t = (now/1000) * state.speed;
+    lastTime = now;
+
+    // 背景
+    if(state.trail){ ctxBG.fillStyle = rgba(state.bgColor, state.trailFade); ctxBG.fillRect(0,0,bg.width,bg.height); }
+    else{ ctxBG.fillStyle = state.bgColor; ctxBG.fillRect(0,0,bg.width,bg.height); }
+
+    // 前景
+    ctxFG.clearRect(0,0,fg.width,fg.height);
+
+    const rect=stage.getBoundingClientRect(), width=rect.width, height=rect.height;
+    const cellW=width/state.gridX, cellH=height/state.gridY, cellMin=Math.min(cellW,cellH);
+    const base=cellMin*0.36, nFreq=state.noiseFreq, zt=t*state.noiseFlow;
+
+    for(const c of state.cells){
+      const z01 = state.parallax ? clamp( (c.z * state.zSpread) + (1 - state.zSpread)*0.5 , 0, 1 ) : 0.5;
+      const speedPar = state.parallax ? lerp(0.7,1.6,z01) : 1.0;
+      const localT = t * c.speedMul * speedPar + c.phase;
+
+      const nx=(c.gx+0.5)/state.gridX*nFreq, ny=(c.gy+0.5)/state.gridY*nFreq;
+      const nxv=noise3(nx,ny,zt)*2-1, nyv=noise3(nx+37.1,ny+19.7,zt+11.3)*2-1;
+      const amp=state.noiseAmp*cellMin;
+      let x=c.cx + nxv*amp, y=c.cy + nyv*amp;
+
+      if(state.crossover){
+        x += c.vzx * state.coAmp * cellMin * (now/1000); // note: tと一致させず累積感を出す
+        y += c.vzy * state.coAmp * cellMin * (now/1000);
+        if(x<0) x=width+(x%width); if(y<0) y=height+(y%height); if(x>=width) x%=width; if(y>=height) y%=height;
+      }
+
+      const scalePar= state.parallax ? lerp(0.55,1.35,z01) : 1.0;
+      const linePar = state.parallax ? lerp(0.85,1.25,z01) : 1.0;
+      const alphaPar= state.parallax ? lerp(0.65,1.00,z01) : 1.0;
+
+      for(let ci=0; ci<3; ci++){
+        const color=state.colors[ci]||'#fff';
+        const phaseShift=state.colorPhaseAmt*(ci-1);
+        const tt=localT+phaseShift;
+
+        ctxFG.save(); ctxFG.translate(x,y);
+        let scale=c.baseScale*scalePar, rot=0, offx=0, offy=0;
+        if(c.motion==='rotate') rot=tt*1.3;
+        else if(c.motion==='pulse') scale*=(0.80+0.20*Math.sin(tt*2.0));
+        else if(c.motion==='orbit'){ const r=c.orbitR*scalePar; offx=Math.cos(tt*1.2)*r; offy=Math.sin(tt*1.2)*r; }
+        ctxFG.translate(offx,offy); ctxFG.rotate(rot);
+        ctxFG.lineWidth=state.lineWidth*linePar; ctxFG.globalAlpha=alphaPar; ctxFG.strokeStyle=color;
+        drawShape(ctxFG,c.shape,base*scale);
+        ctxFG.restore();
+      }
+    }
+    ctxFG.globalAlpha=1;
+
+    // meters + URL
+    frameCount++; if(now-lastFpsTime>500){ state.fps=Math.round(frameCount*1000/(now-lastFpsTime)); frameCount=0; lastFpsTime=now; updateMeters(); scheduleURLSync(); }
+
+    requestAnimationFrame(loop);
+  }
+
+  function rgba(hex,a){ const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
+
+  // ===== UI wiring =====
+  const $ = id=>document.getElementById(id);
+  function updateMeters(){ $('fps').textContent='FPS: '+state.fps; $('paths').textContent='総パス数: '+state.totalPaths; $('safety').textContent='セーフ: '+state.safety; }
+  function updateUIFromState(){
+    $('grid').value=state.gridX; $('gridY').value=state.gridY; $('gridVal').textContent=state.gridX; $('gridValY').textContent=state.gridY;
+    $('speed').value=state.speed; $('speedVal').textContent=state.speed.toFixed(2);
+    $('lineWidth').value=state.lineWidth; $('lwVal').textContent=state.lineWidth;
+    $('seed').value=state.seed; $('toggleTrail').textContent=state.trail?'✨ 残像: ON':'✨ 残像: OFF';
+    $('trailFade').value=state.trailFade; $('bgColor').value=state.bgColor;
+    $('color1').value=state.colors[0]; $('color2').value=state.colors[1]; $('color3').value=state.colors[2];
+    $('shape').value=state.shape; $('motion').value=state.motion;
+    $('noiseAmp').value=state.noiseAmp; $('nzAmpVal').textContent=state.noiseAmp.toFixed(2);
+    $('noiseFreq').value=state.noiseFreq; $('nzFreqVal').textContent=state.noiseFreq.toFixed(2);
+    $('noiseFlow').value=state.noiseFlow; $('nzFlowVal').textContent=state.noiseFlow.toFixed(2);
+    $('phaseColor').value=state.colorPhaseAmt; $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2);
+    $('wRotate').value=state.mixWeight.rotate; $('mwR').textContent=state.mixWeight.rotate.toFixed(2);
+    $('wPulse').value=state.mixWeight.pulse; $('mwP').textContent=state.mixWeight.pulse.toFixed(2);
+    $('wOrbit').value=state.mixWeight.orbit; $('mwO').textContent=state.mixWeight.orbit.toFixed(2);
+    $('crossover').checked=state.crossover; $('coAmp').value=state.coAmp; $('coAmpVal').textContent=state.coAmp.toFixed(2);
+    $('parallax').checked=state.parallax; $('zSpread').value=state.zSpread; $('zSpreadVal').textContent=state.zSpread.toFixed(2);
+  }
+
+  // controls (略：前段と同様の配線)
+  const bindRange=(id,fn)=>$(id).oninput=e=>fn(parseFloat(e.target.value));
+  $('playPause').onclick=()=>{ state.running=!state.running; $('playPause').textContent=state.running?'⏸ 一時停止':'▶ 再開'; if(state.running){ requestAnimationFrame(loop); } };
+  $('toggleTrail').onclick=()=>{ state.trail=!state.trail; $('toggleTrail').textContent=state.trail?'✨ 残像: ON':'✨ 残像: OFF'; scheduleURLSync(); };
+  $('shot').onclick=()=>{ const r=stage.getBoundingClientRect(), dpr=Math.max(1,Math.min(window.devicePixelRatio||1,2));
+    const c=document.createElement('canvas'); c.width=Math.floor(r.width*dpr); c.height=Math.floor(r.height*dpr);
+    const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.drawImage(bg,0,0,r.width,r.height); x.drawImage(fg,0,0,r.width,r.height);
+    const url=c.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='geometric-art.png'; a.click(); };
+  $('softRand').onclick=()=>{ const rng=state.rng; for(const c of state.cells){ c.phase=randRange(rng,0,Math.PI*2); c.speedMul=randRange(rng,0.6,1.4); if(state.shape==='random') c.shape=choice(rng,['circle','triangle','square']); if(state.motion==='mix') c.motion=mulMotion(rng,state.mixWeight);} };
+  $('hardRand').onclick=()=>{ state.seed=(Math.random()*1e9|0)^Date.now(); rebuildLayout(); scheduleURLSync(); };
+  $('applyPreset').onclick=()=>{ const p=$('preset').value; applyPreset(p); scheduleURLSync(); };
+  function applyPreset(name){
+    const COMMON={trail:true,bgColor:'#000000',colors:['#ffffff','#66ccff','#ff66cc'],parallax:true,crossover:true};
+    if(name==='nebula')Object.assign(state,COMMON,{shape:'random',motion:'mix',gridX:8,gridY:8,speed:1.0,lineWidth:1,trailFade:0.09,seed:321321,colorPhaseAmt:0.60,noiseAmp:0.12,noiseFreq:0.80,noiseFlow:0.50,coAmp:0.60,zSpread:0.70,mixWeight:{rotate:0.5,pulse:0.3,orbit:0.2}});
+    else if(name==='orbitTri')Object.assign(state,COMMON,{shape:'triangle',motion:'orbit',gridX:7,gridY:5,speed:1.1,lineWidth:1,trailFade:0.06,seed:246810,colorPhaseAmt:0.50,noiseAmp:0.10,noiseFreq:1.10,noiseFlow:0.70,coAmp:0.40,zSpread:0.65,mixWeight:{rotate:0.3,pulse:0.2,orbit:0.5}});
+    else if(name==='pulseCircles')Object.assign(state,COMMON,{shape:'circle',motion:'pulse',gridX:6,gridY:6,speed:0.9,lineWidth:2,trailFade:0.10,seed:13579,colorPhaseAmt:0.65,noiseAmp:0.08,noiseFreq:0.70,noiseFlow:0.40,coAmp:0.30,zSpread:0.60,mixWeight:{rotate:0.2,pulse:0.6,orbit:0.2}});
+    else if(name==='spinSquares')Object.assign(state,COMMON,{shape:'square',motion:'rotate',gridX:9,gridY:4,speed:1.3,lineWidth:1,trailFade:0.09,seed:987654,colorPhaseAmt:0.40,noiseAmp:0.06,noiseFreq:0.90,noiseFlow:0.30,coAmp:0.50,zSpread:0.55,mixWeight:{rotate:0.7,pulse:0.2,orbit:0.1},trail:false});
+    else if(name==='minimal')Object.assign(state,COMMON,{shape:'circle',motion:'mix',gridX:4,gridY:3,speed:0.6,lineWidth:1,trailFade:0.12,seed:20250906,colorPhaseAmt:0.30,noiseAmp:0.05,noiseFreq:0.60,noiseFlow:0.25,coAmp:0.35,zSpread:0.50,mixWeight:{rotate:0.4,pulse:0.3,orbit:0.3}});
+    updateUIFromState(); rebuildLayout();
+  }
+  $('grid').oninput=e=>{ state.gridX=parseInt(e.target.value,10); $('gridVal').textContent=state.gridX; rebuildLayout(); scheduleURLSync(); };
+  $('gridY').oninput=e=>{ state.gridY=parseInt(e.target.value,10); $('gridValY').textContent=state.gridY; rebuildLayout(); scheduleURLSync(); };
+  $('speed').oninput=e=>{ state.speed=parseFloat(e.target.value); $('speedVal').textContent=state.speed.toFixed(2); scheduleURLSync(); };
+  $('lineWidth').oninput=e=>{ state.lineWidth=parseInt(e.target.value,10); $('lwVal').textContent=state.lineWidth; scheduleURLSync(); };
+  $('bgColor').oninput=e=>{ state.bgColor=e.target.value; scheduleURLSync(); };
+  $('color1').oninput=e=>{ state.colors[0]=e.target.value; scheduleURLSync(); };
+  $('color2').oninput=e=>{ state.colors[1]=e.target.value; scheduleURLSync(); };
+  $('color3').oninput=e=>{ state.colors[2]=e.target.value; scheduleURLSync(); };
+  $('trailFade').oninput=e=>{ state.trailFade=parseFloat(e.target.value); scheduleURLSync(); };
+  $('shape').oninput=e=>{ state.shape=e.target.value; rebuildLayout(); scheduleURLSync(); };
+  $('motion').oninput=e=>{ state.motion=e.target.value; rebuildLayout(); scheduleURLSync(); };
+  $('applySeed').onclick=()=>{ const v=parseInt($('seed').value,10); if(Number.isFinite(v)){ state.seed=v; rebuildLayout(); scheduleURLSync(); } };
+  $('noiseAmp').oninput=e=>{ state.noiseAmp=parseFloat(e.target.value); $('nzAmpVal').textContent=state.noiseAmp.toFixed(2); };
+  $('noiseFreq').oninput=e=>{ state.noiseFreq=parseFloat(e.target.value); $('nzFreqVal').textContent=state.noiseFreq.toFixed(2); };
+  $('noiseFlow').oninput=e=>{ state.noiseFlow=parseFloat(e.target.value); $('nzFlowVal').textContent=state.noiseFlow.toFixed(2); };
+  $('phaseColor').oninput=e=>{ state.colorPhaseAmt=parseFloat(e.target.value); $('phaseColVal').textContent=state.colorPhaseAmt.toFixed(2); };
+  $('wRotate').oninput=e=>{ state.mixWeight.rotate=parseFloat(e.target.value); $('mwR').textContent=state.mixWeight.rotate.toFixed(2); };
+  $('wPulse').oninput=e=>{ state.mixWeight.pulse=parseFloat(e.target.value); $('mwP').textContent=state.mixWeight.pulse.toFixed(2); };
+  $('wOrbit').oninput=e=>{ state.mixWeight.orbit=parseFloat(e.target.value); $('mwO').textContent=state.mixWeight.orbit.toFixed(2); };
+  $('crossover').oninput=e=>{ state.crossover=e.target.checked; scheduleURLSync(); };
+  $('coAmp').oninput=e=>{ state.coAmp=parseFloat(e.target.value); $('coAmpVal').textContent=state.coAmp.toFixed(2); scheduleURLSync(); };
+  $('parallax').oninput=e=>{ state.parallax=e.target.checked; scheduleURLSync(); };
+  $('zSpread').oninput=e=>{ state.zSpread=parseFloat(e.target.value); $('zSpreadVal').textContent=state.zSpread.toFixed(2); scheduleURLSync(); };
+
+  // URL
+  function encodeParams(){
+    const q=new URLSearchParams();
+    q.set('sx',state.gridX); q.set('sy',state.gridY); q.set('spd',state.speed.toFixed(2)); q.set('lw',state.lineWidth);
+    q.set('seed',state.seed); q.set('shape',state.shape); q.set('motion',state.motion);
+    q.set('trail',state.trail?1:0); q.set('tf',state.trailFade.toFixed(2));
+    q.set('bg',state.bgColor.replace('#','')); q.set('c1',state.colors[0].replace('#','')); q.set('c2',state.colors[1].replace('#','')); q.set('c3',state.colors[2].replace('#',''));
+    q.set('nzA',state.noiseAmp.toFixed(2)); q.set('nzF',state.noiseFreq.toFixed(2)); q.set('nzW',state.noiseFlow.toFixed(2));
+    q.set('colP',state.colorPhaseAmt.toFixed(2));
+    q.set('wR',state.mixWeight.rotate.toFixed(2)); q.set('wP',state.mixWeight.pulse.toFixed(2)); q.set('wO',state.mixWeight.orbit.toFixed(2));
+    q.set('co',state.crossover?1:0); q.set('coA',state.coAmp.toFixed(2)); q.set('px',state.parallax?1:0); q.set('zS',state.zSpread.toFixed(2));
+    // Auto-Mod（共有は最小限）
+    state.modulators.forEach((m,i)=>{ q.set('m'+i, [m.enabled?1:0,m.target,m.wave,m.rate.toFixed(2),m.depth.toFixed(2)].join(',')) });
+    return q.toString();
+  }
+  function applyParamsFromURL(){
+    const q=new URLSearchParams(location.search);
+    const getNum=(k,d,f=parseFloat)=>q.has(k)?f(q.get(k)):d, getStr=(k,d)=>q.get(k)??d, getHex=(k,d)=>q.has(k)?'#'+q.get(k):d;
+    state.gridX=clamp(getNum('sx',state.gridX,v=>parseInt(v,10)),1,10); state.gridY=clamp(getNum('sy',state.gridY,v=>parseInt(v,10)),1,10);
+    state.speed=clamp(getNum('spd',state.speed),0.2,2.0); state.lineWidth=clamp(getNum('lw',state.lineWidth,v=>parseInt(v,10)),1,4);
+    state.seed=getNum('seed',state.seed,v=>parseInt(v,10)); state.shape=getStr('shape',state.shape); state.motion=getStr('motion',state.motion);
+    state.trail=getNum('trail',state.trail?1:0,v=>parseInt(v,10))===1; state.trailFade=clamp(getNum('tf',state.trailFade),0.02,0.30);
+    state.bgColor=getHex('bg',state.bgColor); state.colors[0]=getHex('c1',state.colors[0]); state.colors[1]=getHex('c2',state.colors[1]); state.colors[2]=getHex('c3',state.colors[2]);
+    state.noiseAmp=clamp(getNum('nzA',state.noiseAmp),0,0.40); state.noiseFreq=clamp(getNum('nzF',state.noiseFreq),0.10,2.00); state.noiseFlow=clamp(getNum('nzW',state.noiseFlow),0,2.00);
+    state.colorPhaseAmt=clamp(getNum('colP',state.colorPhaseAmt),0,1.50);
+    state.mixWeight.rotate=clamp(getNum('wR',state.mixWeight.rotate),0,1); state.mixWeight.pulse=clamp(getNum('wP',state.mixWeight.pulse),0,1); state.mixWeight.orbit=clamp(getNum('wO',state.mixWeight.orbit),0,1);
+    state.crossover=getNum('co',state.crossover?1:0,v=>parseInt(v,10))===1; state.coAmp=clamp(getNum('coA',state.coAmp),0,2.00);
+    state.parallax=getNum('px',state.parallax?1:0,v=>parseInt(v,10))===1; state.zSpread=clamp(getNum('zS',state.zSpread),0,1.00);
+    // Auto-Mod
+    for(let i=0;i<state.modulators.length;i++){
+      const s=q.get('m'+i); if(!s) continue; const [en,tg,w,ra,de]=s.split(',');
+      Object.assign(state.modulators[i],{enabled:en==='1',target:tg,wave:w,rate:parseFloat(ra),depth:parseFloat(de),center:null});
+    }
+  }
+  let urlSyncTimer=null; function scheduleURLSync(){ if(urlSyncTimer) return; urlSyncTimer=setTimeout(()=>{ urlSyncTimer=null; const qs=encodeParams(); const url=location.pathname+'?'+qs+location.hash; history.replaceState(null,'',url); $('share').textContent='URL共有: updated'; setTimeout(()=>{$('share').textContent='URL共有: ready'},600); },400); }
+  $('copyURL').onclick=async()=>{ const url=location.origin+location.pathname+'?'+encodeParams()+location.hash; try{await navigator.clipboard.writeText(url); $('share').textContent='URL共有: copied';}catch{ $('share').textContent='URL共有: copy failed'; } setTimeout(()=>{$('share').textContent='URL共有: ready'},1000); };
+
+  // Auto-Mod UI
+  function bindModUI(prefix, idx){
+    const en=$(prefix+'Enable'), tgt=$(prefix+'Target'), wav=$(prefix+'Wave'), rate=$(prefix+'Rate'), dep=$(prefix+'Depth'), rec=$(prefix+'Recenter');
+    en.oninput=()=>{ state.modulators[idx].enabled=en.checked; if(en.checked) state.modulators[idx].center=null; scheduleURLSync(); };
+    tgt.oninput=()=>{ state.modulators[idx].target=tgt.value; state.modulators[idx].center=null; scheduleURLSync(); };
+    wav.oninput=()=>{ state.modulators[idx].wave=wav.value; scheduleURLSync(); };
+    rate.oninput=()=>{ state.modulators[idx].rate=parseFloat(rate.value); scheduleURLSync(); };
+    dep.oninput=()=>{ state.modulators[idx].depth=parseFloat(dep.value); scheduleURLSync(); };
+    rec.onclick=()=>{ const meta=PARAMS[state.modulators[idx].target]; if(meta) state.modulators[idx].center=meta.get(); };
+  }
+  bindModUI('modA',0); bindModUI('modB',1);
+
+  // ===== Init =====
+  applyParamsFromURL();
+  window.addEventListener('resize',()=>{ resize(); rebuildLayout(); });
+  resize(); updateUIFromState(); rebuildLayout(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
