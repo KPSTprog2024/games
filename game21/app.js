@@ -121,8 +121,14 @@ async function loadPack(relPath, cache) {
   const data = await fetchJson(`data/${relPath}`, true, cache);
   const quotes = Array.isArray(data) ? data : data.quotes;
   for (const q of quotes) {
+    if (state.byId.has(q.id)) {
+      console.warn(`Duplicate quote id detected: ${q.id}`);
+      continue;
+    }
     state.byId.set(q.id, q);
+    state.allQuotes.push(q);
   }
+  console.log(`Loaded ${quotes.length} quotes from ${relPath}. Total quotes: ${state.allQuotes.length}`);
 }
 
 function legacyToNewSchema(legacy) {
