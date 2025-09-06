@@ -13,9 +13,9 @@
       <h1>✈️ 旅の言葉 🗾</h1>
 
       <!-- 追加：表示モード＆RTLトグル（任意で非表示にしてもOK） -->
-      <div class="controls" aria-label="表示設定" style="display:flex;gap:12px;justify-content:center;margin-top:8px;">
+      <div class="controls" aria-label="表示設定">
         <label>表示:
-          <select id="langSelect" class="form-control" style="max-width:160px;">
+          <select id="langSelect" class="form-control">
             <option value="both" selected>原文＋日本語</option>
             <option value="original">原文のみ</option>
             <option value="ja">日本語のみ</option>
@@ -30,7 +30,7 @@
         <div class="quote-scene" id="quoteScene"></div>
 
         <!-- 追加：検証バッジ -->
-        <div class="quote-badges" style="text-align:center;margin-bottom:8px;">
+        <div class="quote-badges">
           <span class="badge" id="badgeVerification" hidden>Verified</span>
           <span class="badge badge--warn" id="badgeAttributed" hidden>Attributed</span>
           <span class="badge badge--alert" id="badgeMisattr" hidden>Misattributed</span>
@@ -46,7 +46,7 @@
         <div class="quote-author" id="quoteAuthor"></div>
 
         <!-- 追加：出典など -->
-        <div class="quote-source" style="text-align:center;margin-bottom:8px;">
+        <div class="quote-source">
           <span id="quoteWork"></span>
           <span id="quotePeriod"></span>
           <a id="quoteSourceUrl" href="#" target="_blank" rel="noopener" hidden>出典リンク</a>
@@ -72,6 +72,6 @@
     </main>
   </div>
 
-  <script src="app.js" defer></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

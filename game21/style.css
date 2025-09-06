@@ -1030,3 +1030,21 @@ body::before {
   color: var(--color-text-secondary);
   margin-bottom: var(--space-8);
 }
+
+/* Layout controls and badge containers */
+.controls {
+  display: flex;
+  gap: var(--space-12);
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+#langSelect {
+  max-width: 160px;
+}
+
+.quote-badges,
+.quote-source {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
