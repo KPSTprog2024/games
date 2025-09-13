@@ -320,30 +320,31 @@ function mouseReleased() {
 function touchStarted() {
   if (!isCanvasReady) {
     console.log('⚠️ キャンバス未準備のためタッチを無視');
-    return false;
+    return true;
   }
-  
-  if (touches.length > 0) {
+
+  if (touches.length === 1) {
     const touch = touches[0];
     // キャンバス内のタッチのみ処理
     if (touch.x >= 0 && touch.x < canvasWidth && touch.y >= 0 && touch.y < canvasHeight) {
       const pos = getGridPosition(touch.x, touch.y);
       console.log(`👆 タッチ開始: (${touch.x}, ${touch.y}) → セル[${pos.x}, ${pos.y}]`);
-      
+
       paintCell(pos.x, pos.y);
       lastPaintedCell = pos;
       isDragging = true;
+      return false; // 1本指で描画するときのみスクロール防止
     }
   }
-  return false; // スクロール防止
+  return true; // それ以外はスクロール許可
 }
 
 function touchMoved() {
   if (!isCanvasReady || !isDragging) {
-    return false;
+    return true;
   }
-  
-  if (touches.length > 0) {
+
+  if (touches.length === 1) {
     const touch = touches[0];
     if (touch.x >= 0 && touch.x < canvasWidth && touch.y >= 0 && touch.y < canvasHeight) {
       const pos = getGridPosition(touch.x, touch.y);
@@ -353,14 +354,15 @@ function touchMoved() {
         lastPaintedCell = pos;
       }
     }
+    return false; // 描画中はスクロール防止
   }
-  return false; // スクロール防止
+  return true;
 }
 
 function touchEnded() {
   isDragging = false;
   lastPaintedCell = { x: -1, y: -1 };
-  return false;
+  return true;
 }
 
 // キャンバスクリア機能（確実な動作）
@@ -402,19 +404,27 @@ function setupTouchPrevention() {
   
   console.log('📱 タッチスクロール防止を設定します');
   
-  canvasContainer.addEventListener('touchstart', function(e) {
-    // キャンバス領域のタッチのみ防止
-    if (e.target.tagName === 'CANVAS') {
-      e.preventDefault();
-    }
-  }, { passive: false });
-  
-  canvasContainer.addEventListener('touchmove', function(e) {
-    // キャンバス領域のタッチのみ防止
-    if (e.target.tagName === 'CANVAS') {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  canvasContainer.addEventListener(
+    'touchstart',
+    function (e) {
+      // キャンバス領域で1本指のときのみスクロールを防止
+      if (e.target.tagName === 'CANVAS' && e.touches.length === 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  canvasContainer.addEventListener(
+    'touchmove',
+    function (e) {
+      // キャンバス領域で1本指のときのみスクロールを防止
+      if (e.target.tagName === 'CANVAS' && e.touches.length === 1) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
   
   console.log('✅ タッチスクロール防止が設定されました');
 }
@@ -517,18 +527,18 @@ function setupModeSwitch() {
 
     if (btnColor && btnGray) {
       applyActive();
-      btnColor.addEventListener('click', () => {
-        window.paintMode = 'color';
+      const setMode = (mode) => {
+        window.paintMode = mode;
         applyActive();
         updateCurrentColorLabel();
         if (typeof color === 'function' && isCanvasReady) renderPalettePreview();
-      });
-      btnGray.addEventListener('click', () => {
-        window.paintMode = 'grayscale';
-        applyActive();
-        updateCurrentColorLabel();
-        if (typeof color === 'function' && isCanvasReady) renderPalettePreview();
-      });
+      };
+      const handleColor = (e) => { e.preventDefault(); setMode('color'); };
+      const handleGray = (e) => { e.preventDefault(); setMode('grayscale'); };
+      btnColor.addEventListener('click', handleColor);
+      btnColor.addEventListener('touchstart', handleColor);
+      btnGray.addEventListener('click', handleGray);
+      btnGray.addEventListener('touchstart', handleGray);
     }
   } catch (e) {
     console.error('setupModeSwitch error:', e);
