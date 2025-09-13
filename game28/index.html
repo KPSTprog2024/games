@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スピログラフ ジェネレーター</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-color-scheme="dark">
+    <div class="app-container">
+        <!-- Left Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="app-title">スピログラフ<br>ジェネレーター</h1>
+                <p class="app-subtitle">美しい幾何学模様を描こう</p>
+            </div>
+            
+            <div class="controls-section">
+                <!-- Pattern Type -->
+                <div class="control-group">
+                    <label class="control-label">パターンタイプ</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="patternType" value="hypotrochoid" checked>
+                            <span class="radio-custom"></span>
+                            ハイポトロコイド（内側）
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="patternType" value="epitrochoid">
+                            <span class="radio-custom"></span>
+                            エピトロコイド（外側）
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Outer Radius -->
+                <div class="control-group">
+                    <label class="control-label">外円半径 (R): <span id="outer-radius-value">120</span></label>
+                    <input type="range" id="outer-radius" class="slider" min="50" max="200" value="120">
+                </div>
+
+                <!-- Inner Radius -->
+                <div class="control-group">
+                    <label class="control-label">内円半径 (r): <span id="inner-radius-value">60</span></label>
+                    <input type="range" id="inner-radius" class="slider" min="10" max="150" value="60">
+                </div>
+
+                <!-- Pen Distance -->
+                <div class="control-group">
+                    <label class="control-label">ペン距離 (d): <span id="pen-distance-value">80</span></label>
+                    <input type="range" id="pen-distance" class="slider" min="5" max="100" value="80">
+                </div>
+
+                <!-- Animation Speed -->
+                <div class="control-group">
+                    <label class="control-label">アニメーション速度: <span id="speed-value">1.0</span></label>
+                    <input type="range" id="animation-speed" class="slider" min="0.1" max="5.0" step="0.1" value="1.0">
+                </div>
+
+                <!-- Line Width -->
+                <div class="control-group">
+                    <label class="control-label">線の太さ: <span id="line-width-value">2</span></label>
+                    <input type="range" id="line-width" class="slider" min="1" max="5" value="2">
+                </div>
+
+                <!-- Colors -->
+                <div class="control-group">
+                    <label class="control-label">線の色</label>
+                    <input type="color" id="line-color" class="color-picker" value="#00aaff">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">背景色</label>
+                    <input type="color" id="background-color" class="color-picker" value="#1a1a1a">
+                </div>
+
+                <!-- Presets -->
+                <div class="control-group">
+                    <label class="control-label">プリセットパターン</label>
+                    <select id="preset-select" class="form-control preset-select">
+                        <option value="">プリセットを選択...</option>
+                        <option value="0">Classic Rose</option>
+                        <option value="1">Flower Burst</option>
+                        <option value="2">Star Pattern</option>
+                        <option value="3">Complex Web</option>
+                        <option value="4">Simple Circle</option>
+                        <option value="5">Delicate Lace</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button id="start-btn" class="btn btn--primary btn-control">開始</button>
+                    <button id="pause-btn" class="btn btn--secondary btn-control" disabled>一時停止</button>
+                    <button id="reset-btn" class="btn btn--outline btn-control">リセット</button>
+                    <button id="save-btn" class="btn btn--secondary btn-control">画像保存</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Canvas Area -->
+        <main class="main-content">
+            <div class="canvas-container">
+                <canvas id="spirograph-canvas" width="600" height="600"></canvas>
+            </div>
+            
+            <!-- Status Info -->
+            <div class="status-bar">
+                <div class="status-info">
+                    <span class="status-label">ステータス:</span>
+                    <span id="animation-status" class="status status--info">待機中</span>
+                </div>
+                <div class="cycle-info">
+                    <span class="status-label">進行状況:</span>
+                    <span id="progress-info">0%</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
