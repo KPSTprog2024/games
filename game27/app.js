@@ -118,9 +118,9 @@ class EchoDrawingApp {
         this.canvas.addEventListener('pointerup', (e) => this.handlePointerUp(e));
         this.canvas.addEventListener('pointercancel', (e) => this.handlePointerUp(e));
         
-        // Prevent context menu and scrolling
+        // Prevent context menu and page scrolling while drawing
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
         
         // Clear canvas button
         document.getElementById('clearCanvas').addEventListener('click', () => {
