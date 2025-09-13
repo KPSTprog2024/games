@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>エコー描画アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Main Drawing Canvas -->
+        <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+        
+        <!-- Performance Indicator -->
+        <div id="performanceIndicator" class="performance-indicator">
+            <span id="fpsDisplay">60 FPS</span>
+            <span id="performanceStatus" class="status--success">最適</span>
+        </div>
+        
+        <!-- Settings Panel -->
+        <div id="settingsPanel" class="settings-panel">
+            <div class="settings-header">
+                <h3>設定</h3>
+                <button id="toggleSettings" class="btn btn--secondary btn--sm">
+                    <span id="toggleIcon">▼</span>
+                </button>
+            </div>
+            
+            <div id="settingsContent" class="settings-content">
+                <!-- Presets Section -->
+                <div class="settings-section">
+                    <h4>プリセット</h4>
+                    <div class="preset-buttons">
+                        <button class="btn btn--secondary btn--sm preset-btn active" data-preset="depth-soft">深度ソフト</button>
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="film-echo">フィルムエコー</button>
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="wireframe-lite">ワイヤーフレーム</button>
+                    </div>
+                </div>
+
+                <!-- Drawing Tools -->
+                <div class="settings-section">
+                    <h4>描画ツール</h4>
+                    <div class="form-group">
+                        <label class="form-label">色</label>
+                        <input type="color" id="strokeColor" class="color-input" value="#00ff88">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ブラシサイズ: <span id="strokeWidthValue">3</span>px</label>
+                        <input type="range" id="strokeWidth" class="form-control" min="1" max="10" value="3" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">不透明度: <span id="strokeAlphaValue">90</span>%</label>
+                        <input type="range" id="strokeAlpha" class="form-control" min="10" max="100" value="90" step="5">
+                    </div>
+                </div>
+
+                <!-- Echo Timing -->
+                <div class="settings-section">
+                    <h4>エコータイミング</h4>
+                    <div class="form-group">
+                        <label class="form-label">間隔: <span id="echoIntervalValue">100</span>ms</label>
+                        <input type="range" id="echoInterval" class="form-control" min="30" max="200" value="100" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">最大数: <span id="echoCountValue">36</span></label>
+                        <input type="range" id="echoCount" class="form-control" min="10" max="80" value="36" step="2">
+                    </div>
+                </div>
+
+                <!-- Spatial Effects -->
+                <div class="settings-section">
+                    <h4>空間効果</h4>
+                    <div class="form-group">
+                        <label class="form-label">X シフト: <span id="shiftXValue">-8</span>px</label>
+                        <input type="range" id="shiftX" class="form-control" min="-20" max="20" value="-8" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Y シフト: <span id="shiftYValue">-5</span>px</label>
+                        <input type="range" id="shiftY" class="form-control" min="-20" max="20" value="-5" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">エコーごとの縮尺: <span id="scalePerEchoValue">0.965</span></label>
+                        <input type="range" id="scalePerEcho" class="form-control" min="0.90" max="0.99" value="0.965" step="0.005">
+                    </div>
+                </div>
+
+                <!-- Visual Effects -->
+                <div class="settings-section">
+                    <h4>視覚効果</h4>
+                    <div class="form-group">
+                        <label class="form-label">エコーごとの透明度: <span id="alphaPerEchoValue">0.93</span></label>
+                        <input type="range" id="alphaPerEcho" class="form-control" min="0.85" max="0.98" value="0.93" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">エコーごとのぼかし: <span id="blurPerEchoValue">0.2</span>px</label>
+                        <input type="range" id="blurPerEcho" class="form-control" min="0" max="0.8" value="0.2" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">色減衰</label>
+                        <select id="colorDecay" class="form-control">
+                            <option value="off">オフ</option>
+                            <option value="light" selected>ライト</option>
+                            <option value="strong">ストロング</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="settings-section">
+                    <h4>コントロール</h4>
+                    <button id="clearCanvas" class="btn btn--secondary btn--full-width">キャンバスをクリア</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
