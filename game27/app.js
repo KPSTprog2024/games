@@ -12,6 +12,9 @@ class EchoDrawingApp {
             alphaPerEcho: 0.93,
             blurPerEcho: 0.2,
             colorDecay: 'light',
+            colorMode: 'solid',
+            gradientEndColor: '#ff0088',
+            hueShift: 30,
             strokeColor: '#00ff88',
             strokeWidth: 3,
             strokeAlpha: 0.9
@@ -26,7 +29,10 @@ class EchoDrawingApp {
                 scalePerEcho: 0.965,
                 alphaPerEcho: 0.93,
                 blurPerEcho: 0.2,
-                colorDecay: 'light'
+                colorDecay: 'light',
+                colorMode: 'solid',
+                gradientEndColor: '#ff0088',
+                hueShift: 30
             },
             'film-echo': {
                 echoIntervalMs: 120,
@@ -36,7 +42,10 @@ class EchoDrawingApp {
                 scalePerEcho: 0.95,
                 alphaPerEcho: 0.9,
                 blurPerEcho: 0.4,
-                colorDecay: 'strong'
+                colorDecay: 'strong',
+                colorMode: 'solid',
+                gradientEndColor: '#ff0088',
+                hueShift: 30
             },
             'wireframe-lite': {
                 echoIntervalMs: 80,
@@ -46,7 +55,10 @@ class EchoDrawingApp {
                 scalePerEcho: 0.975,
                 alphaPerEcho: 0.95,
                 blurPerEcho: 0.0,
-                colorDecay: 'off'
+                colorDecay: 'off',
+                colorMode: 'solid',
+                gradientEndColor: '#ff0088',
+                hueShift: 30
             }
         };
         
@@ -106,9 +118,9 @@ class EchoDrawingApp {
         this.canvas.addEventListener('pointerup', (e) => this.handlePointerUp(e));
         this.canvas.addEventListener('pointercancel', (e) => this.handlePointerUp(e));
         
-        // Prevent context menu and scrolling
+        // Prevent context menu and page scrolling while drawing
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
         
         // Clear canvas button
         document.getElementById('clearCanvas').addEventListener('click', () => {
@@ -134,6 +146,19 @@ class EchoDrawingApp {
         // Settings controls
         this.setupSettingControl('strokeColor', 'color', (value) => {
             this.settings.strokeColor = value;
+        });
+
+        this.setupSettingControl('colorMode', 'select', (value) => {
+            this.settings.colorMode = value;
+        });
+
+        this.setupSettingControl('gradientEndColor', 'color', (value) => {
+            this.settings.gradientEndColor = value;
+        });
+
+        this.setupSettingControl('hueShift', 'range', (value) => {
+            this.settings.hueShift = parseInt(value);
+            document.getElementById('hueShiftValue').textContent = value;
         });
         
         this.setupSettingControl('strokeWidth', 'range', (value) => {
@@ -304,7 +329,7 @@ class EchoDrawingApp {
         // Draw echoes from back to front
         const echoes = this.echoManager.getRenderPlan();
         for (const {echo, k} of echoes) {
-            this.renderer.drawEcho(echo, k, this.getTransformParams(k));
+            this.renderer.drawEcho(echo, k, this.getTransformParams(k), this.settings);
         }
         
         // Draw current stroke on top
@@ -320,8 +345,7 @@ class EchoDrawingApp {
             dy: k * this.settings.shiftY,
             scale: Math.pow(this.settings.scalePerEcho, k),
             alpha: Math.pow(this.settings.alphaPerEcho, k),
-            blur: k * this.settings.blurPerEcho,
-            colorDecay: this.settings.colorDecay
+            blur: k * this.settings.blurPerEcho
         };
     }
     
@@ -539,28 +563,25 @@ class Canvas2DRenderer {
         this.ctx.restore();
     }
     
-    drawEcho(echo, k, transform) {
+    drawEcho(echo, k, transform, settings) {
         if (!echo || echo.points.length === 0) return;
-        
+
         this.ctx.save();
-        
+
         // Apply transforms
         this.ctx.translate(transform.dx, transform.dy);
         this.ctx.scale(transform.scale, transform.scale);
         this.ctx.globalAlpha = echo.alpha * transform.alpha;
-        
+
         // Apply blur if enabled
         if (transform.blur > 0) {
             this.ctx.shadowBlur = transform.blur;
             this.ctx.shadowColor = echo.color;
         }
-        
-        // Apply color decay
-        let echoColor = echo.color;
-        if (transform.colorDecay !== 'off') {
-            echoColor = this.applyColorDecay(echo.color, k, transform.colorDecay);
-        }
-        
+
+        // Apply color effects
+        const echoColor = this.applyColorEffect(echo.color, k, settings);
+
         this.ctx.strokeStyle = echoColor;
         this.ctx.lineWidth = echo.width;
         this.ctx.lineCap = 'round';
@@ -588,7 +609,22 @@ class Canvas2DRenderer {
         
         this.ctx.restore();
     }
-    
+
+    applyColorEffect(color, k, settings) {
+        switch (settings.colorMode) {
+            case 'gradient':
+                const t = Math.min(1, k / settings.echoCountMax);
+                return this.interpolateColor(color, settings.gradientEndColor, t);
+            case 'rainbow':
+                return this.shiftHue(color, k * settings.hueShift);
+            default:
+                if (settings.colorDecay !== 'off') {
+                    return this.applyColorDecay(color, k, settings.colorDecay);
+                }
+                return color;
+        }
+    }
+
     applyColorDecay(color, k, intensity) {
         // Convert hex to RGB
         const r = parseInt(color.substr(1, 2), 16);
@@ -604,6 +640,68 @@ class Canvas2DRenderer {
         const newB = Math.max(0, Math.round(b * decay));
         
         return `rgb(${newR}, ${newG}, ${newB})`;
+    }
+
+    interpolateColor(startColor, endColor, t) {
+        const sr = parseInt(startColor.substr(1, 2), 16);
+        const sg = parseInt(startColor.substr(3, 2), 16);
+        const sb = parseInt(startColor.substr(5, 2), 16);
+        const er = parseInt(endColor.substr(1, 2), 16);
+        const eg = parseInt(endColor.substr(3, 2), 16);
+        const eb = parseInt(endColor.substr(5, 2), 16);
+        const r = Math.round(sr + (er - sr) * t);
+        const g = Math.round(sg + (eg - sg) * t);
+        const b = Math.round(sb + (eb - sb) * t);
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    shiftHue(color, amount) {
+        const { h, s, l } = this.hexToHsl(color);
+        const newH = (h + amount) % 360;
+        const { r, g, b } = this.hslToRgb(newH, s, l);
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    hexToHsl(hex) {
+        let r = parseInt(hex.substr(1, 2), 16) / 255;
+        let g = parseInt(hex.substr(3, 2), 16) / 255;
+        let b = parseInt(hex.substr(5, 2), 16) / 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h *= 60;
+        }
+        return { h, s: s * 100, l: l * 100 };
+    }
+
+    hslToRgb(h, s, l) {
+        s /= 100;
+        l /= 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = l - c / 2;
+        let r1, g1, b1;
+        if (h < 60) { r1 = c; g1 = x; b1 = 0; }
+        else if (h < 120) { r1 = x; g1 = c; b1 = 0; }
+        else if (h < 180) { r1 = 0; g1 = c; b1 = x; }
+        else if (h < 240) { r1 = 0; g1 = x; b1 = c; }
+        else if (h < 300) { r1 = x; g1 = 0; b1 = c; }
+        else { r1 = c; g1 = 0; b1 = x; }
+        const r = Math.round((r1 + m) * 255);
+        const g = Math.round((g1 + m) * 255);
+        const b = Math.round((b1 + m) * 255);
+        return { r, g, b };
     }
 }
 

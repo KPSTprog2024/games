@@ -45,6 +45,22 @@
                         <input type="color" id="strokeColor" class="color-input" value="#00ff88">
                     </div>
                     <div class="form-group">
+                        <label class="form-label">色モード</label>
+                        <select id="colorMode" class="form-control">
+                            <option value="solid" selected>単色</option>
+                            <option value="gradient">グラデーション</option>
+                            <option value="rainbow">レインボー</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">グラデーション終点色</label>
+                        <input type="color" id="gradientEndColor" class="color-input" value="#ff0088">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">色相シフト: <span id="hueShiftValue">30</span>°</label>
+                        <input type="range" id="hueShift" class="form-control" min="0" max="360" value="30" step="1">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">ブラシサイズ: <span id="strokeWidthValue">3</span>px</label>
                         <input type="range" id="strokeWidth" class="form-control" min="1" max="10" value="3" step="0.5">
                     </div>

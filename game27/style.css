@@ -820,6 +820,8 @@ select.form-control {
 .settings-content {
   max-height: calc(100vh - 120px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 0;
   transition: all var(--duration-normal) var(--ease-standard);
 }
@@ -879,6 +881,11 @@ select.form-control {
 .color-input::-webkit-color-swatch {
   border: none;
   border-radius: calc(var(--radius-base) - 2px);
+}
+
+/* Color effect controls */
+#hueShift {
+  accent-color: var(--color-teal-300);
 }
 
 /* Range Inputs */
