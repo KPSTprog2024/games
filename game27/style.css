@@ -881,6 +881,11 @@ select.form-control {
   border-radius: calc(var(--radius-base) - 2px);
 }
 
+/* Color effect controls */
+#hueShift {
+  accent-color: var(--color-teal-300);
+}
+
 /* Range Inputs */
 input[type="range"] {
   -webkit-appearance: none;
