@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハーモノグラフジェネレーター</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Enhanced Header with Time Controls -->
+        <header class="header">
+            <h1>ハーモノグラフジェネレーター</h1>
+            <div class="header-controls">
+                <div class="playback-controls">
+                    <button class="btn btn--primary" id="playPause">▶️ 再生</button>
+                    <button class="btn btn--secondary" id="rewind">⏪ 巻戻し</button>
+                    <button class="btn btn--secondary" id="fastForward">⏩ 早送り</button>
+                </div>
+                <div class="speed-control">
+                    <label>速度:</label>
+                    <select id="speedSelect" class="form-control">
+                        <option value="0.1">0.1x</option>
+                        <option value="0.25">0.25x</option>
+                        <option value="0.5">0.5x</option>
+                        <option value="1.0" selected>1x</option>
+                        <option value="2.0">2x</option>
+                        <option value="5.0">5x</option>
+                        <option value="10.0">10x</option>
+                    </select>
+                </div>
+                <div class="mode-control">
+                    <label>描画モード:</label>
+                    <select id="drawingMode" class="form-control">
+                        <option value="finite">有限 (Finite)</option>
+                        <option value="infinite" selected>無限 (Infinite)</option>
+                        <option value="cycle">サイクル (Cycle)</option>
+                        <option value="accumulate">蓄積 (Accumulate)</option>
+                        <option value="fade">フェード (Fade)</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel - Math Parameters -->
+            <div class="controls-panel">
+                <div class="panel-section">
+                    <h3>数学パラメーター</h3>
+                    
+                    <!-- Frequencies -->
+                    <div class="param-group">
+                        <h4>周波数 (Frequencies)</h4>
+                        <div class="param-cards">
+                            <div class="param-card" id="f1-card">
+                                <label class="param-label">f1</label>
+                                <div class="drum-picker" data-param="f1" data-min="0.1" data-max="10" data-step="0.1" data-value="3.0">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">3.0</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                                <div class="step-selector">
+                                    <button class="step-btn active" data-step="0.01">0.01</button>
+                                    <button class="step-btn" data-step="0.1">0.1</button>
+                                    <button class="step-btn" data-step="1.0">1</button>
+                                </div>
+                            </div>
+                            
+                            <div class="param-card" id="f2-card">
+                                <label class="param-label">f2</label>
+                                <div class="drum-picker" data-param="f2" data-min="0.1" data-max="10" data-step="0.1" data-value="1.0">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">1.0</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                                <div class="step-selector">
+                                    <button class="step-btn active" data-step="0.01">0.01</button>
+                                    <button class="step-btn" data-step="0.1">0.1</button>
+                                    <button class="step-btn" data-step="1.0">1</button>
+                                </div>
+                            </div>
+                            
+                            <div class="param-card" id="f3-card">
+                                <label class="param-label">f3</label>
+                                <div class="drum-picker" data-param="f3" data-min="0.1" data-max="10" data-step="0.1" data-value="2.0">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">2.0</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                                <div class="step-selector">
+                                    <button class="step-btn active" data-step="0.01">0.01</button>
+                                    <button class="step-btn" data-step="0.1">0.1</button>
+                                    <button class="step-btn" data-step="1.0">1</button>
+                                </div>
+                            </div>
+                            
+                            <div class="param-card" id="f4-card">
+                                <label class="param-label">f4</label>
+                                <div class="drum-picker" data-param="f4" data-min="0.1" data-max="10" data-step="0.1" data-value="1.0">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">1.0</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                                <div class="step-selector">
+                                    <button class="step-btn active" data-step="0.01">0.01</button>
+                                    <button class="step-btn" data-step="0.1">0.1</button>
+                                    <button class="step-btn" data-step="1.0">1</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amplitudes -->
+                    <div class="param-group">
+                        <h4>振幅 (Amplitudes)</h4>
+                        <div class="param-cards">
+                            <div class="param-card">
+                                <label class="param-label">A1</label>
+                                <div class="drum-picker" data-param="A1" data-min="0" data-max="300" data-step="5" data-value="150">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">150</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">A2</label>
+                                <div class="drum-picker" data-param="A2" data-min="0" data-max="300" data-step="5" data-value="100">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">100</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">B1</label>
+                                <div class="drum-picker" data-param="B1" data-min="0" data-max="300" data-step="5" data-value="150">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">150</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">B2</label>
+                                <div class="drum-picker" data-param="B2" data-min="0" data-max="300" data-step="5" data-value="100">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">100</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Decay Parameters (only visible in finite mode) -->
+                    <div class="param-group" id="decayGroup" style="display: none;">
+                        <h4>減衰 (Decay)</h4>
+                        <div class="param-cards">
+                            <div class="param-card">
+                                <label class="param-label">d1</label>
+                                <div class="drum-picker" data-param="d1" data-min="0" data-max="0.1" data-step="0.001" data-value="0.02">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">0.020</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">d2</label>
+                                <div class="drum-picker" data-param="d2" data-min="0" data-max="0.1" data-step="0.001" data-value="0.015">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">0.015</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">d3</label>
+                                <div class="drum-picker" data-param="d3" data-min="0" data-max="0.1" data-step="0.001" data-value="0.02">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">0.020</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                            <div class="param-card">
+                                <label class="param-label">d4</label>
+                                <div class="drum-picker" data-param="d4" data-min="0" data-max="0.1" data-step="0.001" data-value="0.015">
+                                    <button class="drum-btn drum-down">−</button>
+                                    <div class="drum-display">0.015</div>
+                                    <button class="drum-btn drum-up">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="param-group">
+                        <div class="quick-actions">
+                            <button class="btn btn--secondary" id="randomize">ランダム</button>
+                            <button class="btn btn--secondary" id="clear">クリア</button>
+                            <button class="btn btn--secondary" id="bookmark">ブックマーク</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Canvas -->
+            <div class="canvas-panel">
+                <canvas id="harmonographCanvas" width="800" height="600"></canvas>
+                <div class="canvas-overlay">
+                    <div class="render-status" id="renderStatus">描画中...</div>
+                    <div class="time-display" id="timeDisplay">時間: 00:00</div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Visual Effects -->
+            <div class="color-panel">
+                <div class="panel-section">
+                    <h3>ビジュアルエフェクト</h3>
+                    
+                    <!-- Drawing Mode Info -->
+                    <div class="mode-info" id="modeInfo">
+                        <h4>無限モード</h4>
+                        <p>減衰なし - ずっと描画し続けます</p>
+                    </div>
+
+                    <!-- Color Animation Presets -->
+                    <div class="color-presets">
+                        <h4>カラープリセット</h4>
+                        <div class="preset-grid" id="colorPresetGrid">
+                            <!-- Color presets will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Background Color Animation -->
+                    <div class="color-section">
+                        <h4>背景色設定</h4>
+                        <div class="hsl-controls">
+                            <div class="hsl-control">
+                                <label>色相 (Hue)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="bg" data-component="hue">
+                                        <option value="sine">Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="bg" data-component="hue" data-property="frequency" min="0.1" max="2" step="0.1" value="0.3">
+                                    <span class="hsl-value">0.3</span>
+                                </div>
+                            </div>
+                            <div class="hsl-control">
+                                <label>彩度 (Saturation)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="bg" data-component="saturation">
+                                        <option value="sine">Sine</option>
+                                        <option value="triangle" selected>Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="bg" data-component="saturation" data-property="frequency" min="0.1" max="2" step="0.1" value="0.2">
+                                    <span class="hsl-value">0.2</span>
+                                </div>
+                            </div>
+                            <div class="hsl-control">
+                                <label>明度 (Lightness)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="bg" data-component="lightness">
+                                        <option value="sine" selected>Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="bg" data-component="lightness" data-property="frequency" min="0.1" max="2" step="0.1" value="0.1">
+                                    <span class="hsl-value">0.1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Foreground Color Animation -->
+                    <div class="color-section">
+                        <h4>前景色設定</h4>
+                        <div class="hsl-controls">
+                            <div class="hsl-control">
+                                <label>色相 (Hue)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="fg" data-component="hue">
+                                        <option value="sine" selected>Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="fg" data-component="hue" data-property="frequency" min="0.1" max="2" step="0.1" value="0.25">
+                                    <span class="hsl-value">0.25</span>
+                                </div>
+                            </div>
+                            <div class="hsl-control">
+                                <label>彩度 (Saturation)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="fg" data-component="saturation">
+                                        <option value="sine" selected>Sine</option>
+                                        <option value="triangle">Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="fg" data-component="saturation" data-property="frequency" min="0.1" max="2" step="0.1" value="0.4">
+                                    <span class="hsl-value">0.4</span>
+                                </div>
+                            </div>
+                            <div class="hsl-control">
+                                <label>明度 (Lightness)</label>
+                                <div class="wave-control">
+                                    <select class="wave-selector" data-target="fg" data-component="lightness">
+                                        <option value="sine">Sine</option>
+                                        <option value="triangle" selected>Triangle</option>
+                                        <option value="sawtooth">Sawtooth</option>
+                                        <option value="square">Square</option>
+                                        <option value="noise">Noise</option>
+                                    </select>
+                                    <input type="range" class="hsl-slider" data-target="fg" data-component="lightness" data-property="frequency" min="0.1" max="2" step="0.1" value="0.3">
+                                    <span class="hsl-value">0.3</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export -->
+                    <div class="color-section">
+                        <h4>エクスポート</h4>
+                        <div class="export-buttons">
+                            <button class="btn btn--primary" id="exportPNG">PNG保存</button>
+                            <button class="btn btn--secondary" id="exportRange">範囲エクスポート</button>
+                        </div>
+                    </div>
+
+                    <!-- Bookmarks -->
+                    <div class="color-section">
+                        <h4>ブックマーク</h4>
+                        <div class="bookmark-list" id="bookmarkList">
+                            <!-- Bookmarks will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Timeline Panel -->
+        <div class="timeline-panel">
+            <div class="timeline-header">
+                <h4>タイムライン制御</h4>
+                <div class="timeline-info">
+                    <span id="currentTimeLabel">現在時間: 00:00</span>
+                    <span id="totalTimeLabel">総時間: ∞</span>
+                </div>
+            </div>
+            
+            <div class="timeline-main">
+                <div class="timeline-preview" id="timelinePreview">
+                    <canvas id="timelineCanvas" width="800" height="80"></canvas>
+                </div>
+                
+                <div class="timeline-controls">
+                    <div class="timeline-scrubber-container">
+                        <input type="range" id="timeScrubber" min="0" max="1000" step="1" value="0" class="timeline-slider">
+                        <div class="timeline-markers" id="timelineMarkers">
+                            <!-- Time markers will be generated here -->
+                        </div>
+                        <div class="timeline-bookmarks" id="timelineBookmarks">
+                            <!-- Bookmark indicators will appear here -->
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-buttons">
+                        <button class="btn btn--secondary" id="setLoopStart">ループ開始</button>
+                        <button class="btn btn--secondary" id="setLoopEnd">ループ終了</button>
+                        <button class="btn btn--secondary" id="clearLoop">ループクリア</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
