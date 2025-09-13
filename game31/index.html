@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マルチペンデュラム ハーモノグラフ - Multi-Pendulum Harmonograph</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="app-title">マルチペンデュラム ハーモノグラフ</h1>
+            <p class="app-subtitle">複数の振り子が織りなす数学的調和の芸術</p>
+        </header>
+
+        <!-- Main Canvas Area -->
+        <div class="canvas-section">
+            <div class="canvas-container">
+                <canvas id="backgroundCanvas" class="background-canvas"></canvas>
+                <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+                <div class="canvas-overlay">
+                    <div class="playback-controls">
+                        <button id="playPauseBtn" class="btn btn--primary">
+                            <span id="playIcon">▶</span>
+                            <span id="pauseIcon" class="hidden">⏸</span>
+                        </button>
+                        <button id="resetBtn" class="btn btn--secondary">⟳</button>
+                        <button id="saveBtn" class="btn btn--secondary">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <!-- Multi-Pen Presets -->
+            <div class="control-section">
+                <h3 class="section-title">マルチペン プリセット</h3>
+                <div class="multi-pen-presets">
+                    <button class="preset-card" data-preset="双龍">
+                        <div class="preset-title">双龍</div>
+                        <div class="preset-desc">2本のペンが織りなす対称美</div>
+                    </button>
+                    <button class="preset-card" data-preset="花火">
+                        <div class="preset-title">花火</div>
+                        <div class="preset-desc">3本のペンによる爆発的パターン</div>
+                    </button>
+                    <button class="preset-card" data-preset="銀河">
+                        <div class="preset-title">銀河</div>
+                        <div class="preset-desc">4本のペンが創る渦巻き銀河</div>
+                    </button>
+                    <button class="preset-card" data-preset="陰陽">
+                        <div class="preset-title">陰陽</div>
+                        <div class="preset-desc">対極の調和を表現する2本ペン</div>
+                    </button>
+                    <button class="preset-card" data-preset="桜吹雪">
+                        <div class="preset-title">桜吹雪</div>
+                        <div class="preset-desc">繊細な桜の花びらのような3本ペン</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pen Management -->
+            <div class="control-section">
+                <h3 class="section-title">
+                    ペン管理 
+                    <span class="pen-count">(<span id="penCountDisplay">1</span>/4)</span>
+                </h3>
+                <div class="pen-management">
+                    <button id="addPenBtn" class="btn btn--primary">ペン追加</button>
+                    <button id="duplicatePenBtn" class="btn btn--secondary">複製</button>
+                </div>
+                <div id="penList" class="pen-list">
+                    <!-- Pen controls will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Global Controls -->
+            <div class="control-section">
+                <h3 class="section-title">グローバル設定</h3>
+                <div class="global-controls">
+                    <div class="param-group">
+                        <label class="form-label">マスター速度: <span id="globalSpeedValue">1.0</span></label>
+                        <input type="range" id="globalSpeedSlider" class="form-control" min="0.1" max="3" step="0.1" value="1">
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="phaseLockToggle"> 位相同期
+                        </label>
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">全体振幅: <span id="globalAmplitudeValue">1.0</span></label>
+                        <input type="range" id="globalAmplitudeSlider" class="form-control" min="0.5" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Motion Controls -->
+            <div class="control-section">
+                <h3 class="section-title collapsible" data-target="paperMotionContent">
+                    紙/テーブル モーション <span class="collapse-icon">▼</span>
+                </h3>
+                <div id="paperMotionContent" class="collapsible-content collapsed">
+                    <div class="param-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="paperMotionToggle"> 紙モーション有効
+                        </label>
+                    </div>
+                    <div class="paper-controls" id="paperControls" style="display: none;">
+                        <div class="param-group">
+                            <label class="form-label">回転振幅: <span id="paperRotAmplitudeValue">0.0</span></label>
+                            <input type="range" id="paperRotAmplitudeSlider" class="form-control" min="0" max="1" step="0.1" value="0">
+                        </div>
+                        <div class="param-group">
+                            <label class="form-label">回転周波数: <span id="paperRotFreqValue">1.0</span></label>
+                            <input type="range" id="paperRotFreqSlider" class="form-control" min="0.1" max="5" step="0.1" value="1">
+                        </div>
+                        <div class="param-group">
+                            <label class="form-label">回転減衰: <span id="paperRotDampingValue">0.0003</span></label>
+                            <input type="range" id="paperRotDampingSlider" class="form-control" min="0" max="0.002" step="0.0001" value="0.0003">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Background Selection -->
+            <div class="control-section">
+                <h3 class="section-title">背景</h3>
+                <div class="background-selector">
+                    <div class="background-option active" data-bg="nightsky">
+                        <div class="bg-preview bg-nightsky"></div>
+                        <span>夜空</span>
+                    </div>
+                    <div class="background-option" data-bg="mandala">
+                        <div class="bg-preview bg-mandala"></div>
+                        <span>曼荼羅</span>
+                    </div>
+                    <div class="background-option" data-bg="mist">
+                        <div class="bg-preview bg-mist"></div>
+                        <span>霧</span>
+                    </div>
+                    <div class="background-option" data-bg="charcoal">
+                        <div class="bg-preview bg-charcoal"></div>
+                        <span>炭紙</span>
+                    </div>
+                    <div class="background-option" data-bg="enso">
+                        <div class="bg-preview bg-enso"></div>
+                        <span>円相</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
