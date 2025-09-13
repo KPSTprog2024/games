@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>禅ペンデュラムアート - Zen Pendulum Art</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="app-title">禅ペンデュラムアート</h1>
+            <p class="app-subtitle">数学の美しさを瞑想的な芸術に変換</p>
+        </header>
+
+        <!-- Main Canvas Area -->
+        <div class="canvas-section">
+            <div class="canvas-container">
+                <canvas id="backgroundCanvas" class="background-canvas"></canvas>
+                <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+                <div class="canvas-overlay">
+                    <div class="playback-controls">
+                        <button id="playPauseBtn" class="btn btn--primary">
+                            <span id="playIcon">▶</span>
+                            <span id="pauseIcon" class="hidden">⏸</span>
+                        </button>
+                        <button id="resetBtn" class="btn btn--secondary">⟳</button>
+                        <button id="saveBtn" class="btn btn--secondary">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <!-- Background Selection -->
+            <div class="control-section">
+                <h3 class="section-title">背景</h3>
+                <div class="background-selector">
+                    <div class="background-option active" data-bg="nightsky">
+                        <div class="bg-preview bg-nightsky"></div>
+                        <span>夜空</span>
+                    </div>
+                    <div class="background-option" data-bg="mandala">
+                        <div class="bg-preview bg-mandala"></div>
+                        <span>曼荼羅</span>
+                    </div>
+                    <div class="background-option" data-bg="mist">
+                        <div class="bg-preview bg-mist"></div>
+                        <span>霧</span>
+                    </div>
+                    <div class="background-option" data-bg="charcoal">
+                        <div class="bg-preview bg-charcoal"></div>
+                        <span>炭紙</span>
+                    </div>
+                    <div class="background-option" data-bg="enso">
+                        <div class="bg-preview bg-enso"></div>
+                        <span>円相</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frequency Presets -->
+            <div class="control-section">
+                <h3 class="section-title">周波数比</h3>
+                <div class="frequency-presets">
+                    <button class="preset-btn active" data-fx="3" data-fy="2">3:2</button>
+                    <button class="preset-btn" data-fx="4" data-fy="3">4:3</button>
+                    <button class="preset-btn" data-fx="5" data-fy="4">5:4</button>
+                    <button class="preset-btn" data-fx="4" data-fy="5">4:5</button>
+                    <button class="preset-btn" data-fx="1" data-fy="1">1:1</button>
+                    <button class="preset-btn" data-fx="7" data-fy="5">7:5</button>
+                </div>
+            </div>
+
+            <!-- Parameter Controls -->
+            <div class="control-section">
+                <h3 class="section-title">パラメータ</h3>
+                <div class="parameter-grid">
+                    <div class="param-group">
+                        <label class="form-label">X振幅: <span id="axValue">150</span></label>
+                        <input type="range" id="axSlider" class="form-control" min="50" max="250" value="150">
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">Y振幅: <span id="ayValue">150</span></label>
+                        <input type="range" id="aySlider" class="form-control" min="50" max="250" value="150">
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">減衰: <span id="dampingValue">0.001</span></label>
+                        <input type="range" id="dampingSlider" class="form-control" min="0" max="0.005" step="0.0001" value="0.001">
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">速度: <span id="speedValue">1</span></label>
+                        <input type="range" id="speedSlider" class="form-control" min="0.1" max="3" step="0.1" value="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase Controls -->
+            <div class="control-section">
+                <h3 class="section-title">位相</h3>
+                <div class="phase-controls">
+                    <div class="phase-circle" id="phaseCircle">
+                        <div class="phase-indicator" id="phaseIndicator"></div>
+                    </div>
+                    <div class="phase-info">
+                        <p>X位相: <span id="phaseXValue">0°</span></p>
+                        <p>Y位相: <span id="phaseYValue">0°</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stroke Controls -->
+            <div class="control-section">
+                <h3 class="section-title">ストローク</h3>
+                <div class="stroke-controls">
+                    <div class="param-group">
+                        <label class="form-label">線幅: <span id="strokeWidthValue">2</span></label>
+                        <input type="range" id="strokeWidthSlider" class="form-control" min="0.5" max="5" step="0.1" value="2">
+                    </div>
+                    <div class="param-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="gradientToggle" checked> グラデーション
+                        </label>
+                    </div>
+                    <div class="color-presets">
+                        <div class="color-preset active" data-start="#ff4757" data-end="#3742fa">
+                            <div class="color-preview" style="background: linear-gradient(45deg, #ff4757, #3742fa)"></div>
+                            <span>炎</span>
+                        </div>
+                        <div class="color-preset" data-start="#2ed573" data-end="#1e3799">
+                            <div class="color-preview" style="background: linear-gradient(45deg, #2ed573, #1e3799)"></div>
+                            <span>森</span>
+                        </div>
+                        <div class="color-preset" data-start="#feca57" data-end="#ff9ff3">
+                            <div class="color-preview" style="background: linear-gradient(45deg, #feca57, #ff9ff3)"></div>
+                            <span>金</span>
+                        </div>
+                        <div class="color-preset" data-start="#ff9ff3" data-end="#f368e0">
+                            <div class="color-preview" style="background: linear-gradient(45deg, #ff9ff3, #f368e0)"></div>
+                            <span>桜</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Art Presets -->
+            <div class="control-section">
+                <h3 class="section-title">アートプリセット</h3>
+                <div class="art-presets">
+                    <button class="preset-btn" data-preset="zen-flower">禅の花</button>
+                    <button class="preset-btn" data-preset="night-dance">夜の舞</button>
+                    <button class="preset-btn" data-preset="meditation-circle">瞑想の輪</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
