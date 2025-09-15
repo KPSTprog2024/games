@@ -159,7 +159,15 @@ document.getElementById('togglePanel').addEventListener('click',()=>{
   document.getElementById('settingsPanel').classList.toggle('open');
 });
 
+document.getElementById('closePanel').addEventListener('click',()=>{
+  document.getElementById('settingsPanel').classList.remove('open');
+});
+
 document.getElementById('exportGif').addEventListener('click',()=>gifExporter.export());
+document.getElementById('clearCanvas').addEventListener('click',()=>{
+  canvasManager.ctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+  echoEngine.ctx.clearRect(0,0,echoCanvas.width,echoCanvas.height);
+});
 
 // Drawing events
 function getPos(e){
