@@ -7,7 +7,7 @@
 - **Design Principle**: One-way dependencies, renderer abstraction, performance-first fallback
 
 ## Core Concept
-The app captures user strokes every 0.1s, creates "echo snapshots" that gradually fade towards the left-back direction (-X, -Y, +Z visual effect), with automatic size/opacity/blur reduction to simulate depth.
+The app captures user strokes every 70ms, creating "echo snapshots" that gradually fade towards the left-back direction (-X, -Y, +Z visual effect), with automatic size/opacity/blur reduction to simulate depth.
 
 ## Module Responsibilities
 
@@ -56,7 +56,7 @@ App (coordinator)
 ## Data Flow
 1. **Input**: Pointer events → normalized Points → StrokeManager
 2. **Drawing**: Active stroke updated in real-time via RAF
-3. **Echo Generation**: Every 0.1s, current stroke snapshot → EchoManager queue
+3. **Echo Generation**: Every 70ms, current stroke snapshot → EchoManager queue
 4. **Rendering**: Clear → Draw echoes (back-to-front) → Draw active stroke
 5. **Performance**: Monitor frame time → Governor adjusts settings if needed
 

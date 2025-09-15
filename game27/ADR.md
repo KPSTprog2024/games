@@ -20,7 +20,7 @@
 
 ## ADR-003: Dual Timer System (RAF + setInterval) 
 **Date:** 2025-09-13  
-**Context:** Echo generation timing needs to be consistent (100ms) while drawing updates need smooth 60fps.  
+**Context:** Echo generation timing needs to be consistent (70ms) while drawing updates need smooth 60fps.
 **Decision:** Use requestAnimationFrame for drawing loop and separate setInterval for echo snapshots.  
 **Rationale:** RAF provides optimal frame pacing for smooth drawing. setInterval ensures consistent echo timing independent of frame rate. Dual system prevents echo timing drift during performance variations.  
 **Consequences:** Slightly more complex scheduler implementation. Echo timing may lag briefly during heavy performance drops, but this is acceptable vs. timing drift.
