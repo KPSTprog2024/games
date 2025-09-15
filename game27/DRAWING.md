@@ -32,12 +32,12 @@ For echo at depth k:
 ### Echo Timing
 | Parameter | Default | Range | Unit | Effect |
 |-----------|---------|-------|------|--------|
-| echoIntervalMs | 100 | 30–200 | ms | How often new echoes are created |
+| echoIntervalMs | 70 | 30–200 | ms | How often new echoes are created |
 
 ### Echo Quantity  
 | Parameter | Default | Range | Unit | Effect |
 |-----------|---------|-------|------|--------|
-| echoCountMax | 36 | 10–80 | count | Maximum simultaneous echoes |
+| echoCountMax | 80 | 10–200 | count | Maximum simultaneous echoes |
 
 ### Spatial Transform
 | Parameter | Default | Range | Unit | Effect |
@@ -76,8 +76,8 @@ For echo at depth k:
 
 ### Depth-Soft (Default)
 ```
-echoIntervalMs: 100
-echoCountMax: 36
+echoIntervalMs: 70
+echoCountMax: 80
 shiftX: -8, shiftY: -5
 scalePerEcho: 0.965
 alphaPerEcho: 0.93

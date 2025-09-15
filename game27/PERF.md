@@ -191,16 +191,16 @@ When enabled, displays:
 ### Console Logging
 Performance events are logged with timestamps for debugging:
 ```
-[09:13:45.123] Performance fallback Stage 2: Echo count reduced to 28
+[09:13:45.123] Performance fallback Stage 2: Echo count reduced to 72
 [09:13:50.456] Echo render time: 12.3ms (target: <8ms)
-[09:14:02.789] Performance recovery Stage 2→1: Echo count restored to 36
+[09:14:02.789] Performance recovery Stage 2→1: Echo count restored to 80
 ```
 
 ### Export Performance Data
 Debug builds can export performance data as CSV for analysis:
 ```
 timestamp,fps,frameMs,echoRenderMs,echoCount,stage,memoryMB
-1694598825123,58.2,17.2,6.1,36,0,45.2
-1694598825139,56.8,17.6,6.8,36,0,45.3
+1694598825123,58.2,17.2,6.1,80,0,45.2
+1694598825139,56.8,17.6,6.8,80,0,45.3
 ...
 ```

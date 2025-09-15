@@ -25,11 +25,11 @@
 ### Echo Generation Tests
 | Test Case | Scenario | Expected Behavior | Pass Criteria |
 |-----------|----------|-------------------|---------------|
-| Echo Timing | Draw for 1 second | ~10 echoes generated (100ms interval) | 9-11 echoes present |
+| Echo Timing | Draw for 1 second | ~14 echoes generated (70ms interval) | 13-15 echoes present |
 | Echo Positioning | Single stroke | Echoes fade toward left-back | Each echo offset by (-8,-5) × k |
 | Echo Scaling | Various strokes | Size decreases with depth | Each echo 96.5% of previous |
 | Echo Alpha | Continuous drawing | Opacity fades correctly | Each echo 93% opacity of previous |
-| Max Echo Count | Long drawing session | Count capped at 36 | Never exceeds echoCountMax |
+| Max Echo Count | Long drawing session | Count capped at 80 | Never exceeds echoCountMax |
 
 ### Rendering Quality Tests  
 | Test Case | Scenario | Expected Behavior | Pass Criteria |
@@ -127,7 +127,7 @@
 
 ### Functional Requirements  
 - [ ] Drawing works smoothly with mouse, touch, and Apple Pencil
-- [ ] Echo generation maintains 100ms ±10ms timing accuracy
+- [ ] Echo generation maintains 70ms ±10ms timing accuracy
 - [ ] All four preset configurations produce visually distinct results
 - [ ] Settings changes apply immediately without requiring restart
 - [ ] Canvas clears completely with clear button
