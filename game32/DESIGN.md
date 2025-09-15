@@ -10,8 +10,8 @@
 |---------------|------|--------|
 | `CanvasManager` | キャンバス描画制御、筆跡管理 | `Brush`, `EchoEngine`, `Settings` |
 | `Brush` | ペン太さの保持 | なし |
-| `EchoEngine` | スナップショットからエコー生成、位置・色・透明度を調整 | `Settings` |
-| `Settings` | スライダー値やモードの状態管理 | なし |
+| `EchoEngine` | スナップショットからエコー生成、位置・色・透明度を調整。色モードに応じて色相シフトまたは開始色から終了色へのグラデーションを適用 | `Settings` |
+| `Settings` | スライダー値やモード、色モードの状態管理 | なし |
 | `UIPanel` | パラメータパネルの開閉とスライダー表示 | `Settings` |
 | `UIControls` | エコーボタンやモード切替ボタン | `CanvasManager`, `EchoEngine`, `Settings` |
 | `GifExporter` | GIFアニメーション出力 | `CanvasManager`, `EchoEngine` |
@@ -42,3 +42,4 @@ Brush <─── CanvasManager
 - リアルタイムモードとワンショットモードの切替によりパフォーマンスを調整。
 - 初期モードはリアルタイム。
 - 背景色は黒 (#000) とし、線描画を際立たせる。
+- 色モードがグラデーションの場合、色相シフト値は無視し開始色から終了色へ色を補間する。

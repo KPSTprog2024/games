@@ -1,3 +1,26 @@
+function hexToHsl(hex){
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substring(0,2),16)/255;
+  const g = parseInt(hex.substring(2,4),16)/255;
+  const b = parseInt(hex.substring(4,6),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max + min) / 2;
+  if(max === min){
+    h = 0;
+    s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch(max){
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h *= 60;
+  }
+  return {h, s: s*100, l: l*100};
+}
+
 class Settings {
   constructor(){
     this.echoCount = 60;
@@ -10,6 +33,7 @@ class Settings {
     this.opacity = 0.02;
     this.penSize = 5;
     this.mode = 'realtime';
+    this.colorMode = 'rainbow';
   }
 }
 
@@ -66,6 +90,14 @@ class EchoEngine {
     const s = this.settings;
     const {width,height} = this.drawCanvas;
     this.ctx.clearRect(0,0,width,height);
+    let start, dH, dS, dL;
+    if(s.colorMode === 'gradient'){
+      start = hexToHsl(s.startColor);
+      const end = hexToHsl(s.endColor);
+      dH = (end.h - start.h)/s.echoCount;
+      dS = (end.s - start.s)/s.echoCount;
+      dL = (end.l - start.l)/s.echoCount;
+    }
     for(let i=1;i<=s.echoCount;i++){
       const dx = s.shiftX * i * progress;
       const dy = s.shiftY * i * progress;
@@ -73,10 +105,24 @@ class EchoEngine {
       if(scale <= 0) break;
       this.ctx.save();
       this.ctx.globalAlpha = Math.max(1 - s.opacity * i * progress,0);
-      this.ctx.filter = `hue-rotate(${s.hueShift*i}deg)`;
-      this.ctx.translate(dx, dy);
-      this.ctx.scale(scale, scale);
-      this.ctx.drawImage(this.drawCanvas,0,0);
+      if(s.colorMode === 'gradient'){
+        this.ctx.filter = 'none';
+        this.ctx.translate(dx, dy);
+        this.ctx.scale(scale, scale);
+        this.ctx.drawImage(this.drawCanvas,0,0);
+        this.ctx.globalCompositeOperation = 'source-in';
+        const h = start.h + dH * i;
+        const sat = start.s + dS * i;
+        const l = start.l + dL * i;
+        this.ctx.fillStyle = `hsl(${h},${sat}%,${l}%)`;
+        this.ctx.fillRect(0,0,width,height);
+        this.ctx.globalCompositeOperation = 'source-over';
+      } else {
+        this.ctx.filter = `hue-rotate(${s.hueShift*i}deg)`;
+        this.ctx.translate(dx, dy);
+        this.ctx.scale(scale, scale);
+        this.ctx.drawImage(this.drawCanvas,0,0);
+      }
       this.ctx.restore();
     }
   }
@@ -148,10 +194,12 @@ bindSlider('hueShift','hueShift','hueShiftLabel');
 bindSlider('opacity','opacity','opacityLabel');
 bindSlider('penSize','penSize','penSizeLabel');
 
-document.getElementById('startColor').addEventListener('input',e=>{settings.startColor=e.target.value;});
-document.getElementById('endColor').addEventListener('input',e=>{settings.endColor=e.target.value;});
+document.getElementById('startColor').addEventListener('input',e=>{settings.startColor=e.target.value;if(settings.mode==='realtime') echoEngine.generate();});
+document.getElementById('endColor').addEventListener('input',e=>{settings.endColor=e.target.value;if(settings.mode==='realtime') echoEngine.generate();});
 
 document.getElementById('mode').addEventListener('change',e=>{settings.mode=e.target.value;});
+document.getElementById('colorMode').addEventListener('change',e=>{settings.colorMode=e.target.value;document.getElementById('hueShift').disabled = settings.colorMode==='gradient';if(settings.mode==='realtime') echoEngine.generate();});
+document.getElementById('hueShift').disabled = settings.colorMode==='gradient';
 
 document.getElementById('echoBtn').addEventListener('click',()=>{echoEngine.generate();});
 
