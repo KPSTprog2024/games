@@ -1,1 +1,58 @@
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>エコー残像お絵描き</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <canvas id="echoCanvas"></canvas>
+    <canvas id="drawCanvas"></canvas>
+    <button id="echoBtn" class="control-btn">エコー</button>
+    <button id="togglePanel" class="control-btn panel-btn">設定</button>
+    <div id="settingsPanel" class="panel">
+      <button id="closePanel" class="panel-close">×</button>
+      <h3>設定</h3>
+      <label>エコー数: <span id="echoCountLabel">60</span>
+        <input type="range" id="echoCount" min="2" max="120" value="60" />
+      </label>
+      <label>X移動: <span id="shiftXLabel">0</span>
+        <input type="range" id="shiftX" min="-50" max="50" value="0" />
+      </label>
+      <label>Y移動: <span id="shiftYLabel">0</span>
+        <input type="range" id="shiftY" min="-50" max="50" value="0" />
+      </label>
+      <label>Z縮小: <span id="shiftZLabel">0.01</span>
+        <input type="range" id="shiftZ" min="0" max="0.05" step="0.005" value="0.01" />
+      </label>
+      <label>色相シフト: <span id="hueShiftLabel">12</span>°
+        <input type="range" id="hueShift" min="0" max="360" value="12" />
+      </label>
+      <label>開始色
+        <input type="color" id="startColor" value="#ff0000" />
+      </label>
+      <label>終了色
+        <input type="color" id="endColor" value="#0000ff" />
+      </label>
+      <label>透明度減衰: <span id="opacityLabel">0.02</span>
+        <input type="range" id="opacity" min="0" max="0.1" step="0.005" value="0.02" />
+      </label>
+      <label>ペン太さ: <span id="penSizeLabel">5</span>px
+        <input type="range" id="penSize" min="1" max="30" value="5" />
+      </label>
+      <label>モード
+        <select id="mode">
+          <option value="realtime">リアルタイム</option>
+          <option value="oneshot" selected>ワンショット</option>
+        </select>
+      </label>
+      <button id="exportGif" class="panel-button">GIF出力</button>
+      <button id="clearCanvas" class="panel-button">クリア</button>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
