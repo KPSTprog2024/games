@@ -63,7 +63,7 @@ class EchoDrawingApp {
         };
         
         this.strokeManager = new StrokeManager();
-        this.echoManager = new EchoManager();
+        this.echoManager = new EchoManager(this.settings.echoCountMax);
         this.renderer = new Canvas2DRenderer();
         this.performance = new PerformanceManager();
         
@@ -180,6 +180,7 @@ class EchoDrawingApp {
         this.setupSettingControl('echoCount', 'range', (value) => {
             this.settings.echoCountMax = parseInt(value);
             document.getElementById('echoCountValue').textContent = value;
+            this.echoManager.setMaxEchoes(parseInt(value));
         });
         
         this.setupSettingControl('shiftX', 'range', (value) => {
@@ -226,6 +227,7 @@ class EchoDrawingApp {
         if (!preset) return;
         
         Object.assign(this.settings, preset);
+        this.echoManager.setMaxEchoes(this.settings.echoCountMax);
         
         // Update UI controls
         Object.keys(preset).forEach(key => {
@@ -463,9 +465,13 @@ class StrokeManager {
 
 // Echo Manager Class
 class EchoManager {
-    constructor() {
+    constructor(maxEchoes = 36) {
         this.echoes = [];
-        this.maxEchoes = 36;
+        this.maxEchoes = maxEchoes;
+    }
+
+    setMaxEchoes(max) {
+        this.maxEchoes = max;
     }
     
     snapshot(stroke) {
