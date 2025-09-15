@@ -21,7 +21,7 @@ class EchoDrawingApp {
         };
         
         this.presets = {
-            'depth-soft': {
+            'default': {
                 echoIntervalMs: 70,
                 echoCountMax: 80,
                 shiftX: -1,
@@ -32,33 +32,42 @@ class EchoDrawingApp {
                 colorDecay: 'off',
                 colorMode: 'gradient',
                 gradientEndColor: '#ff0078',
-                hueShift: 30
+                hueShift: 30,
+                strokeColor: '#00c8ff',
+                strokeWidth: 3,
+                strokeAlpha: 0.75
             },
-            'film-echo': {
-                echoIntervalMs: 120,
-                echoCountMax: 24,
-                shiftX: -10,
-                shiftY: -6,
-                scalePerEcho: 0.95,
-                alphaPerEcho: 0.9,
-                blurPerEcho: 0.4,
-                colorDecay: 'strong',
-                colorMode: 'solid',
-                gradientEndColor: '#ff0088',
-                hueShift: 30
+            'rainbow': {
+                echoIntervalMs: 40,
+                echoCountMax: 200,
+                shiftX: 5,
+                shiftY: 0,
+                scalePerEcho: 0.99,
+                alphaPerEcho: 0.98,
+                blurPerEcho: 0,
+                colorDecay: 'off',
+                colorMode: 'rainbow',
+                gradientEndColor: '#ff0000',
+                hueShift: 3,
+                strokeColor: '#ff0000',
+                strokeWidth: 5,
+                strokeAlpha: 1
             },
             'wireframe-lite': {
-                echoIntervalMs: 80,
-                echoCountMax: 32,
-                shiftX: -5,
-                shiftY: -3,
-                scalePerEcho: 0.975,
-                alphaPerEcho: 0.95,
-                blurPerEcho: 0.0,
+                echoIntervalMs: 30,
+                echoCountMax: 20,
+                shiftX: 20,
+                shiftY: 1,
+                scalePerEcho: 0.9,
+                alphaPerEcho: 0.98,
+                blurPerEcho: 0,
                 colorDecay: 'off',
                 colorMode: 'solid',
-                gradientEndColor: '#ff0088',
-                hueShift: 30
+                gradientEndColor: '#000000',
+                hueShift: 30,
+                strokeColor: '#00ff64',
+                strokeWidth: 1,
+                strokeAlpha: 1
             }
         };
         
@@ -228,17 +237,21 @@ class EchoDrawingApp {
         
         Object.assign(this.settings, preset);
         this.echoManager.setMaxEchoes(this.settings.echoCountMax);
-        
+
         // Update UI controls
         Object.keys(preset).forEach(key => {
             const element = document.getElementById(this.getControlId(key));
             if (element) {
-                element.value = preset[key];
-                
+                let value = preset[key];
+                if (key === 'strokeAlpha') {
+                    value = preset[key] * 100;
+                }
+                element.value = value;
+
                 // Update display values
                 const valueDisplay = document.getElementById(this.getControlId(key) + 'Value');
                 if (valueDisplay) {
-                    valueDisplay.textContent = preset[key];
+                    valueDisplay.textContent = value;
                 }
             }
         });
