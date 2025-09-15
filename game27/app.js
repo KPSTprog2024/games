@@ -5,7 +5,7 @@ class EchoDrawingApp {
         this.ctx = null;
         this.settings = {
             echoIntervalMs: 100,
-            echoCountMax: 300,
+            echoCountMax: 36,
             shiftX: -8,
             shiftY: -5,
             scalePerEcho: 0.965,
@@ -23,16 +23,16 @@ class EchoDrawingApp {
         this.presets = {
             'depth-soft': {
                 echoIntervalMs: 100,
-                echoCountMax: 300,
-                shiftX: -1,
-                shiftY: -2,
-                scalePerEcho: 0.975,
-                alphaPerEcho: 0.95,
-                blurPerEcho: 0,
+                echoCountMax: 36,
+                shiftX: -8,
+                shiftY: -5,
+                scalePerEcho: 0.965,
+                alphaPerEcho: 0.93,
+                blurPerEcho: 0.2,
                 colorDecay: 'light',
                 colorMode: 'solid',
                 gradientEndColor: '#ff0088',
-                hueShift: 12
+                hueShift: 30
             },
             'film-echo': {
                 echoIntervalMs: 120,
