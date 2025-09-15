@@ -4,20 +4,20 @@ class EchoDrawingApp {
         this.canvas = null;
         this.ctx = null;
         this.settings = {
-            echoIntervalMs: 100,
-            echoCountMax: 36,
-            shiftX: -8,
-            shiftY: -5,
-            scalePerEcho: 0.965,
-            alphaPerEcho: 0.93,
-            blurPerEcho: 0.2,
-            colorDecay: 'light',
-            colorMode: 'solid',
-            gradientEndColor: '#ff0088',
+            echoIntervalMs: 70,
+            echoCountMax: 80,
+            shiftX: -1,
+            shiftY: -2,
+            scalePerEcho: 0.99,
+            alphaPerEcho: 0.98,
+            blurPerEcho: 0,
+            colorDecay: 'off',
+            colorMode: 'gradient',
+            gradientEndColor: '#ff0078',
             hueShift: 30,
-            strokeColor: '#00ff88',
+            strokeColor: '#00c8ff',
             strokeWidth: 3,
-            strokeAlpha: 0.9
+            strokeAlpha: 0.75
         };
         
         this.presets = {
@@ -465,7 +465,7 @@ class StrokeManager {
 
 // Echo Manager Class
 class EchoManager {
-    constructor(maxEchoes = 36) {
+    constructor(maxEchoes = 80) {
         this.echoes = [];
         this.maxEchoes = maxEchoes;
     }
