@@ -9,7 +9,7 @@ class Settings {
     this.endColor = '#0000ff';
     this.opacity = 0.02;
     this.penSize = 5;
-    this.mode = 'oneshot';
+    this.mode = 'realtime';
   }
 }
 
