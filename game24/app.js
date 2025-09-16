@@ -3,9 +3,14 @@ class MultiLaserBilliards {
     constructor() {
         this.canvas = document.getElementById('laserCanvas');
         this.ctx = this.canvas.getContext('2d');
-        
+        this.rootElement = this.canvas ? this.canvas.closest('.container') : null;
+
         // Hi-DPI設定
         this.pixelRatio = window.devicePixelRatio || 1;
+
+        // フルスクリーン状態
+        this.isFullscreen = false;
+        this.handleFullscreenChange = () => this.onFullscreenChange();
         
         // 物理パラメータ
         this.params = {
@@ -293,31 +298,58 @@ class MultiLaserBilliards {
     
     setupCanvas() {
         const container = this.canvas.parentElement;
+        if (!container) {
+            console.warn('Canvas container not found');
+            return;
+        }
+
+        if (!this.ctx) {
+            console.warn('Canvas context not available');
+            return;
+        }
+
         const rect = container.getBoundingClientRect();
         const aspectRatio = this.params.aspectRatio.width / this.params.aspectRatio.height;
-        
-        let canvasWidth = Math.min(700, rect.width - 32);
+
+        const horizontalPadding = 32;
+        const verticalPadding = 64;
+
+        let availableWidth = rect.width - horizontalPadding;
+        let availableHeight = rect.height - verticalPadding;
+
+        if (availableWidth <= 0 || availableHeight <= 0) {
+            availableWidth = rect.width;
+            availableHeight = rect.height;
+        }
+
+        availableWidth = Math.max(50, availableWidth);
+        availableHeight = Math.max(50, availableHeight);
+
+        availableWidth = Math.min(availableWidth, rect.width);
+        availableHeight = Math.min(availableHeight, rect.height);
+
+        let canvasWidth = this.isFullscreen ? availableWidth : Math.min(700, availableWidth);
         let canvasHeight = canvasWidth / aspectRatio;
-        
-        const maxHeight = rect.height - 64;
-        if (canvasHeight > maxHeight) {
-            canvasHeight = maxHeight;
+
+        if (canvasHeight > availableHeight) {
+            canvasHeight = availableHeight;
             canvasWidth = canvasHeight * aspectRatio;
         }
-        
+
         this.canvas.width = canvasWidth * this.pixelRatio;
         this.canvas.height = canvasHeight * this.pixelRatio;
         this.canvas.style.width = canvasWidth + 'px';
         this.canvas.style.height = canvasHeight + 'px';
-        
+
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(this.pixelRatio, this.pixelRatio);
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
-        
+
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
-        
-        console.log(`Canvas resized: ${canvasWidth}x${canvasHeight}`);
+
+        console.log(`Canvas resized: ${canvasWidth}x${canvasHeight} (fullscreen: ${this.isFullscreen})`);
     }
     
     updateAspectRatioDisplay() {
@@ -404,10 +436,12 @@ class MultiLaserBilliards {
         const playBtn = document.getElementById('playPauseBtn');
         const resetBtn = document.getElementById('resetBtn');
         const snapshotBtn = document.getElementById('snapshotBtn');
-        
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
         if (playBtn) playBtn.addEventListener('click', () => this.togglePlayPause());
         if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
         if (snapshotBtn) snapshotBtn.addEventListener('click', () => this.saveSnapshot());
+        if (fullscreenBtn) fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
         
         // 複数レーザーコントロール
         this.addEventListenerSafe('laserCountSlider', 'input', (e) => {
@@ -506,6 +540,10 @@ class MultiLaserBilliards {
             this.clearCanvas();
             this.drawStaticElements();
         });
+
+        document.addEventListener('fullscreenchange', this.handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', this.handleFullscreenChange);
     }
     
     addEventListenerSafe(id, event, handler) {
@@ -557,7 +595,80 @@ class MultiLaserBilliards {
         this.drawStaticElements();
         this.updateAspectRatioDisplay();
     }
-    
+
+    toggleFullscreen() {
+        if (!this.rootElement) {
+            console.warn('Root element not found for fullscreen toggle');
+            return;
+        }
+
+        if (this.isElementFullscreen(this.rootElement)) {
+            this.exitFullscreen();
+        } else {
+            this.requestFullscreen(this.rootElement);
+        }
+    }
+
+    requestFullscreen(element) {
+        if (!element) return;
+
+        if (element.requestFullscreen) {
+            element.requestFullscreen().catch(err => {
+                console.error('Failed to enter fullscreen mode:', err);
+            });
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+    }
+
+    exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(err => {
+                console.error('Failed to exit fullscreen mode:', err);
+            });
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+
+    isElementFullscreen(element) {
+        if (!element) return false;
+
+        const fullscreenElement =
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement;
+
+        return fullscreenElement === element;
+    }
+
+    onFullscreenChange() {
+        if (!this.rootElement) return;
+
+        const isActive = this.isElementFullscreen(this.rootElement);
+        this.isFullscreen = isActive;
+
+        this.rootElement.classList.toggle('is-fullscreen', isActive);
+        if (document.body) {
+            document.body.classList.toggle('fullscreen-active', isActive);
+        }
+
+        const btn = document.getElementById('fullscreenBtn');
+        if (btn) {
+            btn.textContent = isActive ? '全画面解除' : '全画面';
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        }
+
+        this.setupCanvas();
+        this.initializeLasers();
+        this.clearCanvas();
+        this.drawStaticElements();
+    }
+
     togglePlayPause() {
         this.isPlaying = !this.isPlaying;
         const btn = document.getElementById('playPauseBtn');

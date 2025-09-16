@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>親子Canvas v3.2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- 最小化ヘッダー -->
+        <div class="compact-header">
+            <div class="app-title">親子Canvas v3.2</div>
+            <div class="compact-toolbar">
+                <button id="pen-tool" class="tool-btn active" title="ペン">✏️</button>
+                <button id="eraser-tool" class="tool-btn" title="消しゴム">🧽</button>
+                <input type="color" id="color-picker" value="#000000" class="color-picker" title="色">
+                <input type="range" id="brush-size" min="1" max="20" value="3" class="brush-slider" title="太さ">
+                <span id="brush-size-display" class="size-display">3</span>
+                <select id="rotation-mode" class="rotation-select" title="変換角度">
+                    <option value="0">0°</option>
+                    <option value="90">90°</option>
+                    <option value="-90">-90°</option>
+                    <option value="180" selected>180°</option>
+                </select>
+                <button id="clear-btn" class="tool-btn" title="消去">🗑️</button>
+            </div>
+        </div>
+
+        <!-- 双方向キャンバス領域 -->
+        <div class="canvas-container">
+            <!-- 子エリア（縦持ち時：上） -->
+            <div class="canvas-area child-area">
+                <div class="area-label">子</div>
+                <div class="sync-indicator" id="child-sync"></div>
+                <canvas id="child-canvas" class="bidirectional-canvas"></canvas>
+            </div>
+
+            <!-- 親エリア（縦持ち時：下） -->
+            <div class="canvas-area parent-area">
+                <div class="area-label">親</div>
+                <div class="sync-indicator" id="parent-sync"></div>
+                <canvas id="parent-canvas" class="bidirectional-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- デバッグ情報（最小化） -->
+        <div class="debug-info">
+            <span>同期: <span id="sync-status">準備中</span></span>
+            <span>角度: <span id="rotation-display">180°</span></span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

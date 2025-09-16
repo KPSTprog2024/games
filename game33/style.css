@@ -162,7 +162,7 @@
     --color-bg-6: rgba(194, 65, 12, 0.15); /* Dark orange */
     --color-bg-7: rgba(190, 24, 93, 0.15); /* Dark pink */
     --color-bg-8: rgba(8, 145, 178, 0.15); /* Dark cyan */
-    
+
     /* Semantic Color Tokens (Dark Mode) */
     --color-background: var(--color-charcoal-700);
     --color-surface: var(--color-charcoal-800);
@@ -222,7 +222,7 @@
   --color-bg-6: rgba(194, 65, 12, 0.15); /* Dark orange */
   --color-bg-7: rgba(190, 24, 93, 0.15); /* Dark pink */
   --color-bg-8: rgba(8, 145, 178, 0.15); /* Dark cyan */
-  
+
   /* Semantic Color Tokens (Dark Mode) */
   --color-background: var(--color-charcoal-700);
   --color-surface: var(--color-charcoal-800);
@@ -268,7 +268,7 @@
   --color-brown-600-rgb: 94, 82, 64;
   --color-teal-500-rgb: 33, 128, 141;
   --color-slate-900-rgb: 19, 52, 59;
-  
+
   /* Semantic Color Tokens (Light Mode) */
   --color-background: var(--color-cream-50);
   --color-surface: var(--color-cream-100);
@@ -738,538 +738,494 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* Application-specific styles */
-.header {
-  text-align: center;
-  padding: var(--space-16) var(--space-16);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
+/* 親子Canvas v3.2 - 双方向描画・UI最小化版 */
 
-.header h1 {
-  margin-bottom: var(--space-8);
-  color: var(--color-text);
-  font-size: var(--font-size-3xl);
-}
-
-.subtitle {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
-  margin: 0;
-}
-
-.main-content {
+.app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-background);
+  font-family: var(--font-family-base);
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px);
-  min-height: 700px;
 }
 
-/* Canvas Container - 65% height */
-.canvas-container {
-  position: relative;
-  flex: 65;
+/* =================================
+   最小化ヘッダー（36px高）
+   ================================= */
+
+.compact-header {
+  height: 36px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-12);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1;
+}
+
+.compact-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.tool-btn {
+  min-width: 36px;
+  min-height: 28px;
+  padding: var(--space-4) var(--space-6);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  transition: all var(--duration-fast);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg-1);
-  padding: var(--space-16);
-  min-height: 350px;
 }
 
-#laserCanvas {
-  background: var(--color-black);
-  border: 2px solid var(--color-white);
-  border-radius: var(--radius-base);
-  max-width: 100%;
-  max-height: 100%;
-  cursor: crosshair;
+.tool-btn:hover {
+  background: var(--color-secondary-hover);
 }
 
-/* Aspect ratio display */
-.aspect-ratio-display {
-  position: absolute;
-  top: var(--space-16);
-  right: var(--space-16);
-  background: rgba(var(--color-slate-900-rgb), 0.95);
-  color: var(--color-white);
-  padding: var(--space-8) var(--space-16);
-  border-radius: var(--radius-base);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  font-family: var(--font-family-mono);
-  pointer-events: none;
-  z-index: 20;
-  border: 2px solid var(--color-primary);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Laser counter display */
-.laser-counter {
-  position: absolute;
-  top: var(--space-16);
-  left: var(--space-16);
-  background: rgba(var(--color-teal-500-rgb), 0.95);
-  color: var(--color-white);
-  padding: var(--space-8) var(--space-16);
-  border-radius: var(--radius-base);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  font-family: var(--font-family-mono);
-  pointer-events: none;
-  z-index: 20;
-  border: 2px solid var(--color-teal-300);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Start position indicator */
-.start-position {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: var(--color-white);
-  border-radius: 50%;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 8px var(--color-white);
-  z-index: 10;
-}
-
-/* Control Panel - 35% height */
-.control-panel {
-  flex: 35;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-16);
-  overflow-y: auto;
-  min-height: 350px;
-}
-
-.control-group {
-  margin-bottom: var(--space-16);
-}
-
-.button-group {
-  display: flex;
-  gap: var(--space-8);
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-#fullscreenBtn[aria-pressed="true"] {
+.tool-btn.active {
   background: var(--color-primary);
   color: var(--color-btn-primary-text);
   border-color: var(--color-primary);
 }
 
-.controls-container {
+.color-picker {
+  width: 32px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.brush-slider {
+  width: 60px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.size-display {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  min-width: 24px;
+  text-align: center;
+}
+
+.rotation-select {
+  min-width: 60px;
+  height: 28px;
+  font-size: 11px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+/* =================================
+   双方向キャンバス領域（最大化）
+   ================================= */
+
+.canvas-container {
+  flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--space-16);
-  align-items: start;
-}
-
-.control-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  background: var(--color-bg-2);
-  padding: var(--space-16);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-card-border);
-  min-height: 250px;
-}
-
-.section-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-12) 0;
-  padding-bottom: var(--space-6);
-  border-bottom: 2px solid var(--color-primary);
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-}
-
-.control-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.control-item .form-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--color-text);
-}
-
-.slider-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-10);
-  padding: var(--space-8);
-  background: var(--color-bg-3);
-  border-radius: var(--radius-base);
-  border: 1px solid var(--color-border);
-}
-
-.control-item input[type="range"] {
-  padding: var(--space-4);
-}
-
-/* Hide angle fan control by default (shown only for radial mode) */
-#angleFanControl {
-  display: flex;
-}
-
-#angleFanControl.hidden {
-  display: none;
-}
-
-/* Range slider styling */
-input[type="range"] {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--color-secondary);
-  outline: none;
-  opacity: 0.8;
-  transition: opacity var(--duration-fast);
-}
-
-input[type="range"]:hover {
-  opacity: 1;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-  border: 3px solid var(--color-white);
-  box-shadow: var(--shadow-md);
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  cursor: pointer;
-  border: 3px solid var(--color-white);
-  box-shadow: var(--shadow-md);
-}
-
-input[type="range"]:focus {
-  box-shadow: var(--focus-ring);
-}
-
-/* Select styling */
-.form-control {
-  padding: var(--space-8) var(--space-12);
-  font-size: var(--font-size-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  background-color: var(--color-surface);
-  color: var(--color-text);
-}
-
-/* Button states */
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-#playPauseBtn.playing {
-  background: var(--color-warning);
-}
-
-#playPauseBtn.playing:hover {
-  background: var(--color-orange-400);
-}
-
-/* Dark mode adjustments for displays */
-@media (prefers-color-scheme: dark) {
-  .aspect-ratio-display {
-    background: rgba(var(--color-gray-200-rgb), 0.95);
-    color: var(--color-slate-900);
-  }
-  
-  .laser-counter {
-    background: rgba(var(--color-teal-300-rgb), 0.95);
-    color: var(--color-slate-900);
-  }
-}
-
-[data-color-scheme="dark"] .aspect-ratio-display {
-  background: rgba(var(--color-gray-200-rgb), 0.95);
-  color: var(--color-slate-900);
-}
-
-[data-color-scheme="dark"] .laser-counter {
-  background: rgba(var(--color-teal-300-rgb), 0.95);
-  color: var(--color-slate-900);
-}
-
-/* Responsive design */
-@media (max-width: 1200px) {
-  .controls-container {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-12);
-  }
-  
-  .control-section {
-    min-height: 220px;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    height: calc(100vh - 100px);
-    min-height: 600px;
-  }
-
-  .controls-container {
-    grid-template-columns: 1fr;
-    gap: var(--space-12);
-  }
-
-  .control-section {
-    min-height: 200px;
-  }
-
-  .button-group {
-    justify-content: stretch;
-  }
-
-  .button-group .btn {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .canvas-container {
-    padding: var(--space-8);
-    flex: 60;
-  }
-
-  .control-panel {
-    flex: 40;
-    min-height: 300px;
-  }
-
-  #laserCanvas {
-    width: 100%;
-    height: auto;
-  }
-
-  .aspect-ratio-display,
-  .laser-counter {
-    top: var(--space-8);
-    font-size: var(--font-size-sm);
-    padding: var(--space-6) var(--space-12);
-  }
-
-  .aspect-ratio-display {
-    right: var(--space-8);
-  }
-
-  .laser-counter {
-    left: var(--space-8);
-  }
-}
-
-@media (max-width: 480px) {
-  .header {
-    padding: var(--space-12) var(--space-8);
-  }
-
-  .header h1 {
-    font-size: var(--font-size-2xl);
-  }
-
-  .control-panel {
-    padding: var(--space-8);
-  }
-
-  .control-section {
-    gap: var(--space-8);
-    padding: var(--space-12);
-    min-height: 180px;
-  }
-
-  .section-title {
-    font-size: var(--font-size-sm);
-    margin-bottom: var(--space-8);
-  }
-
-  .slider-group {
-    gap: var(--space-8);
-    padding: var(--space-6);
-  }
-}
-
-/* Animation classes */
-.fade-in {
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Canvas overlay for status */
-.canvas-overlay {
-  position: absolute;
-  bottom: var(--space-16);
-  left: var(--space-16);
-  background: rgba(var(--color-slate-900-rgb), 0.8);
-  color: var(--color-white);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--radius-base);
-  font-size: var(--font-size-sm);
-  pointer-events: none;
-  z-index: 20;
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .canvas-overlay {
-    background: rgba(var(--color-gray-200-rgb), 0.9);
-    color: var(--color-slate-900);
-  }
-}
-
-[data-color-scheme="dark"] .canvas-overlay {
-  background: rgba(var(--color-gray-200-rgb), 0.9);
-  color: var(--color-slate-900);
-}
-
-/* Highlight effects for displays */
-.aspect-ratio-display.highlight {
-  animation: aspectHighlight 0.8s ease-out;
-}
-
-.laser-counter.highlight {
-  animation: laserCountHighlight 0.8s ease-out;
-}
-
-/* Fullscreen mode adjustments */
-body.fullscreen-active {
   overflow: hidden;
-  background: var(--color-black);
-}
-
-.container.is-fullscreen {
-  max-width: none;
-  width: 100vw;
-  height: 100vh;
-  padding-right: var(--space-16);
-  padding-left: var(--space-16);
-}
-
-.container.is-fullscreen .main-content {
-  height: calc(100vh - 120px);
+  gap: 2px;
+  background: var(--color-border);
   min-height: 0;
 }
 
-.container.is-fullscreen .control-panel {
-  overflow-y: auto;
+/* デフォルト（縦向き）: 上下分割（上=子、下=親） */
+.canvas-container {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas: 
+    "child-area"   /* 上: 子（奥の人） */
+    "parent-area"; /* 下: 親（手前の人） */
 }
 
-.container.is-fullscreen .canvas-container {
-  padding: var(--space-16);
-}
-
-@keyframes aspectHighlight {
-  0% {
-    background: var(--color-primary);
-    transform: scale(1.15);
-    box-shadow: 0 0 20px var(--color-primary);
-  }
-  100% {
-    background: rgba(var(--color-slate-900-rgb), 0.95);
-    transform: scale(1);
-    box-shadow: var(--shadow-lg);
+/* 横向き時：左右分割 */
+@media (orientation: landscape) and (min-width: 768px) {
+  .canvas-container {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "parent-area child-area";
   }
 }
 
-@keyframes laserCountHighlight {
-  0% {
-    background: var(--color-teal-800);
-    transform: scale(1.15);
-    box-shadow: 0 0 20px var(--color-teal-300);
-  }
-  100% {
-    background: rgba(var(--color-teal-500-rgb), 0.95);
-    transform: scale(1);
-    box-shadow: var(--shadow-lg);
-  }
+.canvas-area {
+  position: relative;
+  background: var(--color-surface);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  padding: var(--space-8);
 }
 
-/* Enhanced visual feedback */
-.control-section:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  transition: all var(--duration-normal) var(--ease-standard);
+.parent-area {
+  grid-area: parent-area;
+  background: var(--color-bg-1);
 }
 
-.section-title::before {
-  content: attr(data-icon);
-  margin-right: var(--space-4);
+.child-area {
+  grid-area: child-area;
+  background: var(--color-bg-2);
 }
 
-/* Multi-laser specific styles */
-.laser-dots {
+.area-label {
   position: absolute;
-  pointer-events: none;
-  z-index: 15;
-}
-
-.laser-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 6px currentColor;
-}
-
-/* Performance indicator */
-.performance-indicator {
-  position: absolute;
-  bottom: var(--space-16);
-  right: var(--space-16);
-  background: rgba(var(--color-slate-900-rgb), 0.7);
-  color: var(--color-white);
+  top: var(--space-8);
+  left: var(--space-8);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.9);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-mono);
-  pointer-events: none;
-  z-index: 20;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
 }
 
 @media (prefers-color-scheme: dark) {
-  .performance-indicator {
-    background: rgba(var(--color-gray-200-rgb), 0.8);
-    color: var(--color-slate-900);
+  .area-label {
+    background: rgba(0, 0, 0, 0.9);
+    color: var(--color-text);
+    border-color: var(--color-border);
   }
 }
 
-[data-color-scheme="dark"] .performance-indicator {
-  background: rgba(var(--color-gray-200-rgb), 0.8);
-  color: var(--color-slate-900);
+/* =================================
+   双方向対応Canvas
+   ================================= */
+
+.bidirectional-canvas {
+  max-width: 90%;
+  max-height: 90%;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: var(--shadow-md);
+  cursor: crosshair;
+  display: block;
+  touch-action: none;
+  transition: box-shadow var(--duration-fast);
+  /* HiDPI最適化 */
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.bidirectional-canvas:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.bidirectional-canvas:active {
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 59, 130, 246), 0.3);
+}
+
+/* 同期状態表示 */
+.child-area.syncing {
+  background: var(--color-bg-3);
+}
+
+.parent-area.drawing {
+  background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
+}
+
+/* =================================
+   同期インジケーター
+   ================================= */
+
+.sync-indicator {
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  z-index: 20;
+  opacity: 0.8;
+  transition: all var(--duration-fast);
+}
+
+.sync-indicator.updating {
+  background: var(--color-warning);
+  animation: pulse 0.8s infinite;
+}
+
+.sync-indicator.error {
+  background: var(--color-error);
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 0.8; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.3; 
+    transform: scale(1.2);
+  }
+}
+
+/* =================================
+   最小化デバッグ情報
+   ================================= */
+
+.debug-info {
+  position: fixed;
+  bottom: var(--space-8);
+  right: var(--space-8);
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  z-index: 200;
+  opacity: 0.7;
+  backdrop-filter: blur(4px);
+  display: flex;
+  gap: var(--space-8);
+  box-shadow: var(--shadow-sm);
+}
+
+.debug-info span {
+  white-space: nowrap;
+}
+
+#sync-status {
+  color: var(--color-success);
+}
+
+#rotation-display {
+  color: var(--color-warning);
+}
+
+/* =================================
+   小画面最適化
+   ================================= */
+
+@media (max-width: 767px) {
+  .compact-header {
+    height: 32px;
+    padding: 0 var(--space-8);
+  }
+  
+  .app-title {
+    font-size: 12px;
+  }
+  
+  .compact-toolbar {
+    gap: var(--space-6);
+  }
+  
+  .tool-btn {
+    min-width: 32px;
+    min-height: 26px;
+    padding: var(--space-2) var(--space-4);
+    font-size: 11px;
+  }
+  
+  .color-picker {
+    width: 28px;
+    height: 26px;
+  }
+  
+  .brush-slider {
+    width: 50px;
+  }
+  
+  .rotation-select {
+    min-width: 50px;
+    height: 26px;
+    font-size: 10px;
+  }
+  
+  .area-label {
+    font-size: 12px;
+    padding: var(--space-2) var(--space-6);
+  }
+  
+  .debug-info {
+    bottom: var(--space-4);
+    right: var(--space-4);
+    padding: var(--space-4);
+    font-size: 9px;
+    gap: var(--space-6);
+  }
+}
+
+/* =================================
+   極小画面対応（iPhone SE等）
+   ================================= */
+
+@media (max-width: 375px) {
+  .compact-header {
+    padding: 0 var(--space-6);
+  }
+  
+  .compact-toolbar {
+    gap: var(--space-4);
+  }
+  
+  .tool-btn {
+    min-width: 28px;
+    min-height: 24px;
+  }
+  
+  .color-picker {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .brush-slider {
+    width: 40px;
+  }
+  
+  .size-display {
+    font-size: 10px;
+    min-width: 20px;
+  }
+  
+  .rotation-select {
+    min-width: 45px;
+    font-size: 9px;
+  }
+  
+  .area-label {
+    font-size: 11px;
+    padding: var(--space-2) var(--space-4);
+  }
+}
+
+/* =================================
+   パフォーマンス最適化
+   ================================= */
+
+.bidirectional-canvas {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+.canvas-area {
+  contain: layout style;
+}
+
+/* HiDPIディスプレイ対応 */
+@media (-webkit-min-device-pixel-ratio: 2) {
+  .bidirectional-canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: pixelated;
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  .bidirectional-canvas {
+    image-rendering: pixelated;
+  }
+}
+
+/* =================================
+   減少モーション対応
+   ================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .tool-btn,
+  .bidirectional-canvas,
+  .sync-indicator {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* =================================
+   タッチデバイス最適化
+   ================================= */
+
+@media (pointer: coarse) {
+  .tool-btn,
+  .color-picker {
+    min-width: 36px;
+    min-height: 32px;
+  }
+  
+  .rotation-select {
+    min-height: 32px;
+  }
+  
+  .bidirectional-canvas {
+    cursor: crosshair;
+  }
+}
+
+/* =================================
+   アクセシビリティ強化
+   ================================= */
+
+.tool-btn:focus-visible,
+.color-picker:focus-visible,
+.rotation-select:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: 1px;
+}
+
+.bidirectional-canvas:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Canvas領域のフォーカス状態 */
+.canvas-area:focus-within {
+  background: rgba(var(--color-primary-rgb, 59, 130, 246), 0.05);
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .bidirectional-canvas {
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+  
+  .debug-info {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }

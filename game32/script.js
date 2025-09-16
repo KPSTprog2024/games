@@ -262,7 +262,6 @@ document.getElementById('colorMode').addEventListener('change',e=>{
 document.getElementById('hueShift').disabled = settings.colorMode==='gradient';
 
 document.getElementById('echoBtn').addEventListener('click',()=>{echoEngine.playAnimation();});
-
 document.getElementById('togglePanel').addEventListener('click',()=>{
   document.getElementById('settingsPanel').classList.toggle('open');
 });
