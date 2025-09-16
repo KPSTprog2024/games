@@ -856,6 +856,12 @@ select.form-control {
   justify-content: center;
 }
 
+#fullscreenBtn[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-btn-primary-text);
+  border-color: var(--color-primary);
+}
+
 .controls-container {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -1158,6 +1164,33 @@ input[type="range"]:focus {
 
 .laser-counter.highlight {
   animation: laserCountHighlight 0.8s ease-out;
+}
+
+/* Fullscreen mode adjustments */
+body.fullscreen-active {
+  overflow: hidden;
+  background: var(--color-black);
+}
+
+.container.is-fullscreen {
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  padding-right: var(--space-16);
+  padding-left: var(--space-16);
+}
+
+.container.is-fullscreen .main-content {
+  height: calc(100vh - 120px);
+  min-height: 0;
+}
+
+.container.is-fullscreen .control-panel {
+  overflow-y: auto;
+}
+
+.container.is-fullscreen .canvas-container {
+  padding: var(--space-16);
 }
 
 @keyframes aspectHighlight {
