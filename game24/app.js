@@ -10,6 +10,9 @@ class MultiLaserBilliards {
 
         // フルスクリーン状態
         this.isFullscreen = false;
+        this.fullscreenMode = 'none';
+        this.isIOSDevice = this.detectIOSDevice();
+        this.scrollPosition = { x: 0, y: 0 };
         this.handleFullscreenChange = () => this.onFullscreenChange();
         
         // 物理パラメータ
@@ -311,8 +314,15 @@ class MultiLaserBilliards {
         const rect = container.getBoundingClientRect();
         const aspectRatio = this.params.aspectRatio.width / this.params.aspectRatio.height;
 
-        const horizontalPadding = 32;
-        const verticalPadding = 64;
+        let horizontalPadding = 32;
+        let verticalPadding = 64;
+
+        if (this.fullscreenMode === 'mobile') {
+            horizontalPadding = 12;
+            verticalPadding = 20;
+        } else if (this.isFullscreen) {
+            verticalPadding = 32;
+        }
 
         let availableWidth = rect.width - horizontalPadding;
         let availableHeight = rect.height - verticalPadding;
@@ -602,8 +612,18 @@ class MultiLaserBilliards {
             return;
         }
 
-        if (this.isElementFullscreen(this.rootElement)) {
+        if (this.fullscreenMode === 'native') {
             this.exitFullscreen();
+            return;
+        }
+
+        if (this.fullscreenMode === 'mobile') {
+            this.disableMobileFullscreen();
+            return;
+        }
+
+        if (this.shouldUseMobileFullscreen()) {
+            this.enableMobileFullscreen();
         } else {
             this.requestFullscreen(this.rootElement);
         }
@@ -612,26 +632,55 @@ class MultiLaserBilliards {
     requestFullscreen(element) {
         if (!element) return;
 
-        if (element.requestFullscreen) {
-            element.requestFullscreen().catch(err => {
+        const request =
+            element.requestFullscreen ||
+            element.webkitRequestFullscreen ||
+            element.msRequestFullscreen;
+
+        if (request) {
+            try {
+                const result = request.call(element);
+                if (result && typeof result.catch === 'function') {
+                    result.catch(err => {
+                        console.error('Failed to enter fullscreen mode:', err);
+                        if (this.shouldUseMobileFullscreen()) {
+                            this.enableMobileFullscreen();
+                        }
+                    });
+                }
+            } catch (err) {
                 console.error('Failed to enter fullscreen mode:', err);
-            });
-        } else if (element.webkitRequestFullscreen) {
-            element.webkitRequestFullscreen();
-        } else if (element.msRequestFullscreen) {
-            element.msRequestFullscreen();
+                if (this.shouldUseMobileFullscreen()) {
+                    this.enableMobileFullscreen();
+                }
+            }
+        } else if (this.shouldUseMobileFullscreen()) {
+            this.enableMobileFullscreen();
+        } else {
+            console.warn('Fullscreen API is not supported on this device');
         }
     }
 
     exitFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen().catch(err => {
-                console.error('Failed to exit fullscreen mode:', err);
-            });
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+        if (this.fullscreenMode === 'mobile') {
+            this.disableMobileFullscreen();
+            return;
+        }
+
+        const exit =
+            document.exitFullscreen ||
+            document.webkitExitFullscreen ||
+            document.msExitFullscreen;
+
+        if (exit) {
+            const result = exit.call(document);
+            if (result && typeof result.catch === 'function') {
+                result.catch(err => {
+                    console.error('Failed to exit fullscreen mode:', err);
+                });
+            }
+        } else {
+            this.updateFullscreenState('none');
         }
     }
 
@@ -650,23 +699,107 @@ class MultiLaserBilliards {
         if (!this.rootElement) return;
 
         const isActive = this.isElementFullscreen(this.rootElement);
-        this.isFullscreen = isActive;
+        if (isActive) {
+            this.updateFullscreenState('native');
+        } else if (this.fullscreenMode === 'native') {
+            this.updateFullscreenState('none');
+        }
+    }
 
-        this.rootElement.classList.toggle('is-fullscreen', isActive);
-        if (document.body) {
-            document.body.classList.toggle('fullscreen-active', isActive);
+    shouldUseMobileFullscreen() {
+        return this.isIOSDevice || !this.supportsNativeFullscreen();
+    }
+
+    supportsNativeFullscreen() {
+        if (typeof document === 'undefined') return false;
+        if (!this.rootElement) return false;
+
+        return Boolean(
+            document.fullscreenEnabled ||
+            document.webkitFullscreenEnabled ||
+            document.msFullscreenEnabled ||
+            this.rootElement.requestFullscreen ||
+            this.rootElement.webkitRequestFullscreen ||
+            this.rootElement.msRequestFullscreen
+        );
+    }
+
+    enableMobileFullscreen() {
+        this.updateFullscreenState('mobile');
+    }
+
+    disableMobileFullscreen() {
+        this.updateFullscreenState('none');
+    }
+
+    updateFullscreenState(mode) {
+        const previousMode = this.fullscreenMode;
+        if (previousMode === mode) return;
+
+        this.fullscreenMode = mode;
+        this.isFullscreen = mode !== 'none';
+
+        if (mode === 'mobile') {
+            this.storeScrollPosition();
+        }
+
+        if (this.rootElement) {
+            this.rootElement.classList.toggle('is-fullscreen', this.isFullscreen);
+            this.rootElement.classList.toggle('is-mobile-fullscreen', mode === 'mobile');
+        }
+
+        if (typeof document !== 'undefined' && document.body) {
+            document.body.classList.toggle('fullscreen-active', this.isFullscreen);
+            document.body.classList.toggle('mobile-fullscreen-active', mode === 'mobile');
         }
 
         const btn = document.getElementById('fullscreenBtn');
         if (btn) {
-            btn.textContent = isActive ? '全画面解除' : '全画面';
-            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            btn.textContent = this.isFullscreen ? '全画面解除' : '全画面';
+            btn.setAttribute('aria-pressed', this.isFullscreen ? 'true' : 'false');
         }
 
         this.setupCanvas();
         this.initializeLasers();
         this.clearCanvas();
         this.drawStaticElements();
+
+        if (typeof window !== 'undefined') {
+            if (mode === 'mobile') {
+                window.requestAnimationFrame(() => window.scrollTo(0, 0));
+            } else if (previousMode === 'mobile') {
+                window.requestAnimationFrame(() => this.restoreScrollPosition());
+            }
+        }
+    }
+
+    storeScrollPosition() {
+        if (typeof window === 'undefined') return;
+
+        this.scrollPosition = {
+            x: window.scrollX || window.pageXOffset || 0,
+            y: window.scrollY || window.pageYOffset || 0
+        };
+    }
+
+    restoreScrollPosition() {
+        if (typeof window === 'undefined') return;
+
+        const position = this.scrollPosition || { x: 0, y: 0 };
+        window.scrollTo(position.x, position.y);
+    }
+
+    detectIOSDevice() {
+        if (typeof navigator === 'undefined') return false;
+
+        const ua = navigator.userAgent || navigator.vendor || '';
+        const platform = navigator.platform || '';
+        const iPadOS13Up =
+            navigator.maxTouchPoints &&
+            navigator.maxTouchPoints > 2 &&
+            /Macintosh/.test(platform);
+
+        return /iPad|iPhone|iPod/.test(ua) || iPadOS13Up;
     }
 
     togglePlayPause() {

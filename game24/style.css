@@ -1193,6 +1193,119 @@ body.fullscreen-active {
   padding: var(--space-16);
 }
 
+body.mobile-fullscreen-active {
+  overflow: hidden;
+  background: var(--color-black);
+  overscroll-behavior: contain;
+}
+
+.container.is-mobile-fullscreen {
+  position: fixed;
+  inset: 0;
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  padding: var(--space-12);
+  padding-top: calc(var(--space-12) + env(safe-area-inset-top));
+  padding-right: calc(var(--space-12) + env(safe-area-inset-right));
+  padding-bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
+  padding-left: calc(var(--space-12) + env(safe-area-inset-left));
+  background: var(--color-black);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  z-index: 999;
+}
+
+.container.is-mobile-fullscreen .header {
+  display: none;
+}
+
+.container.is-mobile-fullscreen .main-content {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0;
+}
+
+.container.is-mobile-fullscreen .canvas-container {
+  flex: 1;
+  padding: var(--space-8);
+  min-height: 0;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.container.is-mobile-fullscreen #laserCanvas {
+  border-width: 1px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.container.is-mobile-fullscreen .control-panel {
+  flex: 0 0 auto;
+  background: rgba(12, 12, 12, 0.88);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: var(--space-12);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-height: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+
+.container.is-mobile-fullscreen .control-panel::after {
+  content: "";
+  width: 48px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.18);
+  align-self: center;
+}
+
+.container.is-mobile-fullscreen .controls-container {
+  display: none;
+}
+
+.container.is-mobile-fullscreen .button-group {
+  gap: var(--space-8);
+  justify-content: center;
+}
+
+.container.is-mobile-fullscreen .button-group .btn {
+  flex: 1 1 calc(50% - var(--space-8));
+  min-width: 120px;
+}
+
+.container.is-mobile-fullscreen .button-group .btn--outline {
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.container.is-mobile-fullscreen .button-group .btn--outline:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.container.is-mobile-fullscreen .aspect-ratio-display,
+.container.is-mobile-fullscreen .laser-counter {
+  font-size: var(--font-size-sm);
+  padding: var(--space-6) var(--space-8);
+  border-width: 1px;
+}
+
+@supports (backdrop-filter: blur(8px)) {
+  .container.is-mobile-fullscreen .control-panel {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+
 @keyframes aspectHighlight {
   0% {
     background: var(--color-primary);
