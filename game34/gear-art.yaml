@@ -1,0 +1,72 @@
+scene:
+  palette:
+    background: "#0b0d12"
+    pinion:
+      fill: "#f3f6ff"
+      stroke: "#24345c"
+      strokeWidth: 4
+      highlight: "#ffffff"
+    ring:
+      fill: "#d8deff"
+      stroke: "#1f2742"
+      strokeWidth: 5
+      highlight: "#ffffff"
+  pinionTemplates:
+    - id: "aurora-28"
+      label: "Aurora 28"
+      r: 28
+      hubRadius: 36
+      toothDepth: 20
+      toothSoftness: 0.35
+      holeRadius: 10
+      holeRatios: [0.25, 0.38, 0.52, 0.68, 0.82]
+      highlights:
+        - angleDeg: -20
+          arcDeg: 80
+          intensity: 0.4
+    - id: "breeze-35"
+      label: "Breeze 35"
+      r: 35
+      hubRadius: 38
+      toothDepth: 22
+      toothSoftness: 0.32
+      holeRadius: 11
+      holeRatios: [0.24, 0.4, 0.55, 0.72, 0.88]
+      highlights:
+        - angleDeg: 15
+          arcDeg: 90
+          intensity: 0.45
+    - id: "comet-42"
+      label: "Comet 42"
+      r: 42
+      hubRadius: 44
+      toothDepth: 24
+      toothSoftness: 0.28
+      holeRadius: 12
+      holeRatios: [0.22, 0.37, 0.5, 0.66, 0.83]
+      highlights:
+        - angleDeg: -40
+          arcDeg: 95
+          intensity: 0.5
+    - id: "lumen-48"
+      label: "Lumen 48"
+      r: 48
+      hubRadius: 48
+      toothDepth: 26
+      toothSoftness: 0.26
+      holeRadius: 13
+      holeRatios: [0.21, 0.34, 0.48, 0.64, 0.8]
+      highlights:
+        - angleDeg: 30
+          arcDeg: 100
+          intensity: 0.38
+  outerRing:
+    id: "orbit-96"
+    R: 96
+    innerRadius: 124
+    toothDepth: 18
+    toothSoftness: 0.3
+    highlight:
+      angleDeg: 50
+      arcDeg: 100
+      intensity: 0.35

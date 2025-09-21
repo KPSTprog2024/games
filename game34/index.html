@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>game34 デジタル・スピログラフ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="display-area" aria-label="スピログラフ描画領域">
+      <canvas id="mainCanvas" role="img" aria-label="スピログラフの描画キャンバス"></canvas>
+      <div class="canvas-toolbar">
+        <button id="exportPng" class="toolbar-btn" aria-label="PNGとして保存">PNG保存</button>
+        <button id="exportSnapshot" class="toolbar-btn" aria-label="現在の設定をスナップショット保存">スナップショット保存</button>
+        <label class="snapshot-restore">
+          <span>復帰:</span>
+          <select id="snapshotSelect" aria-label="保存済みスナップショット">
+            <option value="">選択してください</option>
+          </select>
+        </label>
+      </div>
+      <canvas id="miniMap" aria-hidden="true"></canvas>
+      <div id="progressRing" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="ring-progress" cx="60" cy="60" r="52"></circle>
+          <text x="60" y="66" text-anchor="middle" class="ring-text">0%</text>
+        </svg>
+      </div>
+    </header>
+    <main class="control-panel collapsed" id="controlPanel">
+      <section class="column pinion" aria-label="ピニオン設定">
+        <div class="column-header">
+          <h2>ピニオン</h2>
+          <button id="randomBtn" class="pill" aria-label="ランダム構成を試す">ランダム</button>
+        </div>
+        <div class="selector" aria-label="ピニオンの種類を選ぶ">
+          <button class="selector-btn" id="selectorPrev" aria-label="前のピニオン"><span aria-hidden="true">◀</span></button>
+          <div class="selector-track" id="pinionTrack" role="listbox"></div>
+          <button class="selector-btn" id="selectorNext" aria-label="次のピニオン"><span aria-hidden="true">▶</span></button>
+        </div>
+        <div class="pinion-model" aria-live="polite">
+          <canvas id="pinionCanvas" width="220" height="220" aria-label="ピニオン模型。ドラッグで初期位相を調整、穴をタップでペン位置を変更"></canvas>
+          <div class="pinion-overlay">
+            <p>ドラッグで回転 / 穴タップで選択</p>
+          </div>
+        </div>
+        <div class="stepper" aria-label="ピニオンの歯数を調整">
+          <button id="pinionMinus" aria-label="ピニオンの歯数を減らす">−</button>
+          <span><strong>r</strong>=<span id="pinionValue">35</span></span>
+          <button id="pinionPlus" aria-label="ピニオンの歯数を増やす">＋</button>
+        </div>
+        <div class="hole-info">
+          <span>穴: <span id="holeRatio">0.55r</span></span>
+        </div>
+      </section>
+      <section class="column ring" aria-label="外側歯車設定">
+        <div class="column-header">
+          <h2>外側歯車</h2>
+        </div>
+        <div class="ring-art">
+          <canvas id="ringCanvas" width="220" height="220" aria-hidden="true"></canvas>
+        </div>
+        <div class="stepper" aria-label="外側歯車の歯数を調整">
+          <button id="ringMinus" aria-label="外側歯車の歯数を減らす">−</button>
+          <span><strong>R</strong>=<span id="ringValue">96</span></span>
+          <button id="ringPlus" aria-label="外側歯車の歯数を増やす">＋</button>
+        </div>
+        <div class="mode-toggle" role="group" aria-label="モード切り替え">
+          <button id="modeInner" class="toggle active" aria-pressed="true">inner</button>
+          <button id="modeOuter" class="toggle" aria-pressed="false">outer</button>
+        </div>
+        <div class="options">
+          <label>
+            サンプル間隔(px)
+            <input type="range" id="spacingRange" min="0.5" max="3.0" step="0.1" value="1.5">
+          </label>
+          <label>
+            線幅(px)
+            <input type="range" id="lineWidthRange" min="0.5" max="3" step="0.1" value="1.5">
+          </label>
+        </div>
+      </section>
+    </main>
+    <button type="button" class="panel-toggle" id="panelToggle" aria-controls="controlPanel" aria-expanded="false">設定を開く</button>
+    <footer class="status-bar" aria-live="polite">
+      <div id="statusText">準備中…</div>
+    </footer>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
