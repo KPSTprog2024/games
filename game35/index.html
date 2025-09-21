@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シンプル振幅ブランコ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="intro">
+      <h1>シンプル振幅ブランコ</h1>
+      <p>ブランコが真下を通過するタイミングに合わせて「漕ぐ」をタップし、振幅を大きくしてみましょう。</p>
+    </header>
+
+    <section class="canvas-section">
+      <canvas id="swingCanvas" width="480" height="420" aria-label="ブランコのアニメーション"></canvas>
+      <div class="amplitude-display">現在の振幅: <span id="amplitudeValue">0.0°</span></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </section>
+
+    <section class="controls" aria-label="操作ボタン">
+      <button id="pushButton" class="primary">漕ぐ</button>
+      <button id="resetButton" class="secondary">リセット</button>
+    </section>
+
+    <section class="tips">
+      <h2>遊び方のヒント</h2>
+      <ul>
+        <li>ブランコが真下付近を通るタイミングで「漕ぐ」を押すと大きく揺れます。</li>
+        <li>タイミングがずれると勢いが弱まります。音や動きに集中してみましょう。</li>
+        <li>振幅が大きくなり過ぎると自動的に抑えられます。安全な範囲でチャレンジ！</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
