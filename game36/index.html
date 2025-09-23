@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>game36 - くっきり残像スタジオ</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body>
+  <div class="app">
+    <header class="app__header">
+      <h1>くっきり残像スタジオ</h1>
+      <p>固定カメラで子どもの動きを撮影し、0.5〜1.0秒ごとの“くっきり残像”をポスターデザイン風に積層します。</p>
+    </header>
+
+    <main class="app__main">
+      <section class="preview" aria-label="ライブプレビュー">
+        <div class="preview__wrapper">
+          <video id="camera" playsinline muted></video>
+          <canvas id="composite" aria-hidden="true"></canvas>
+          <canvas id="grid" aria-hidden="true"></canvas>
+          <div id="status" class="status" role="status" aria-live="polite">カメラの開始を押してください</div>
+        </div>
+      </section>
+
+      <section class="control" aria-label="操作パネル">
+        <div class="control__row">
+          <button id="start-stop" class="primary">撮影開始</button>
+          <button id="capture-still" disabled>静止画保存</button>
+          <button id="record-toggle" disabled>録画開始</button>
+          <button id="switch-camera">カメラ切替</button>
+          <button id="recapture-background" disabled>背景再キャプチャ</button>
+        </div>
+
+        <div class="control__row sliders">
+          <label>インターバル: <span id="interval-label">0.75s</span>
+            <input id="interval-slider" type="range" min="500" max="1000" step="50" value="750">
+          </label>
+          <label>保持枚数: <span id="buffer-label">6</span>
+            <input id="buffer-slider" type="range" min="2" max="12" step="1" value="6">
+          </label>
+        </div>
+
+        <div class="control__row toggles">
+          <label><input type="checkbox" id="segmentation-toggle" checked>人物切り抜きON</label>
+          <label><input type="checkbox" id="background-toggle" checked>背景固定</label>
+          <label><input type="checkbox" id="grid-toggle">ガイドグリッド</label>
+          <label><input type="checkbox" id="design-variance" checked>デザイン微調整</label>
+        </div>
+
+        <div class="control__row presets">
+          <label>プリセット
+            <select id="preset-select">
+              <option value="classic">クラシック</option>
+              <option value="poster">ポスター</option>
+              <option value="comic">コミック</option>
+              <option value="neon">ネオン</option>
+            </select>
+          </label>
+          <label>色処理
+            <select id="filter-select">
+              <option value="none">なし</option>
+              <option value="poster">ポスタライズ</option>
+              <option value="comic">コミックライン</option>
+              <option value="neon">ネオングロー</option>
+            </select>
+          </label>
+          <label>輪郭太さ
+            <input id="outline-slider" type="range" min="0" max="12" step="1" value="4">
+          </label>
+          <label>縁取り色
+            <input id="outline-color" type="color" value="#ff3366">
+          </label>
+        </div>
+
+        <div class="hints" id="hints" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer class="app__footer">
+      <p>すべての処理は端末内で完結します。停止するとカメラは自動的に解放されます。</p>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" crossorigin="anonymous"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
