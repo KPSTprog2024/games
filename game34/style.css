@@ -194,6 +194,32 @@ body {
   box-shadow: 0 9px 18px rgba(66, 87, 210, 0.4);
 }
 
+.panel-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: center;
+  margin: 12px auto 0;
+  padding: 10px 24px;
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(66, 87, 210, 0.32);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  touch-action: manipulation;
+}
+
+.panel-toggle:hover,
+.panel-toggle:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(66, 87, 210, 0.38);
+}
+
 .selector {
   display: flex;
   align-items: center;
@@ -432,6 +458,16 @@ body {
   .selector-item {
     min-width: 72px;
   }
+
+  .panel-toggle {
+    display: inline-flex;
+    margin-bottom: 8px;
+  }
+
+  .control-panel.collapsed {
+    display: none;
+  }
+
 }
 
 @media (max-width: 540px) {

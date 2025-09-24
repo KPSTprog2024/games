@@ -29,7 +29,7 @@
         </svg>
       </div>
     </header>
-    <main class="control-panel">
+    <main class="control-panel collapsed" id="controlPanel">
       <section class="column pinion" aria-label="ピニオン設定">
         <div class="column-header">
           <h2>ピニオン</h2>
@@ -83,6 +83,7 @@
         </div>
       </section>
     </main>
+    <button type="button" class="panel-toggle" id="panelToggle" aria-controls="controlPanel" aria-expanded="false">設定を開く</button>
     <footer class="status-bar" aria-live="polite">
       <div id="statusText">準備中…</div>
     </footer>

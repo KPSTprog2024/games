@@ -28,6 +28,8 @@ const pinionCanvas = document.getElementById('pinionCanvas');
 const pinionCtx = pinionCanvas.getContext('2d');
 const ringCanvas = document.getElementById('ringCanvas');
 const ringCtx = ringCanvas.getContext('2d');
+const controlPanelEl = document.getElementById('controlPanel');
+const panelToggleBtn = document.getElementById('panelToggle');
 
 const pinionValueEl = document.getElementById('pinionValue');
 const ringValueEl = document.getElementById('ringValue');
@@ -989,6 +991,37 @@ function setupUIEvents() {
       applySnapshot(entry);
     }
   });
+
+  if (panelToggleBtn && controlPanelEl) {
+    const mobileQuery = window.matchMedia('(max-width: 720px)');
+    let panelCollapsed = mobileQuery.matches;
+
+    const applyPanelState = (collapsed) => {
+      panelCollapsed = collapsed;
+      controlPanelEl.classList.toggle('collapsed', collapsed);
+      panelToggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      panelToggleBtn.setAttribute('aria-label', collapsed ? '設定画面を開く' : '設定画面を閉じる');
+      panelToggleBtn.textContent = collapsed ? '設定を開く' : '設定を閉じる';
+    };
+
+    applyPanelState(panelCollapsed);
+
+    panelToggleBtn.addEventListener('click', () => {
+      applyPanelState(!panelCollapsed);
+    });
+
+    const handleMediaChange = (event) => {
+      if (!event.matches) {
+        applyPanelState(false);
+      }
+    };
+
+    if (typeof mobileQuery.addEventListener === 'function') {
+      mobileQuery.addEventListener('change', handleMediaChange);
+    } else if (typeof mobileQuery.addListener === 'function') {
+      mobileQuery.addListener(handleMediaChange);
+    }
+  }
 
   let resizeTimer = null;
   window.addEventListener('resize', () => {
