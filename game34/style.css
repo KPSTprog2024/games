@@ -467,6 +467,7 @@ body {
   .control-panel.collapsed {
     display: none;
   }
+
 }
 
 @media (max-width: 540px) {
