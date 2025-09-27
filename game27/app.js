@@ -31,6 +31,14 @@ class EchoDrawingApp {
             'default': {
                 echoIntervalMs: 70,
                 echoCountMax: 80,
+                shiftX: -1,
+                shiftY: -2,
+                shiftXMode: 'static',
+                shiftYMode: 'static',
+                shiftXOscAmplitude: 0,
+                shiftYOscAmplitude: 0,
+                shiftXOscFrequency: 1,
+                shiftYOscFrequency: 1,
                 scalePerEcho: 0.99,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -46,6 +54,14 @@ class EchoDrawingApp {
             'rainbow': {
                 echoIntervalMs: 40,
                 echoCountMax: 200,
+                shiftX: 5,
+                shiftY: 0,
+                shiftXMode: 'oscillate',
+                shiftYMode: 'oscillate',
+                shiftXOscAmplitude: 25,
+                shiftYOscAmplitude: 15,
+                shiftXOscFrequency: 0.6,
+                shiftYOscFrequency: 0.9,
                 scalePerEcho: 0.99,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -60,6 +76,14 @@ class EchoDrawingApp {
             'wireframe-lite': {
                 echoIntervalMs: 30,
                 echoCountMax: 20,
+                shiftX: 20,
+                shiftY: 1,
+                shiftXMode: 'static',
+                shiftYMode: 'static',
+                shiftXOscAmplitude: 0,
+                shiftYOscAmplitude: 0,
+                shiftXOscFrequency: 1,
+                shiftYOscFrequency: 1,
                 scalePerEcho: 0.9,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -72,54 +96,6 @@ class EchoDrawingApp {
                 strokeAlpha: 1
             }
         };
-
-        this.motionPresets = {
-            steady: {
-                shiftX: -1,
-                shiftY: -2,
-                shiftXMode: 'static',
-                shiftYMode: 'static',
-                shiftXOscAmplitude: 0,
-                shiftYOscAmplitude: 0,
-                shiftXOscFrequency: 1,
-                shiftYOscFrequency: 1
-            },
-            sway: {
-                shiftX: 0,
-                shiftY: 0,
-                shiftXMode: 'oscillate',
-                shiftYMode: 'oscillate',
-                shiftXOscAmplitude: 25,
-                shiftYOscAmplitude: 15,
-                shiftXOscFrequency: 0.6,
-                shiftYOscFrequency: 0.5
-            },
-            orbit: {
-                shiftX: 3,
-                shiftY: 3,
-                shiftXMode: 'oscillate',
-                shiftYMode: 'oscillate',
-                shiftXOscAmplitude: 35,
-                shiftYOscAmplitude: 35,
-                shiftXOscFrequency: 0.4,
-                shiftYOscFrequency: 0.4
-            }
-        };
-
-        this.activePreset = 'default';
-        this.activeMotionPreset = 'steady';
-        this.presetButtons = [];
-        this.motionPresetButtons = [];
-        this.shiftSettingKeys = [
-            'shiftX',
-            'shiftY',
-            'shiftXMode',
-            'shiftYMode',
-            'shiftXOscAmplitude',
-            'shiftYOscAmplitude',
-            'shiftXOscFrequency',
-            'shiftYOscFrequency'
-        ];
         
         this.strokeManager = new StrokeManager();
         this.echoManager = new EchoManager(this.settings.echoCountMax);
@@ -141,8 +117,6 @@ class EchoDrawingApp {
         this.setupSettings();
         this.startRenderLoop();
         this.startEchoTimer();
-
-        this.applyPreset(this.activePreset);
 
         document.querySelector('.app-container').classList.add('loaded');
     }
@@ -193,15 +167,18 @@ class EchoDrawingApp {
         document.getElementById('toggleSettings').addEventListener('click', () => {
             this.toggleSettingsPanel();
         });
-
-        this.bindPresetButtons();
-        this.bindMotionPresetButtons();
     }
-
+    
     setupSettings() {
-        this.bindPresetButtons();
-        this.bindMotionPresetButtons();
-
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.applyPreset(e.target.dataset.preset);
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+            });
+        });
+        
         // Settings controls
         this.setupSettingControl('strokeColor', 'color', (value) => {
             this.settings.strokeColor = value;
@@ -308,38 +285,6 @@ class EchoDrawingApp {
         this.updateShiftAxisState('Y');
     }
 
-    bindPresetButtons() {
-        const buttons = Array.from(document.querySelectorAll('.preset-btn'));
-        buttons.forEach(btn => {
-            if (btn.dataset.presetBound === 'true') {
-                return;
-            }
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const presetName = e.currentTarget.dataset.preset;
-                this.applyPreset(presetName);
-            });
-            btn.dataset.presetBound = 'true';
-        });
-        this.presetButtons = buttons;
-    }
-
-    bindMotionPresetButtons() {
-        const buttons = Array.from(document.querySelectorAll('.motion-preset-btn'));
-        buttons.forEach(btn => {
-            if (btn.dataset.motionBound === 'true') {
-                return;
-            }
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const presetName = e.currentTarget.dataset.motion;
-                this.applyMotionPreset(presetName);
-            });
-            btn.dataset.motionBound = 'true';
-        });
-        this.motionPresetButtons = buttons;
-    }
-
     setupSettingControl(id, type, callback) {
         const element = document.getElementById(id);
         const event = type === 'range' ? 'input' : 'change';
@@ -372,40 +317,31 @@ class EchoDrawingApp {
         const preset = this.presets[presetName];
         if (!preset) return;
 
-        this.activePreset = presetName;
+        Object.assign(this.settings, preset);
+        this.echoManager.setMaxEchoes(this.settings.echoCountMax);
 
+        // Update UI controls
         Object.keys(preset).forEach(key => {
-            if (this.shiftSettingKeys.includes(key)) {
-                return;
-            }
+            const element = document.getElementById(this.getControlId(key));
+            if (element) {
+                let value = preset[key];
+                if (key === 'strokeAlpha') {
+                    value = preset[key] * 100;
+                }
+                element.value = value;
 
-            const value = preset[key];
-            this.settings[key] = value;
-
-            if (key === 'strokeAlpha') {
-                this.updateControlValue(key, value * 100);
-            } else {
-                this.updateControlValue(key, value);
+                // Update display values
+                const valueDisplay = document.getElementById(this.getControlId(key) + 'Value');
+                if (valueDisplay) {
+                    valueDisplay.textContent = this.formatSettingValue(key, value);
+                }
             }
         });
 
-        this.echoManager.setMaxEchoes(this.settings.echoCountMax);
-
-        if (this.presetButtons.length) {
-            this.presetButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.preset === presetName);
-            });
-        }
-
+        this.updateShiftAxisState('X');
+        this.updateShiftAxisState('Y');
+        this.restartEchoTimer();
         this.updateBackgroundEffect();
-
-        const activeMotion = (this.activeMotionPreset && this.motionPresets[this.activeMotionPreset])
-            ? this.activeMotionPreset
-            : Object.keys(this.motionPresets)[0];
-
-        if (activeMotion) {
-            this.applyMotionPreset(activeMotion);
-        }
     }
 
     getControlId(settingKey) {
@@ -414,42 +350,6 @@ class EchoDrawingApp {
             echoCountMax: 'echoCount'
         };
         return mapping[settingKey] || settingKey;
-    }
-
-    updateControlValue(settingKey, value) {
-        const controlId = this.getControlId(settingKey);
-        const element = document.getElementById(controlId);
-        if (!element) return;
-
-        element.value = value;
-
-        const valueDisplay = document.getElementById(controlId + 'Value');
-        if (valueDisplay) {
-            valueDisplay.textContent = this.formatSettingValue(settingKey, value);
-        }
-    }
-
-    applyMotionPreset(presetName) {
-        const preset = this.motionPresets[presetName];
-        if (!preset) return;
-
-        this.activeMotionPreset = presetName;
-
-        Object.keys(preset).forEach(key => {
-            const value = preset[key];
-            this.settings[key] = value;
-            this.updateControlValue(key, value);
-        });
-
-        if (this.motionPresetButtons.length) {
-            this.motionPresetButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.motion === presetName);
-            });
-        }
-
-        this.updateShiftAxisState('X');
-        this.updateShiftAxisState('Y');
-        this.restartEchoTimer();
     }
 
     formatSettingValue(key, value) {
