@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="レインボーカメラ">
+    <title>レインボーカメラ - 虹色残像エフェクト</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Top Status Bar -->
+        <div class="topbar">
+            <div class="status-left">
+                <span id="fpsDisplay">30 FPS</span>
+            </div>
+            <div class="status-center">
+                <div id="recordingIndicator" class="recording-indicator hidden">
+                    <div class="rec-dot"></div>
+                    <span id="recordingTime">00:00</span>
+                </div>
+            </div>
+            <div class="status-right"></div>
+        </div>
+
+        <!-- Camera Stage -->
+        <div class="stage">
+            <div class="letterbox">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="bottombar">
+            <div class="controls" id="controls">
+                <!-- Effect Controls -->
+                <div class="effect-sliders">
+                    <div class="slider-row">
+                        <label>強度</label>
+                        <input type="range" id="intensity" min="0" max="100" value="70" class="slider">
+                        <span id="intensityValue">70%</span>
+                    </div>
+                    <div class="slider-row">
+                        <label>色相</label>
+                        <input type="range" id="hue" min="0" max="100" value="20" class="slider">
+                        <span id="hueValue">20%</span>
+                    </div>
+                    <div class="slider-row">
+                        <label>長さ</label>
+                        <input type="range" id="length" min="1" max="20" value="8" class="slider">
+                        <span id="lengthValue">8</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-row">
+                    <button id="switchCamera" class="btn btn--outline btn--sm">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM15 15.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
+                        </svg>
+                    </button>
+                    
+                    <button id="recordBtn" class="record-btn">
+                        <div class="record-circle"></div>
+                    </button>
+                    
+                    <button id="downloadBtn" class="btn btn--outline btn--sm hidden">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Start Screen -->
+            <div id="startScreen" class="start-screen">
+                <h2>レインボーカメラ</h2>
+                <p>虹色の残像エフェクト</p>
+                <button id="startBtn" class="btn btn--primary btn--lg">カメラ開始</button>
+            </div>
+        </div>
+
+        <!-- Permission Modal -->
+        <div id="permissionModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>カメラアクセス</h3>
+                <p>カメラとマイクの使用許可が必要です</p>
+                <div class="modal-actions">
+                    <button id="allowBtn" class="btn btn--primary">許可する</button>
+                    <button id="cancelBtn" class="btn btn--secondary">キャンセル</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Modal -->
+        <div id="errorModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>エラー</h3>
+                <p id="errorText">エラーが発生しました</p>
+                <div class="modal-actions">
+                    <button id="closeErrorBtn" class="btn btn--secondary">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
