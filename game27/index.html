@@ -91,8 +91,40 @@
                         <input type="range" id="shiftX" class="form-control" min="-20" max="20" value="-1" step="1">
                     </div>
                     <div class="form-group">
+                        <label class="form-label">X シフトモード</label>
+                        <select id="shiftXMode" class="form-control">
+                            <option value="static" selected>固定</option>
+                            <option value="oscillate">オシレーション</option>
+                            <option value="off">オフ</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group--nested form-group--disabled">
+                        <label class="form-label">X 振幅: <span id="shiftXOscAmplitudeValue">0</span>px</label>
+                        <input type="range" id="shiftXOscAmplitude" class="form-control" min="0" max="150" value="0" step="1" disabled>
+                    </div>
+                    <div class="form-group form-group--nested form-group--disabled">
+                        <label class="form-label">X 周波数: <span id="shiftXOscFrequencyValue">1.00</span>Hz</label>
+                        <input type="range" id="shiftXOscFrequency" class="form-control" min="0" max="4" value="1" step="0.1" disabled>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Y シフト: <span id="shiftYValue">-2</span>px</label>
                         <input type="range" id="shiftY" class="form-control" min="-20" max="20" value="-2" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Y シフトモード</label>
+                        <select id="shiftYMode" class="form-control">
+                            <option value="static" selected>固定</option>
+                            <option value="oscillate">オシレーション</option>
+                            <option value="off">オフ</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-group--nested form-group--disabled">
+                        <label class="form-label">Y 振幅: <span id="shiftYOscAmplitudeValue">0</span>px</label>
+                        <input type="range" id="shiftYOscAmplitude" class="form-control" min="0" max="150" value="0" step="1" disabled>
+                    </div>
+                    <div class="form-group form-group--nested form-group--disabled">
+                        <label class="form-label">Y 周波数: <span id="shiftYOscFrequencyValue">1.00</span>Hz</label>
+                        <input type="range" id="shiftYOscFrequency" class="form-control" min="0" max="4" value="1" step="0.1" disabled>
                     </div>
                     <div class="form-group">
                         <label class="form-label">エコーごとの縮尺: <span id="scalePerEchoValue">0.99</span></label>
