@@ -63,6 +63,7 @@ let computeToken = 0;
 let currentGeometry = null;
 let drawTask = null;
 let lastRandomSignature = '';
+let panelCollapsed = false;
 
 function jsonClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -994,7 +995,6 @@ function setupUIEvents() {
 
   if (panelToggleBtn && controlPanelEl) {
     const mobileQuery = window.matchMedia('(max-width: 720px)');
-    let panelCollapsed = mobileQuery.matches;
 
     const applyPanelState = (collapsed) => {
       panelCollapsed = collapsed;
@@ -1004,14 +1004,14 @@ function setupUIEvents() {
       panelToggleBtn.textContent = collapsed ? '設定を開く' : '設定を閉じる';
     };
 
-    applyPanelState(panelCollapsed);
+    applyPanelState(mobileQuery.matches);
 
     panelToggleBtn.addEventListener('click', () => {
       applyPanelState(!panelCollapsed);
     });
 
     const handleMediaChange = (event) => {
-      if (!event.matches) {
+      if (!event.matches && panelCollapsed) {
         applyPanelState(false);
       }
     };
