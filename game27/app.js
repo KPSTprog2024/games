@@ -94,6 +94,33 @@ class EchoDrawingApp {
                 strokeColor: '#00ff64',
                 strokeWidth: 1,
                 strokeAlpha: 1
+            },
+            'time-drift': {
+                echoIntervalMs: 90,
+                shiftXMode: 'oscillate',
+                shiftXOscAmplitude: 6,
+                shiftXOscFrequency: 0.2,
+                shiftYMode: 'oscillate',
+                shiftYOscAmplitude: 8,
+                shiftYOscFrequency: 0.2
+            },
+            'time-pulse': {
+                echoIntervalMs: 50,
+                shiftXMode: 'oscillate',
+                shiftXOscAmplitude: 18,
+                shiftXOscFrequency: 0.6,
+                shiftYMode: 'oscillate',
+                shiftYOscAmplitude: 22,
+                shiftYOscFrequency: 0.7
+            },
+            'time-hyper': {
+                echoIntervalMs: 40,
+                shiftXMode: 'oscillate',
+                shiftXOscAmplitude: 35,
+                shiftXOscFrequency: 1.1,
+                shiftYMode: 'oscillate',
+                shiftYOscAmplitude: 40,
+                shiftYOscFrequency: 1.3
             }
         };
         
@@ -173,9 +200,13 @@ class EchoDrawingApp {
         // Preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.applyPreset(e.target.dataset.preset);
-                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+                const button = e.currentTarget;
+                this.applyPreset(button.dataset.preset);
+
+                const group = button.dataset.group;
+                const selector = group ? `.preset-btn[data-group="${group}"]` : '.preset-btn:not([data-group])';
+                document.querySelectorAll(selector).forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
             });
         });
         
