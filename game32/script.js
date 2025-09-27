@@ -78,6 +78,7 @@ class EchoEngine {
     this.echoCanvas = echoCanvas;
     this.ctx = echoCanvas.getContext('2d');
     this.settings = settings;
+    this.dpr = 1;
     this.animationFrame = null;
     this.animationDuration = 600;
     this.tintCanvas = document.createElement('canvas');
@@ -87,6 +88,7 @@ class EchoEngine {
   }
   resize(){
     const dpr = window.devicePixelRatio || 1;
+    this.dpr = dpr;
     this.echoCanvas.width = window.innerWidth * dpr;
     this.echoCanvas.height = window.innerHeight * dpr;
     this.ctx.setTransform(1,0,0,1,0,0);
@@ -118,6 +120,9 @@ class EchoEngine {
   generate(progress=1){
     const s = this.settings;
     const {width,height} = this.drawCanvas;
+    const dpr = this.dpr || 1;
+    const cssWidth = width / dpr;
+    const cssHeight = height / dpr;
     this.ctx.save();
     this.ctx.setTransform(1,0,0,1,0,0);
     this.ctx.clearRect(0,0,this.echoCanvas.width,this.echoCanvas.height);
@@ -159,10 +164,10 @@ class EchoEngine {
         this.tintCtx.fillRect(0,0,width,height);
         this.tintCtx.globalCompositeOperation = 'source-over';
         this.ctx.filter = 'none';
-        this.ctx.drawImage(this.tintCanvas,0,0);
+        this.ctx.drawImage(this.tintCanvas,0,0,width,height,0,0,cssWidth,cssHeight);
       } else {
         this.ctx.filter = `hue-rotate(${s.hueShift * i}deg)`;
-        this.ctx.drawImage(this.drawCanvas,0,0);
+        this.ctx.drawImage(this.drawCanvas,0,0,width,height,0,0,cssWidth,cssHeight);
       }
       this.ctx.restore();
     }
