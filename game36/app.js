@@ -60,7 +60,8 @@
     backgroundCaptured: false,
     segmentationStats: [],
     neonHueBase: 220,
-    hintTimestamp: 0
+    hintTimestamp: 0,
+    videoDimensionHandler: null
   };
 
   class MediaPipeSegmenter {
@@ -557,6 +558,49 @@
     });
   }
 
+  function isIOSSafari() {
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(ua);
+    return isIOS && isSafari;
+  }
+
+  function clearVideoDimensionHandler() {
+    if (!state.videoDimensionHandler) {
+      return;
+    }
+    dom.video.removeEventListener('loadedmetadata', state.videoDimensionHandler);
+    dom.video.removeEventListener('resize', state.videoDimensionHandler);
+    state.videoDimensionHandler = null;
+  }
+
+  function applyCanvasSizeFromVideo() {
+    const width = dom.video.videoWidth;
+    const height = dom.video.videoHeight;
+    if (width > 0 && height > 0) {
+      setCanvasSize(width, height);
+      return true;
+    }
+    return false;
+  }
+
+  function ensureCanvasSizeMatchesVideo() {
+    clearVideoDimensionHandler();
+    if (applyCanvasSizeFromVideo()) {
+      return;
+    }
+    setCanvasSize(1280, 720);
+    const handler = () => {
+      if (!applyCanvasSizeFromVideo()) {
+        return;
+      }
+      clearVideoDimensionHandler();
+    };
+    state.videoDimensionHandler = handler;
+    dom.video.addEventListener('loadedmetadata', handler);
+    dom.video.addEventListener('resize', handler);
+  }
+
   async function startCamera() {
     if (state.stream) {
       const [track] = state.stream.getVideoTracks();
@@ -565,19 +609,24 @@
         await dom.video.play();
         if (!state.videoReady) {
           await waitForVideoReady(dom.video);
-          setCanvasSize(dom.video.videoWidth || 1280, dom.video.videoHeight || 720);
+          ensureCanvasSizeMatchesVideo();
           state.videoReady = true;
         }
         return state.stream;
       }
     }
+    const videoConstraints = {
+      width: { ideal: 1280 },
+      facingMode: state.facingMode
+    };
+    if (isIOSSafari()) {
+      videoConstraints.aspectRatio = { ideal: 4 / 3 };
+    } else {
+      videoConstraints.height = { ideal: 720 };
+    }
     const constraints = {
       audio: false,
-      video: {
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        facingMode: state.facingMode
-      }
+      video: videoConstraints
     };
     updateStatus('カメラ起動中…');
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -585,7 +634,7 @@
     dom.video.srcObject = stream;
     await dom.video.play();
     await waitForVideoReady(dom.video);
-    setCanvasSize(dom.video.videoWidth || 1280, dom.video.videoHeight || 720);
+    ensureCanvasSizeMatchesVideo();
     state.videoReady = true;
     updateStatus('プレビュー準備完了。背景を固定しています…');
     return stream;
@@ -958,6 +1007,7 @@
       state.stream = null;
     }
     dom.video.srcObject = null;
+    clearVideoDimensionHandler();
     state.videoReady = false;
     state.backgroundCaptured = false;
     backgroundDiffer.reset();
