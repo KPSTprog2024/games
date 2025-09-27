@@ -8,6 +8,12 @@ class EchoDrawingApp {
             echoCountMax: 80,
             shiftX: -1,
             shiftY: -2,
+            shiftXMode: 'static',
+            shiftYMode: 'static',
+            shiftXOscAmplitude: 0,
+            shiftYOscAmplitude: 0,
+            shiftXOscFrequency: 1,
+            shiftYOscFrequency: 1,
             scalePerEcho: 0.99,
             alphaPerEcho: 0.98,
             blurPerEcho: 0,
@@ -27,6 +33,12 @@ class EchoDrawingApp {
                 echoCountMax: 80,
                 shiftX: -1,
                 shiftY: -2,
+                shiftXMode: 'static',
+                shiftYMode: 'static',
+                shiftXOscAmplitude: 0,
+                shiftYOscAmplitude: 0,
+                shiftXOscFrequency: 1,
+                shiftYOscFrequency: 1,
                 scalePerEcho: 0.99,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -44,6 +56,12 @@ class EchoDrawingApp {
                 echoCountMax: 200,
                 shiftX: 5,
                 shiftY: 0,
+                shiftXMode: 'oscillate',
+                shiftYMode: 'oscillate',
+                shiftXOscAmplitude: 25,
+                shiftYOscAmplitude: 15,
+                shiftXOscFrequency: 0.6,
+                shiftYOscFrequency: 0.9,
                 scalePerEcho: 0.99,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -60,6 +78,12 @@ class EchoDrawingApp {
                 echoCountMax: 20,
                 shiftX: 20,
                 shiftY: 1,
+                shiftXMode: 'static',
+                shiftYMode: 'static',
+                shiftXOscAmplitude: 0,
+                shiftYOscAmplitude: 0,
+                shiftXOscFrequency: 1,
+                shiftYOscFrequency: 1,
                 scalePerEcho: 0.9,
                 alphaPerEcho: 0.98,
                 blurPerEcho: 0,
@@ -81,15 +105,8 @@ class EchoDrawingApp {
         this.isDrawing = false;
         this.echoTimer = null;
         this.animationId = null;
-        this.lastFrameTime = 0;
-
-        this.ambientLayer = null;
-        this.particlesContainer = null;
-        this.activeBackgroundEffect = null;
-        this.performanceSuppressedEffects = false;
-        this.particlesScriptPromise = null;
-        this.particlesActive = false;
-
+        this.lastFrameTime = null;
+        this.startTime = null;
         this.init();
     }
 
@@ -212,6 +229,36 @@ class EchoDrawingApp {
             document.getElementById('shiftYValue').textContent = value;
         });
         
+        this.setupSettingControl('shiftXMode', 'select', (value) => {
+            this.settings.shiftXMode = value;
+            this.updateShiftAxisState('X');
+        });
+
+        this.setupSettingControl('shiftXOscAmplitude', 'range', (value) => {
+            this.settings.shiftXOscAmplitude = parseFloat(value);
+            document.getElementById('shiftXOscAmplitudeValue').textContent = value;
+        });
+
+        this.setupSettingControl('shiftXOscFrequency', 'range', (value) => {
+            this.settings.shiftXOscFrequency = parseFloat(value);
+            document.getElementById('shiftXOscFrequencyValue').textContent = this.formatFrequency(value);
+        });
+
+        this.setupSettingControl('shiftYMode', 'select', (value) => {
+            this.settings.shiftYMode = value;
+            this.updateShiftAxisState('Y');
+        });
+
+        this.setupSettingControl('shiftYOscAmplitude', 'range', (value) => {
+            this.settings.shiftYOscAmplitude = parseFloat(value);
+            document.getElementById('shiftYOscAmplitudeValue').textContent = value;
+        });
+
+        this.setupSettingControl('shiftYOscFrequency', 'range', (value) => {
+            this.settings.shiftYOscFrequency = parseFloat(value);
+            document.getElementById('shiftYOscFrequencyValue').textContent = this.formatFrequency(value);
+        });
+
         this.setupSettingControl('scalePerEcho', 'range', (value) => {
             this.settings.scalePerEcho = parseFloat(value);
             document.getElementById('scalePerEchoValue').textContent = value;
@@ -231,27 +278,45 @@ class EchoDrawingApp {
             this.settings.colorDecay = value;
         });
 
-        this.setupSettingControl('backgroundEffect', 'select', (value) => {
-            this.settings.backgroundEffect = value;
-            this.updateBackgroundEffect();
-        });
+        document.getElementById('shiftXOscFrequencyValue').textContent = this.formatFrequency(this.settings.shiftXOscFrequency);
+        document.getElementById('shiftYOscFrequencyValue').textContent = this.formatFrequency(this.settings.shiftYOscFrequency);
 
-        this.updateBackgroundEffect();
+        this.updateShiftAxisState('X');
+        this.updateShiftAxisState('Y');
     }
 
     setupSettingControl(id, type, callback) {
         const element = document.getElementById(id);
         const event = type === 'range' ? 'input' : 'change';
-        
+
         element.addEventListener(event, (e) => {
             callback(e.target.value);
         });
     }
-    
+
+    updateShiftAxisState(axis) {
+        const mode = this.settings[`shift${axis}Mode`];
+        const amplitudeInput = document.getElementById(`shift${axis}OscAmplitude`);
+        const frequencyInput = document.getElementById(`shift${axis}OscFrequency`);
+        const amplitudeGroup = amplitudeInput.closest('.form-group');
+        const frequencyGroup = frequencyInput.closest('.form-group');
+        const isOscillate = mode === 'oscillate';
+
+        amplitudeInput.disabled = !isOscillate;
+        frequencyInput.disabled = !isOscillate;
+
+        amplitudeGroup.classList.toggle('form-group--disabled', !isOscillate);
+        frequencyGroup.classList.toggle('form-group--disabled', !isOscillate);
+    }
+
+    formatFrequency(value) {
+        return parseFloat(value).toFixed(2);
+    }
+
     applyPreset(presetName) {
         const preset = this.presets[presetName];
         if (!preset) return;
-        
+
         Object.assign(this.settings, preset);
         this.echoManager.setMaxEchoes(this.settings.echoCountMax);
 
@@ -268,21 +333,33 @@ class EchoDrawingApp {
                 // Update display values
                 const valueDisplay = document.getElementById(this.getControlId(key) + 'Value');
                 if (valueDisplay) {
-                    valueDisplay.textContent = value;
+                    valueDisplay.textContent = this.formatSettingValue(key, value);
                 }
             }
         });
 
+        this.updateShiftAxisState('X');
+        this.updateShiftAxisState('Y');
         this.restartEchoTimer();
         this.updateBackgroundEffect();
     }
-    
+
     getControlId(settingKey) {
         const mapping = {
             echoIntervalMs: 'echoInterval',
             echoCountMax: 'echoCount'
         };
         return mapping[settingKey] || settingKey;
+    }
+
+    formatSettingValue(key, value) {
+        if (key === 'strokeAlpha') {
+            return value;
+        }
+        if (key.endsWith('Frequency')) {
+            return this.formatFrequency(value);
+        }
+        return value;
     }
     
     handlePointerDown(e) {
@@ -328,55 +405,78 @@ class EchoDrawingApp {
     
     startRenderLoop() {
         const render = (currentTime) => {
+            if (this.startTime === null) {
+                this.startTime = currentTime;
+            }
+
+            if (this.lastFrameTime === null) {
+                this.lastFrameTime = currentTime;
+            }
+
             const deltaTime = currentTime - this.lastFrameTime;
             this.lastFrameTime = currentTime;
-            
+            const elapsedTime = currentTime - this.startTime;
+
             // Update performance metrics
             this.performance.update(deltaTime);
-            
+
             // Apply performance governor
             this.performance.applyGovernor(this.settings);
-            this.handlePerformanceGovernance();
 
             // Update performance display
             this.updatePerformanceDisplay();
-            
+
             // Cull off-screen echoes
             this.echoManager.cullOffscreen(
                 this.renderer.width,
-                this.renderer.height
+                this.renderer.height,
+                this.settings
             );
-            
+
             // Render frame
-            this.renderFrame();
-            
+            this.renderFrame(elapsedTime);
+
             this.animationId = requestAnimationFrame(render);
         };
-        
+
         this.animationId = requestAnimationFrame(render);
     }
-    
-    renderFrame() {
+
+    renderFrame(elapsedTime = 0) {
         // Clear canvas
         this.renderer.clear();
-        
+
         // Draw echoes from back to front
         const echoes = this.echoManager.getRenderPlan();
         for (const {echo, k} of echoes) {
-            this.renderer.drawEcho(echo, k, this.getTransformParams(k), this.settings);
+            this.renderer.drawEcho(echo, k, this.getTransformParams(k, elapsedTime), this.settings);
         }
-        
+
         // Draw current stroke on top
         const currentStroke = this.strokeManager.getCurrentPath();
         if (currentStroke && currentStroke.points.length > 0) {
             this.renderer.drawStroke(currentStroke);
         }
     }
-    
-    getTransformParams(k) {
+
+    getTransformParams(k, elapsedTime = 0) {
         return {
-            dx: k * this.settings.shiftX,
-            dy: k * this.settings.shiftY,
+            dx: computeShiftAxis(
+                this.settings.shiftXMode,
+                k * this.settings.shiftX,
+                this.settings.shiftXOscAmplitude,
+                this.settings.shiftXOscFrequency,
+                elapsedTime,
+                k
+            ),
+            dy: computeShiftAxis(
+                this.settings.shiftYMode,
+                k * this.settings.shiftY,
+                this.settings.shiftYOscAmplitude,
+                this.settings.shiftYOscFrequency,
+                elapsedTime,
+                k
+            ),
             scale: Math.pow(this.settings.scalePerEcho, k),
             alpha: Math.pow(this.settings.alphaPerEcho, k),
             blur: k * this.settings.blurPerEcho
@@ -698,10 +798,21 @@ class EchoManager {
         })).reverse(); // Render from oldest to newest
     }
     
-    cullOffscreen(canvasWidth, canvasHeight) {
+    cullOffscreen(canvasWidth, canvasHeight, settings = {}) {
         this.echoes = this.echoes.filter((echo, k) => {
-            // Simple bounds check - keep echoes that might still be visible
-            const maxShift = Math.max(Math.abs(k * -20), Math.abs(k * -20));
+            const shiftX = settings.shiftX ?? 0;
+            const shiftY = settings.shiftY ?? 0;
+            const modeX = settings.shiftXMode;
+            const modeY = settings.shiftYMode;
+            const ampX = settings.shiftXOscAmplitude ?? 0;
+            const ampY = settings.shiftYOscAmplitude ?? 0;
+
+            const baseShiftX = modeX === 'off' ? 0 : Math.abs(k * shiftX);
+            const baseShiftY = modeY === 'off' ? 0 : Math.abs(k * shiftY);
+            const extraShiftX = modeX === 'oscillate' ? Math.abs(ampX) : 0;
+            const extraShiftY = modeY === 'oscillate' ? Math.abs(ampY) : 0;
+
+            const maxShift = Math.max(baseShiftX + extraShiftX, baseShiftY + extraShiftY);
             return maxShift < Math.max(canvasWidth, canvasHeight) * 2;
         });
     }
@@ -987,6 +1098,31 @@ class PerformanceManager {
     shouldSuppressEffects() {
         return this.effectsSuppressed;
     }
+}
+
+function computeShiftAxis(mode, base, amplitude = 0, frequency = 0, time = 0, index = 0) {
+    const numericBase = Number(base) || 0;
+    const numericAmplitude = Number(amplitude) || 0;
+    const numericFrequency = Number(frequency) || 0;
+    const numericTime = Number(time) || 0;
+    const numericIndex = Number(index) || 0;
+
+    switch (mode) {
+        case 'off':
+            return 0;
+        case 'oscillate': {
+            const omega = numericFrequency * Math.PI * 2;
+            const phase = omega * (numericTime / 1000) + numericIndex * 0.5;
+            return numericBase + numericAmplitude * Math.sin(phase);
+        }
+        case 'static':
+        default:
+            return numericBase;
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.computeShiftAxis = computeShiftAxis;
 }
 
 // Initialize the application
