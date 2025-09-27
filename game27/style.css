@@ -401,15 +401,36 @@ pre code {
   font-weight: 500;
   line-height: 1.5;
   cursor: pointer;
-  transition: all var(--duration-normal) var(--ease-standard);
   border: none;
   text-decoration: none;
   position: relative;
+  transform: translateY(0) scale(1);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
+}
+
+.btn:hover,
+.btn:focus-visible {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
+  box-shadow: var(--shadow-md), var(--focus-ring);
+}
+
+.btn:active {
+  transform: translateY(0) scale(1.01);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:focus-visible:active {
+  box-shadow: var(--shadow-sm), var(--focus-ring);
 }
 
 .btn--primary {
@@ -896,6 +917,60 @@ input[type="range"] {
   background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
   outline: none;
+  transition: background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+input[type="range"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--color-teal-500-rgb), 0.35);
+}
+
+input[type="range"]:hover,
+input[type="range"]:active,
+input[type="range"]:focus-visible {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-teal-500-rgb), 0.3) 0%,
+    rgba(var(--color-teal-500-rgb), 0.15) 100%
+  );
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  transition: background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  transition: background var(--duration-normal) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+input[type="range"]:hover::-webkit-slider-runnable-track,
+input[type="range"]:focus-visible::-webkit-slider-runnable-track,
+input[type="range"]:active::-webkit-slider-runnable-track,
+input[type="range"]:hover::-moz-range-track,
+input[type="range"]:focus-visible::-moz-range-track,
+input[type="range"]:active::-moz-range-track {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--color-teal-500-rgb), 0.45) 0%,
+    rgba(var(--color-teal-500-rgb), 0.2) 100%
+  );
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -908,6 +983,11 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   border: 2px solid var(--color-white);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(0) scale(1);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -918,6 +998,26 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   border: 2px solid var(--color-white);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(0) scale(1);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb,
+input[type="range"]:hover::-moz-range-thumb {
+  transform: translateY(0) scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  background: var(--color-teal-400);
+}
+
+input[type="range"]:active::-webkit-slider-thumb,
+input[type="range"]:active::-moz-range-thumb {
+  transform: translateY(0) scale(1.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+  background: var(--color-teal-500);
+  border-color: rgba(255, 255, 255, 0.9);
 }
 
 /* Preset Buttons */
@@ -931,18 +1031,42 @@ input[type="range"]::-moz-range-thumb {
   background-color: rgba(255, 255, 255, 0.1);
   color: var(--color-white);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all var(--duration-fast) var(--ease-standard);
+  transform: translateY(0) scale(1);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-standard);
 }
 
 .preset-btn:hover {
   background-color: rgba(255, 255, 255, 0.15);
   border-color: var(--color-teal-300);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+.preset-btn:focus-visible {
+  outline: none;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--shadow-md), var(--focus-ring);
 }
 
 .preset-btn.active {
   background-color: var(--color-teal-300);
   color: var(--color-black);
   border-color: var(--color-teal-300);
+  box-shadow: var(--shadow-md);
+}
+
+.preset-btn:active {
+  transform: translateY(0) scale(1.01);
+  box-shadow: var(--shadow-sm);
+}
+
+.preset-btn:focus-visible:active {
+  box-shadow: var(--shadow-sm), var(--focus-ring);
 }
 
 /* Status indicators for dark theme */
@@ -1085,8 +1209,27 @@ input[type="range"]::-moz-range-thumb {
   .settings-panel,
   .settings-content,
   .preset-btn,
-  .app-container {
+  .app-container,
+  .btn,
+  input[type="range"],
+  input[type="range"]::-webkit-slider-thumb,
+  input[type="range"]::-moz-range-thumb,
+  input[type="range"]::-webkit-slider-runnable-track,
+  input[type="range"]::-moz-range-track {
     transition: none;
+  }
+
+  .btn:hover,
+  .btn:focus-visible,
+  .btn:active,
+  .preset-btn:hover,
+  .preset-btn:focus-visible,
+  .preset-btn:active,
+  input[type="range"]:hover::-webkit-slider-thumb,
+  input[type="range"]:active::-webkit-slider-thumb,
+  input[type="range"]:hover::-moz-range-thumb,
+  input[type="range"]:active::-moz-range-thumb {
+    transform: none;
   }
 }
 
