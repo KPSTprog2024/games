@@ -23,7 +23,8 @@ class EchoDrawingApp {
             hueShift: 30,
             strokeColor: '#00c8ff',
             strokeWidth: 3,
-            strokeAlpha: 0.75
+            strokeAlpha: 0.75,
+            backgroundEffect: 'aurora'
         };
         
         this.presets = {
@@ -47,7 +48,8 @@ class EchoDrawingApp {
                 hueShift: 30,
                 strokeColor: '#00c8ff',
                 strokeWidth: 3,
-                strokeAlpha: 0.75
+                strokeAlpha: 0.75,
+                backgroundEffect: 'aurora'
             },
             'rainbow': {
                 echoIntervalMs: 40,
@@ -99,23 +101,23 @@ class EchoDrawingApp {
         this.echoManager = new EchoManager(this.settings.echoCountMax);
         this.renderer = new Canvas2DRenderer();
         this.performance = new PerformanceManager();
-        
+
         this.isDrawing = false;
         this.echoTimer = null;
         this.animationId = null;
         this.lastFrameTime = null;
         this.startTime = null;
-        
         this.init();
     }
-    
+
     init() {
         this.setupCanvas();
+        this.setupAmbientLayer();
         this.setupEventListeners();
         this.setupSettings();
         this.startRenderLoop();
         this.startEchoTimer();
-        
+
         document.querySelector('.app-container').classList.add('loaded');
     }
     
@@ -338,8 +340,8 @@ class EchoDrawingApp {
 
         this.updateShiftAxisState('X');
         this.updateShiftAxisState('Y');
-
         this.restartEchoTimer();
+        this.updateBackgroundEffect();
     }
 
     getControlId(settingKey) {
@@ -529,11 +531,176 @@ class EchoDrawingApp {
     toggleSettingsPanel() {
         const content = document.getElementById('settingsContent');
         const icon = document.getElementById('toggleIcon');
-        
+
         content.classList.toggle('collapsed');
         icon.textContent = content.classList.contains('collapsed') ? '▲' : '▼';
     }
-    
+
+    setupAmbientLayer() {
+        this.ambientLayer = document.getElementById('ambientLayer');
+        this.particlesContainer = document.getElementById('particlesContainer');
+        this.updateBackgroundEffect();
+    }
+
+    updateBackgroundEffect() {
+        if (!this.ambientLayer) {
+            return;
+        }
+
+        const desiredEffect = (this.performanceSuppressedEffects && this.settings.backgroundEffect !== 'none')
+            ? 'none'
+            : this.settings.backgroundEffect;
+
+        if (desiredEffect === this.activeBackgroundEffect) {
+            return;
+        }
+
+        this.applyBackgroundEffect(desiredEffect);
+    }
+
+    applyBackgroundEffect(effect) {
+        const classList = ['ambient--aurora', 'ambient--particles', 'ambient--none'];
+        this.ambientLayer.classList.remove(...classList);
+
+        switch (effect) {
+            case 'particles':
+                this.ambientLayer.classList.add('ambient--particles');
+                this.ensureParticlesEffect();
+                break;
+            case 'aurora':
+                this.destroyParticles();
+                this.ambientLayer.classList.add('ambient--aurora');
+                break;
+            default:
+                this.destroyParticles();
+                this.ambientLayer.classList.add('ambient--none');
+                break;
+        }
+
+        this.activeBackgroundEffect = effect;
+    }
+
+    ensureParticlesEffect() {
+        if (this.particlesActive) {
+            return;
+        }
+
+        this.destroyParticles();
+
+        this.loadParticlesLibrary()
+            .then(() => {
+                this.initParticles();
+            })
+            .catch((error) => {
+                console.error('particles.js を読み込めませんでした', error);
+                this.activeBackgroundEffect = 'none';
+                this.ambientLayer.classList.remove('ambient--particles');
+                this.ambientLayer.classList.add('ambient--none');
+                this.particlesActive = false;
+            });
+    }
+
+    loadParticlesLibrary() {
+        if (window.particlesJS) {
+            return Promise.resolve();
+        }
+
+        if (this.particlesScriptPromise) {
+            return this.particlesScriptPromise;
+        }
+
+        this.particlesScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = (error) => {
+                script.remove();
+                this.particlesScriptPromise = null;
+                reject(error);
+            };
+            document.body.appendChild(script);
+        });
+
+        return this.particlesScriptPromise;
+    }
+
+    initParticles() {
+        if (this.activeBackgroundEffect !== 'particles') {
+            return;
+        }
+
+        if (!window.particlesJS || !this.particlesContainer) {
+            return;
+        }
+
+        if (window.pJSDom && window.pJSDom.length) {
+            window.pJSDom.forEach(instance => {
+                if (instance && instance.pJS && instance.pJS.fn && instance.pJS.fn.vendors) {
+                    instance.pJS.fn.vendors.destroypJS();
+                }
+            });
+            window.pJSDom = [];
+        }
+
+        this.particlesContainer.innerHTML = '';
+
+        window.particlesJS('particlesContainer', {
+            particles: {
+                number: { value: 45, density: { enable: true, value_area: 800 } },
+                color: { value: ['#00c8ff', '#ff0078', '#8a2be2'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.4, random: true },
+                size: { value: 3, random: true },
+                line_linked: { enable: false },
+                move: {
+                    enable: true,
+                    speed: 1.2,
+                    direction: 'none',
+                    random: true,
+                    straight: false,
+                    out_mode: 'out'
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: { enable: false },
+                    onclick: { enable: false },
+                    resize: true
+                }
+            },
+            retina_detect: true
+        });
+
+        this.particlesActive = true;
+    }
+
+    destroyParticles() {
+        if (window.pJSDom && window.pJSDom.length) {
+            window.pJSDom.forEach(instance => {
+                if (instance && instance.pJS && instance.pJS.fn && instance.pJS.fn.vendors) {
+                    instance.pJS.fn.vendors.destroypJS();
+                }
+            });
+            window.pJSDom = [];
+        }
+
+        if (this.particlesContainer) {
+            this.particlesContainer.innerHTML = '';
+        }
+
+        this.particlesActive = false;
+    }
+
+    handlePerformanceGovernance() {
+        const shouldSuppress = this.performance.shouldSuppressEffects();
+        if (shouldSuppress !== this.performanceSuppressedEffects) {
+            this.performanceSuppressedEffects = shouldSuppress;
+            this.updateBackgroundEffect();
+        }
+    }
+
     clearCanvas() {
         this.echoManager.clear();
         this.strokeManager.clear();
@@ -863,6 +1030,7 @@ class PerformanceManager {
         this.status = 'optimal';
         this.degradationLevel = 0;
         this.lowPerformanceTime = 0;
+        this.effectsSuppressed = false;
     }
     
     update(deltaTime) {
@@ -901,20 +1069,22 @@ class PerformanceManager {
                 this.degradationLevel = 1;
             }
         }
-        
+
         if (this.currentFPS < 40 && this.lowPerformanceTime > 3000) {
             if (this.degradationLevel === 1) {
                 settings.echoCountMax = Math.max(10, settings.echoCountMax - 8);
                 this.degradationLevel = 2;
             }
         }
-        
+
         if (this.currentFPS < 30 && this.lowPerformanceTime > 5000) {
             if (this.degradationLevel === 2) {
                 settings.echoCountMax = Math.max(8, settings.echoCountMax - 4);
                 this.degradationLevel = 3;
             }
         }
+
+        this.effectsSuppressed = this.status !== 'optimal';
     }
     
     getCurrentFPS() {
@@ -923,6 +1093,10 @@ class PerformanceManager {
     
     getStatus() {
         return this.status;
+    }
+
+    shouldSuppressEffects() {
+        return this.effectsSuppressed;
     }
 }
 
