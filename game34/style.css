@@ -62,6 +62,36 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f1f4ff;
+}
+
+.playback-controls .toolbar-btn {
+  margin-right: 0;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #f1f4ff;
+}
+
+.speed-control input[type="range"] {
+  width: 120px;
+  accent-color: #4d6fff;
+}
+
+#speedValue {
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .toolbar-btn {
   background: rgba(237, 241, 255, 0.1);
   color: #f1f4ff;

@@ -1,6 +1,7 @@
 const TWO_PI = Math.PI * 2;
 const CIRCUMFERENCE = 2 * Math.PI * 52;
 const SNAPSHOT_KEY = 'game34_snapshots_v1';
+const BASE_PLAYBACK_SPEED = 420;
 
 const DEFAULT_STATE = {
   mode: 'inner',
@@ -12,6 +13,7 @@ const DEFAULT_STATE = {
   seed: 123456,
   color: '#E0E6FF',
   lineWidth: 1.5,
+  playbackSpeed: 1,
   render: {
     sampleSpacingPx: 1.5,
     batchPoints: 4000,
@@ -39,6 +41,9 @@ const ringProgressEl = document.querySelector('.ring-progress');
 const ringTextEl = document.querySelector('.ring-text');
 const spacingRange = document.getElementById('spacingRange');
 const lineWidthRange = document.getElementById('lineWidthRange');
+const startRenderBtn = document.getElementById('startRender');
+const playbackSpeedRange = document.getElementById('playbackSpeedRange');
+const speedValueEl = document.getElementById('speedValue');
 const selectorTrack = document.getElementById('pinionTrack');
 const selectorPrev = document.getElementById('selectorPrev');
 const selectorNext = document.getElementById('selectorNext');
@@ -327,6 +332,37 @@ function updateProgress(progress) {
   const dash = clamp(progress, 0, 1) * CIRCUMFERENCE;
   ringProgressEl.setAttribute('stroke-dasharray', `${dash} ${CIRCUMFERENCE - dash}`);
   ringTextEl.textContent = `${Math.round(progress * 100)}%`;
+}
+
+function setStartButtonState(mode) {
+  if (!startRenderBtn) return;
+  if (mode === 'ready') {
+    startRenderBtn.disabled = !currentGeometry;
+    startRenderBtn.textContent = '描画開始';
+  } else if (mode === 'drawing') {
+    startRenderBtn.disabled = true;
+    startRenderBtn.textContent = '描画中…';
+  } else if (mode === 'computing') {
+    startRenderBtn.disabled = true;
+    startRenderBtn.textContent = '計算中…';
+  }
+}
+
+function updatePlaybackSpeedControl() {
+  if (playbackSpeedRange) {
+    playbackSpeedRange.value = String(state.playbackSpeed ?? 1);
+  }
+  if (speedValueEl) {
+    const value = Number(state.playbackSpeed ?? 1);
+    speedValueEl.textContent = `${value.toFixed(1)}x`;
+  }
+}
+
+function prepareCanvasBackground() {
+  clearCanvas(ctx, canvas);
+  const rect = canvas.getBoundingClientRect();
+  ctx.fillStyle = '#05060a';
+  ctx.fillRect(0, 0, rect.width, rect.height);
 }
 
 function drawPinionModel() {
@@ -640,60 +676,103 @@ function clearCanvas(context, canvasEl) {
   context.restore();
 }
 
-function startDrawing(geometry, reuse = false) {
+function startDrawing(geometry) {
   if (!geometry) return;
   if (drawTask && drawTask.frame) {
     cancelAnimationFrame(drawTask.frame);
   }
-  clearCanvas(ctx, canvas);
-  const rect = canvas.getBoundingClientRect();
-  ctx.fillStyle = '#05060a';
-  ctx.fillRect(0, 0, rect.width, rect.height);
+  drawTask = null;
+  setStartButtonState('drawing');
+  prepareCanvasBackground();
+
   ctx.strokeStyle = state.color;
   ctx.lineWidth = state.lineWidth;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  const total = geometry.points.length / 2;
+  const pts = geometry.points;
+  const totalPoints = pts.length / 2;
+  if (totalPoints < 2) {
+    updateProgress(1);
+    setStartButtonState('ready');
+    return;
+  }
+
+  if (!geometry.cumulativeLengths || geometry.cumulativeLengths.length !== totalPoints) {
+    const cumulative = new Float32Array(totalPoints);
+    cumulative[0] = 0;
+    for (let i = 1; i < totalPoints; i++) {
+      const prev = (i - 1) * 2;
+      const idx = i * 2;
+      const dx = pts[idx] - pts[prev];
+      const dy = pts[idx + 1] - pts[prev + 1];
+      cumulative[i] = cumulative[i - 1] + Math.hypot(dx, dy);
+    }
+    geometry.cumulativeLengths = cumulative;
+    geometry.totalLength = cumulative[totalPoints - 1];
+  }
+
+  const cumulative = geometry.cumulativeLengths;
+  const totalLength = geometry.totalLength || cumulative[totalPoints - 1] || 1;
+
   drawTask = {
     geometry,
-    index: 1,
-    total,
     frame: null,
-    token: computeToken
+    token: computeToken,
+    totalPoints,
+    cumulative,
+    totalLength,
+    lastTime: null,
+    progressLength: 0,
+    drawnIndex: 1,
+    currentIndex: 1
   };
 
-  const drawFrame = () => {
+  updateProgress(0);
+
+  const drawFrame = (timestamp) => {
     if (!drawTask || drawTask.token !== computeToken) return;
-    const pts = geometry.points;
-    const batch = Math.max(2000, Math.floor(state.render.batchPoints));
-    const start = drawTask.index;
-    const end = Math.min(drawTask.total, start + batch);
-
-    ctx.beginPath();
-    if (start === 1) {
-      ctx.moveTo(pts[0], pts[1]);
-    } else {
-      const prev = (start - 1) * 2;
-      ctx.moveTo(pts[prev], pts[prev + 1]);
-    }
-    for (let i = start; i < end; i++) {
-      const idx = i * 2;
-      ctx.lineTo(pts[idx], pts[idx + 1]);
-    }
-    ctx.stroke();
-
-    drawTask.index = end;
-    updateProgress(end / drawTask.total);
-    if (end < drawTask.total) {
+    if (drawTask.lastTime === null) {
+      drawTask.lastTime = timestamp;
       drawTask.frame = requestAnimationFrame(drawFrame);
-    } else {
+      return;
+    }
+
+    const deltaSeconds = Math.max(0, (timestamp - drawTask.lastTime) / 1000);
+    drawTask.lastTime = timestamp;
+    const speed = Math.max(0.05, Number(state.playbackSpeed ?? 1)) * BASE_PLAYBACK_SPEED;
+    drawTask.progressLength = Math.min(drawTask.progressLength + deltaSeconds * speed, drawTask.totalLength);
+
+    while (drawTask.currentIndex < drawTask.totalPoints && cumulative[drawTask.currentIndex] <= drawTask.progressLength) {
+      drawTask.currentIndex += 1;
+    }
+
+    if (drawTask.currentIndex > drawTask.drawnIndex) {
+      ctx.beginPath();
+      const moveIdx = (drawTask.drawnIndex - 1) * 2;
+      ctx.moveTo(pts[moveIdx], pts[moveIdx + 1]);
+      for (let i = drawTask.drawnIndex; i < drawTask.currentIndex; i++) {
+        const idx = i * 2;
+        ctx.lineTo(pts[idx], pts[idx + 1]);
+      }
+      ctx.stroke();
+      drawTask.drawnIndex = drawTask.currentIndex;
+    }
+
+    const progressRatio = drawTask.totalLength > 0 ? drawTask.progressLength / drawTask.totalLength : 1;
+    updateProgress(progressRatio);
+
+    if (drawTask.progressLength + 1e-6 >= drawTask.totalLength) {
       drawTask = null;
       updateProgress(1);
+      setStartButtonState('ready');
+      return;
     }
+
+    drawTask.frame = requestAnimationFrame(drawFrame);
   };
 
-  drawFrame();
+  drawTask.frame = requestAnimationFrame(drawFrame);
 }
 
 function renderMiniMap(geometry) {
@@ -715,26 +794,41 @@ function renderMiniMap(geometry) {
 }
 
 function scheduleRender(reason = 'state', reuse = false) {
+  if (drawTask && drawTask.frame) {
+    cancelAnimationFrame(drawTask.frame);
+  }
+  drawTask = null;
+  updateProgress(0);
+
   if (reuse && currentGeometry) {
-    startDrawing(currentGeometry, true);
+    prepareCanvasBackground();
+    renderMiniMap(currentGeometry);
     updateStatus(currentGeometry);
+    setStartButtonState('ready');
     return;
   }
+
+  currentGeometry = null;
+  setStartButtonState('computing');
   computeToken += 1;
   const token = computeToken;
   updateStatus(null);
-  updateProgress(0);
   const dims = getCanvasDimensions();
+  prepareCanvasBackground();
   generateGeometry(state, dims, token)
     .then((geometry) => {
       if (!geometry) return;
       if (token !== computeToken) return;
       currentGeometry = geometry;
-      startDrawing(geometry, false);
       renderMiniMap(geometry);
       updateStatus(geometry);
+      updateProgress(0);
+      setStartButtonState('ready');
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      setStartButtonState('ready');
+    });
 }
 
 function setHoleIndex(index) {
@@ -916,6 +1010,7 @@ function exportSnapshot() {
       seed: state.seed,
       color: state.color,
       lineWidth: state.lineWidth,
+      playbackSpeed: state.playbackSpeed,
       render: { ...state.render },
       templateId: state.templateId
     }
@@ -939,6 +1034,7 @@ function applySnapshot(entry) {
   state.seed = snapState.seed;
   state.color = snapState.color;
   state.lineWidth = snapState.lineWidth;
+  state.playbackSpeed = snapState.playbackSpeed ?? 1;
   state.render = { ...snapState.render };
   state.templateId = snapState.templateId;
 
@@ -954,6 +1050,7 @@ function applySnapshot(entry) {
   ringValueEl.textContent = state.R;
   spacingRange.value = state.render.sampleSpacingPx;
   lineWidthRange.value = state.lineWidth;
+  updatePlaybackSpeedControl();
   updateModeButtons();
   highlightSelector();
   drawPinionModel();
@@ -963,6 +1060,20 @@ function applySnapshot(entry) {
 }
 
 function setupUIEvents() {
+  if (startRenderBtn) {
+    startRenderBtn.addEventListener('click', () => {
+      if (currentGeometry) {
+        startDrawing(currentGeometry);
+      }
+    });
+  }
+  if (playbackSpeedRange) {
+    playbackSpeedRange.addEventListener('input', (event) => {
+      const value = parseFloat(event.target.value);
+      state.playbackSpeed = Number.isFinite(value) ? value : 1;
+      updatePlaybackSpeedControl();
+    });
+  }
   selectorPrev.addEventListener('click', () => scrollSelector(-1));
   selectorNext.addEventListener('click', () => scrollSelector(1));
   randomBtn.addEventListener('click', randomizeConfiguration);
@@ -1106,6 +1217,7 @@ async function init() {
   populateSnapshotSelect(snapshots);
   spacingRange.value = state.render.sampleSpacingPx;
   lineWidthRange.value = state.lineWidth;
+  updatePlaybackSpeedControl();
   scheduleRender('init');
 }
 
