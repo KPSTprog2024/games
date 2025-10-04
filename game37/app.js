@@ -1,634 +1,579 @@
-class EchoCameraApp {
+class VideoEffectApp {
     constructor() {
         this.video = document.getElementById('video');
-        this.mainCanvas = document.getElementById('main-canvas');
-        this.mainCtx = this.mainCanvas.getContext('2d');
-        
-        // UI elements
-        this.cameraBtn = document.getElementById('camera-btn');
-        this.flipBtn = document.getElementById('flip-btn');
-        this.torchBtn = document.getElementById('torch-btn');
-        this.recordBtn = document.getElementById('record-btn');
-        this.framerateSelect = document.getElementById('framerate-select');
-        this.opacitySlider = document.getElementById('opacity-slider');
-        this.intervalSlider = document.getElementById('interval-slider');
-        this.cyclesSlider = document.getElementById('cycles-slider');
-        this.opacityValue = document.getElementById('opacity-value');
-        this.intervalValue = document.getElementById('interval-value');
-        this.cyclesValue = document.getElementById('cycles-value');
-        this.statusText = document.getElementById('status-text');
-        this.errorBox = document.getElementById('error-message');
-        this.errorText = document.getElementById('error-text');
-        
-        // State management
-        this.stream = null;
-        this.recorder = null;
-        this.recordedChunks = [];
+        this.canvas = document.getElementById('canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.startBtn = document.getElementById('startBtn');
+        this.recordIcon = document.getElementById('recordIcon');
+        this.recordText = document.getElementById('recordText');
+        this.downloadSection = document.getElementById('downloadSection');
+        this.downloadLink = document.getElementById('downloadLink');
+        this.errorMessage = document.getElementById('errorMessage');
+        this.recordingIndicator = document.getElementById('recordingIndicator');
+        this.recordingTime = document.getElementById('recordingTime');
+        this.permissionModal = document.getElementById('permissionModal');
+        this.requestPermissionBtn = document.getElementById('requestPermission');
+
+        // 設定
+        this.settings = {
+            videoWidth: 640,
+            videoHeight: 480,
+            frameRate: 30,
+            recordingMaxDuration: 30000,
+            bufferSize: 60
+        };
+
+        // 状態管理
+        this.currentEffect = 'none';
         this.isRecording = false;
-        this.isCameraActive = false;
-        this.facingMode = 'user';
-        this.isTorchOn = false;
+        this.mediaRecorder = null;
+        this.recordedChunks = [];
+        this.frameBuffer = [];
         this.animationId = null;
-        
-        // Frame rate control
-        this.currentFps = 30;
-        this.frameInterval = 1000 / this.currentFps;
-        this.lastFrameTime = 0;
-        
-        // Dynamic echo effect settings
-        this.baseOpacity = 0.6;
-        this.frameStep = 12;
-        this.echoCycles = 5;
-        this.bufferSize = 160;
-        
-        // Frame buffer (circular buffer)
-        this.frameBuffer = new Array(this.bufferSize);
-        this.frameCount = 0;
-        this.bufferCanvases = [];
-        
-        // Create buffer canvases
-        for (let i = 0; i < this.bufferSize; i++) {
-            const canvas = document.createElement('canvas');
-            this.bufferCanvases[i] = canvas;
-            this.frameBuffer[i] = {
-                canvas: canvas,
-                ctx: canvas.getContext('2d'),
-                frameNumber: -1
-            };
-        }
+        this.recordingStartTime = 0;
+        this.recordingTimer = null;
+        this.stream = null;
         
         this.init();
     }
-    
-    init() {
+
+    async init() {
         this.setupEventListeners();
         this.setupCanvas();
-        this.updateStatus('準備完了 - 設定を調整してカメラを開始');
-        window.addEventListener('resize', () => this.setupCanvas());
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => this.setupCanvas(), 300);
-        });
+        this.showPermissionModal();
+        
+        // カメラが既に利用可能かチェック
+        await this.checkCameraAvailability();
     }
-    
+
+    async checkCameraAvailability() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const hasCamera = devices.some(device => device.kind === 'videoinput');
+            
+            if (!hasCamera) {
+                this.showError('カメラデバイスが見つかりませんでした。');
+                this.hidePermissionModal();
+                return;
+            }
+        } catch (error) {
+            console.log('デバイス列挙エラー:', error);
+            // エラーでも続行（古いブラウザ対応）
+        }
+    }
+
     setupEventListeners() {
-        this.cameraBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleCamera();
+        // エフェクトボタン
+        document.querySelectorAll('.effect-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.selectEffect(e.target.dataset.effect);
+            });
         });
-        
-        this.flipBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.flipCamera();
-        });
-        
-        this.torchBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.toggleTorch();
-        });
-        
-        this.recordBtn.addEventListener('click', (e) => {
+
+        // 録画ボタン
+        this.startBtn.addEventListener('click', (e) => {
             e.preventDefault();
             this.toggleRecording();
         });
-        
-        this.framerateSelect.addEventListener('change', () => this.updateFrameRate());
-        
-        // Slider event listeners
-        this.opacitySlider.addEventListener('input', () => this.updateOpacity());
-        this.intervalSlider.addEventListener('input', () => this.updateInterval());
-        this.cyclesSlider.addEventListener('input', () => this.updateCycles());
-    }
-    
-    updateOpacity() {
-        this.baseOpacity = parseFloat(this.opacitySlider.value);
-        this.opacityValue.textContent = this.baseOpacity;
-    }
-    
-    updateInterval() {
-        this.frameStep = parseInt(this.intervalSlider.value);
-        this.intervalValue.textContent = this.frameStep;
-    }
-    
-    updateCycles() {
-        this.echoCycles = parseInt(this.cyclesSlider.value);
-        this.cyclesValue.textContent = this.echoCycles;
-    }
-    
-    setupCanvas() {
-        const container = this.mainCanvas.parentElement;
-        const rect = container.getBoundingClientRect();
-        
-        // Set iPhone optimized dimensions
-        let canvasWidth, canvasHeight;
-        
-        if (window.innerHeight > window.innerWidth) {
-            // Portrait mode - 3:4 aspect ratio optimized for iPhone
-            canvasWidth = Math.min(rect.width - 20, 360);
-            canvasHeight = Math.round((canvasWidth * 4) / 3);
-        } else {
-            // Landscape mode - 16:9 aspect ratio
-            canvasHeight = Math.min(rect.height - 20, 270);
-            canvasWidth = Math.round((canvasHeight * 16) / 9);
-        }
-        
-        // Set canvas dimensions
-        this.mainCanvas.width = canvasWidth;
-        this.mainCanvas.height = canvasHeight;
-        this.mainCanvas.style.width = canvasWidth + 'px';
-        this.mainCanvas.style.height = canvasHeight + 'px';
-        
-        // Update buffer canvases
-        for (let canvas of this.bufferCanvases) {
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-        }
-        
-        // Clear canvas with black background
-        this.mainCtx.fillStyle = '#000000';
-        this.mainCtx.fillRect(0, 0, canvasWidth, canvasHeight);
-    }
-    
-    async toggleCamera() {
-        if (this.isCameraActive) {
-            this.stopCamera();
-        } else {
-            await this.startCamera();
-        }
-    }
-    
-    async startCamera() {
-        try {
-            this.updateStatus('カメラを起動中...');
-            
-            // Stop existing streams first
-            if (this.stream) {
-                this.stream.getTracks().forEach(track => track.stop());
+
+        // 権限要求ボタン
+        this.requestPermissionBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('カメラ権限ボタンがクリックされました');
+            this.requestCameraPermission();
+        });
+
+        // モーダル外クリックで閉じる（テスト用）
+        this.permissionModal.addEventListener('click', (e) => {
+            if (e.target === this.permissionModal) {
+                this.requestCameraPermission();
             }
+        });
+    }
+
+    setupCanvas() {
+        this.canvas.width = this.settings.videoWidth;
+        this.canvas.height = this.settings.videoHeight;
+        
+        // キャンバスに初期メッセージを表示
+        this.ctx.fillStyle = '#333';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('カメラの準備中...', this.canvas.width / 2, this.canvas.height / 2);
+    }
+
+    showPermissionModal() {
+        this.permissionModal.classList.remove('hidden');
+        console.log('許可モーダルを表示しました');
+    }
+
+    hidePermissionModal() {
+        this.permissionModal.classList.add('hidden');
+        console.log('許可モーダルを非表示にしました');
+    }
+
+    async requestCameraPermission() {
+        console.log('カメラ権限要求を開始...');
+        
+        // ボタンを無効化して重複クリックを防止
+        this.requestPermissionBtn.disabled = true;
+        this.requestPermissionBtn.textContent = '接続中...';
+
+        try {
+            // MediaDevices APIの対応チェック
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('このブラウザではカメラ機能がサポートされていません。');
+            }
+
+            console.log('getUserMediaを呼び出し中...');
             
-            // iOS Safari compatible constraints
             const constraints = {
                 video: {
-                    facingMode: this.facingMode,
-                    width: { ideal: 640, max: 1280 },
-                    height: { ideal: 480, max: 960 }
+                    width: { ideal: this.settings.videoWidth },
+                    height: { ideal: this.settings.videoHeight },
+                    frameRate: { ideal: this.settings.frameRate },
+                    facingMode: 'user'
                 },
                 audio: false
             };
-            
+
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            
-            // Set video element properties for better compatibility
+            console.log('カメラストリームを取得しました:', this.stream);
+
             this.video.srcObject = this.stream;
-            this.video.muted = true;
-            this.video.playsInline = true;
-            this.video.autoplay = true;
             
-            // Wait for video to be ready and start playing
+            // ビデオが準備できるまで待つ
             await new Promise((resolve, reject) => {
-                const onLoadedData = () => {
-                    this.video.removeEventListener('loadeddata', onLoadedData);
-                    this.video.removeEventListener('error', onError);
+                this.video.onloadedmetadata = () => {
+                    console.log('ビデオメタデータが読み込まれました');
                     resolve();
                 };
-                
-                const onError = (error) => {
-                    this.video.removeEventListener('loadeddata', onLoadedData);
-                    this.video.removeEventListener('error', onError);
-                    reject(error);
+                this.video.onerror = (error) => {
+                    console.error('ビデオエラー:', error);
+                    reject(new Error('ビデオの読み込みに失敗しました'));
                 };
                 
-                this.video.addEventListener('loadeddata', onLoadedData);
-                this.video.addEventListener('error', onError);
-                
-                // Start playing
-                this.video.play().catch(reject);
-                
-                // Timeout after 10 seconds
+                // タイムアウト設定
                 setTimeout(() => {
-                    if (!this.isCameraActive) {
-                        this.video.removeEventListener('loadeddata', onLoadedData);
-                        this.video.removeEventListener('error', onError);
-                        reject(new Error('Camera timeout'));
-                    }
+                    reject(new Error('ビデオの読み込みがタイムアウトしました'));
                 }, 10000);
             });
+
+            // ビデオ再生開始
+            await this.video.play();
+            console.log('ビデオ再生を開始しました');
+
+            // 映像処理開始
+            this.startVideoProcessing();
             
-            this.isCameraActive = true;
-            this.updateCameraButton();
-            this.enableControls();
-            this.updateStatus('カメラアクティブ - 手を動かして残像効果を確認！');
-            
-            this.startRenderLoop();
+            // モーダルを閉じる
+            this.hidePermissionModal();
             this.hideError();
             
+            console.log('カメラ初期化完了');
+
         } catch (error) {
-            console.error('Camera error:', error);
-            this.handleCameraError(error);
-        }
-    }
-    
-    stopCamera() {
-        // Stop animation loop
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-        
-        // Stop recording if active
-        if (this.isRecording) {
-            this.stopRecording();
-        }
-        
-        // Stop media stream
-        if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
-            this.stream = null;
-        }
-        
-        this.video.srcObject = null;
-        this.isCameraActive = false;
-        
-        this.updateCameraButton();
-        this.disableControls();
-        this.updateStatus('カメラ停止');
-        
-        // Clear canvas
-        this.mainCtx.fillStyle = '#000000';
-        this.mainCtx.fillRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-        
-        // Reset frame count
-        this.frameCount = 0;
-        for (let buffer of this.frameBuffer) {
-            buffer.frameNumber = -1;
-        }
-    }
-    
-    async flipCamera() {
-        if (!this.isCameraActive) return;
-        
-        this.updateStatus('カメラ切替中...');
-        this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
-        
-        // Restart camera with new facing mode
-        this.stopCamera();
-        setTimeout(() => this.startCamera(), 100);
-    }
-    
-    async toggleTorch() {
-        if (!this.stream) return;
-        
-        try {
-            const track = this.stream.getVideoTracks()[0];
-            const capabilities = track.getCapabilities?.();
+            console.error('カメラアクセスエラー:', error);
             
-            if (capabilities && 'torch' in capabilities) {
-                this.isTorchOn = !this.isTorchOn;
-                await track.applyConstraints({
-                    advanced: [{ torch: this.isTorchOn }]
-                });
-                this.updateTorchButton();
-                this.updateStatus(this.isTorchOn ? 'トーチ オン' : 'トーチ オフ');
-            } else {
-                this.showError('トーチはサポートされていません');
-            }
-        } catch (error) {
-            this.showError('トーチエラー');
-            console.error('Torch error:', error);
-        }
-    }
-    
-    updateFrameRate() {
-        this.currentFps = parseInt(this.framerateSelect.value);
-        this.frameInterval = 1000 / this.currentFps;
-        this.updateStatus(`フレームレート: ${this.currentFps} fps`);
-    }
-    
-    startRenderLoop() {
-        const render = (timestamp) => {
-            if (!this.isCameraActive) return;
+            let errorMessage = 'カメラにアクセスできませんでした。';
             
-            // Check if enough time has passed for next frame
-            if (timestamp - this.lastFrameTime >= this.frameInterval) {
-                this.processFrame();
-                this.lastFrameTime = timestamp;
+            if (error.name === 'NotAllowedError') {
+                errorMessage = 'カメラの使用が許可されていません。ブラウザの設定でカメラの使用を許可してください。';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage = 'カメラデバイスが見つかりませんでした。';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage = 'このブラウザではカメラ機能がサポートされていません。';
+            } else if (error.message) {
+                errorMessage += ' エラー: ' + error.message;
             }
             
-            this.animationId = requestAnimationFrame(render);
+            this.showError(errorMessage);
+            this.hidePermissionModal();
+        } finally {
+            // ボタンを元に戻す
+            this.requestPermissionBtn.disabled = false;
+            this.requestPermissionBtn.textContent = 'カメラを使用する';
+        }
+    }
+
+    selectEffect(effectId) {
+        // 前のボタンの active クラスを削除
+        document.querySelectorAll('.effect-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 新しいボタンに active クラスを追加
+        const selectedBtn = document.querySelector(`[data-effect="${effectId}"]`);
+        if (selectedBtn) {
+            selectedBtn.classList.add('active');
+        }
+        
+        this.currentEffect = effectId;
+        this.frameBuffer = []; // バッファをリセット
+        console.log('エフェクトを変更しました:', effectId);
+    }
+
+    startVideoProcessing() {
+        console.log('ビデオ処理を開始します');
+        const processFrame = () => {
+            if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
+                this.applyEffect();
+            }
+            this.animationId = requestAnimationFrame(processFrame);
         };
-        
-        this.lastFrameTime = performance.now();
-        this.animationId = requestAnimationFrame(render);
+        processFrame();
     }
-    
-    processFrame() {
-        // Check if video is ready
-        if (!this.video || this.video.readyState < 2 || this.video.videoWidth === 0) {
+
+    applyEffect() {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+
+        // 現在のフレームをバッファに保存
+        const currentFrame = document.createElement('canvas');
+        currentFrame.width = width;
+        currentFrame.height = height;
+        const currentCtx = currentFrame.getContext('2d');
+        currentCtx.drawImage(this.video, 0, 0, width, height);
+
+        // バッファ管理
+        this.frameBuffer.push(currentFrame);
+        if (this.frameBuffer.length > this.settings.bufferSize) {
+            this.frameBuffer.shift();
+        }
+
+        // キャンバスをクリア
+        ctx.clearRect(0, 0, width, height);
+
+        switch (this.currentEffect) {
+            case 'none':
+                this.applyNoneEffect();
+                break;
+            case 'delay-0.5':
+                this.applyDelayEffect(0.5);
+                break;
+            case 'delay-1':
+                this.applyDelayEffect(1);
+                break;
+            case 'delay-2':
+                this.applyDelayEffect(2);
+                break;
+            case 'mirror':
+                this.applyMirrorEffect();
+                break;
+            case 'half-mirror':
+                this.applyHalfMirrorEffect();
+                break;
+            case 'timeslice':
+                this.applyTimesliceEffect();
+                break;
+            case 'trail':
+                this.applyTrailEffect();
+                break;
+            case 'rgb-delay':
+                this.applyRGBDelayEffect();
+                break;
+        }
+    }
+
+    applyNoneEffect() {
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    applyDelayEffect(delaySec) {
+        const frameIndex = Math.floor(this.settings.frameRate * delaySec);
+        const delayedFrame = this.frameBuffer[this.frameBuffer.length - frameIndex - 1];
+        
+        // 現在のフレーム
+        this.ctx.globalAlpha = 0.5;
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        
+        // 遅延フレーム
+        if (delayedFrame) {
+            this.ctx.globalAlpha = 0.5;
+            this.ctx.drawImage(delayedFrame, 0, 0);
+        }
+        
+        this.ctx.globalAlpha = 1.0;
+    }
+
+    applyMirrorEffect() {
+        this.ctx.save();
+        this.ctx.scale(-1, 1);
+        this.ctx.drawImage(this.video, -this.canvas.width, 0, this.canvas.width, this.canvas.height);
+        this.ctx.restore();
+    }
+
+    applyHalfMirrorEffect() {
+        const halfWidth = this.canvas.width / 2;
+        
+        // 右半分（通常）
+        this.ctx.drawImage(
+            this.video, 
+            halfWidth, 0, halfWidth, this.canvas.height,
+            halfWidth, 0, halfWidth, this.canvas.height
+        );
+        
+        // 左半分（ミラー）
+        this.ctx.save();
+        this.ctx.scale(-1, 1);
+        this.ctx.drawImage(
+            this.video,
+            0, 0, halfWidth, this.canvas.height,
+            -halfWidth, 0, halfWidth, this.canvas.height
+        );
+        this.ctx.restore();
+    }
+
+    applyTimesliceEffect() {
+        const halfWidth = this.canvas.width / 2;
+        const delayFrames = Math.floor(this.settings.frameRate * 0.5);
+        const delayedFrame = this.frameBuffer[this.frameBuffer.length - delayFrames - 1];
+        
+        // 右半分（現在）
+        this.ctx.drawImage(
+            this.video,
+            halfWidth, 0, halfWidth, this.canvas.height,
+            halfWidth, 0, halfWidth, this.canvas.height
+        );
+        
+        // 左半分（遅延）
+        if (delayedFrame) {
+            this.ctx.drawImage(
+                delayedFrame,
+                0, 0, halfWidth, this.canvas.height,
+                0, 0, halfWidth, this.canvas.height
+            );
+        }
+    }
+
+    applyTrailEffect() {
+        // 複数のフレームを透明度を変えて重ねる
+        const trailFrames = Math.min(5, this.frameBuffer.length);
+        
+        for (let i = 0; i < trailFrames; i++) {
+            const frame = this.frameBuffer[this.frameBuffer.length - 1 - i];
+            const alpha = (trailFrames - i) / trailFrames * 0.3;
+            this.ctx.globalAlpha = alpha;
+            this.ctx.drawImage(frame, 0, 0);
+        }
+        
+        // 現在のフレーム
+        this.ctx.globalAlpha = 0.7;
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.globalAlpha = 1.0;
+    }
+
+    applyRGBDelayEffect() {
+        const redDelay = Math.floor(this.settings.frameRate * 0.2);
+        const greenDelay = 0;
+        const blueDelay = Math.floor(this.settings.frameRate * 0.4);
+
+        // 現在のフレームのImageDataを取得
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        const currentImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        const currentData = currentImageData.data;
+
+        // 遅延フレームのImageDataを取得
+        const redFrame = this.frameBuffer[this.frameBuffer.length - redDelay - 1];
+        const blueFrame = this.frameBuffer[this.frameBuffer.length - blueDelay - 1];
+
+        let redData = null, blueData = null;
+        
+        if (redFrame) {
+            this.ctx.drawImage(redFrame, 0, 0);
+            redData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+        }
+        
+        if (blueFrame) {
+            this.ctx.drawImage(blueFrame, 0, 0);
+            blueData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+        }
+
+        // RGBチャンネルを合成
+        const outputData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
+        
+        for (let i = 0; i < currentData.length; i += 4) {
+            outputData.data[i] = redData ? redData[i] : currentData[i];     // Red
+            outputData.data[i + 1] = currentData[i + 1];                   // Green
+            outputData.data[i + 2] = blueData ? blueData[i + 2] : currentData[i + 2]; // Blue
+            outputData.data[i + 3] = 255;                                  // Alpha
+        }
+
+        this.ctx.putImageData(outputData, 0, 0);
+    }
+
+    async toggleRecording() {
+        if (!this.stream) {
+            this.showError('録画するにはまずカメラを有効にしてください。');
             return;
         }
-        
-        const bufferIndex = this.frameCount % this.bufferSize;
-        const currentBuffer = this.frameBuffer[bufferIndex];
-        
-        try {
-            // Draw current video frame to buffer canvas
-            currentBuffer.ctx.drawImage(
-                this.video, 
-                0, 0, 
-                currentBuffer.canvas.width, 
-                currentBuffer.canvas.height
-            );
-            currentBuffer.frameNumber = this.frameCount;
-            
-            // Render echo effect to main canvas
-            this.renderEchoEffect();
-            
-            this.frameCount++;
-            
-        } catch (error) {
-            console.error('Frame processing error:', error);
-        }
-    }
-    
-    renderEchoEffect() {
-        // Clear main canvas
-        this.mainCtx.fillStyle = '#000000';
-        this.mainCtx.fillRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
-        
-        // Generate dynamic opacity values
-        const opacities = [];
-        for (let i = 0; i < this.echoCycles; i++) {
-            if (i === this.echoCycles - 1) {
-                opacities.push(1.0); // Current frame is always fully opaque
-            } else {
-                // Gradually increase opacity from baseOpacity towards 0.9
-                const progress = i / Math.max(this.echoCycles - 2, 1);
-                const opacity = this.baseOpacity + (0.9 - this.baseOpacity) * progress;
-                opacities.push(Math.min(opacity, 0.9));
-            }
-        }
-        
-        // Draw echo frames (oldest first for proper layering)
-        for (let cycle = this.echoCycles - 1; cycle >= 0; cycle--) {
-            const frameOffset = cycle * this.frameStep;
-            const targetFrameNumber = this.frameCount - frameOffset;
-            
-            if (targetFrameNumber >= 0) {
-                const bufferIndex = targetFrameNumber % this.bufferSize;
-                const buffer = this.frameBuffer[bufferIndex];
-                
-                if (buffer.frameNumber === targetFrameNumber) {
-                    this.mainCtx.save();
-                    this.mainCtx.globalAlpha = opacities[cycle];
-                    this.mainCtx.drawImage(buffer.canvas, 0, 0);
-                    this.mainCtx.restore();
-                }
-            }
-        }
-    }
-    
-    async toggleRecording() {
-        if (this.isRecording) {
-            this.stopRecording();
-        } else {
+
+        if (!this.isRecording) {
             await this.startRecording();
+        } else {
+            this.stopRecording();
         }
     }
-    
-    getSupportedMimeType() {
-        const types = [
-            'video/webm;codecs=vp9',
-            'video/webm;codecs=vp8',
-            'video/webm',
-            'video/mp4'
-        ];
-        
-        for (let type of types) {
-            if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) {
-                return type;
-            }
-        }
-        return 'video/webm';
-    }
-    
+
     async startRecording() {
         try {
-            if (!this.isCameraActive) {
-                this.showError('最初にカメラを開始してください');
-                return;
+            // MediaRecorder対応チェック
+            const supportedTypes = ['video/mp4', 'video/webm'];
+            let selectedType = null;
+            
+            for (const type of supportedTypes) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    selectedType = type;
+                    break;
+                }
             }
             
-            // Create stream from canvas
-            const canvasStream = this.mainCanvas.captureStream(this.currentFps);
+            if (!selectedType) {
+                throw new Error('録画機能がサポートされていません');
+            }
+
+            console.log('録画タイプ:', selectedType);
+
+            // キャンバスからストリームを取得
+            const canvasStream = this.canvas.captureStream(this.settings.frameRate);
             
-            const mimeType = this.getSupportedMimeType();
-            const options = {
-                mimeType: mimeType,
+            // MediaRecorderを初期化
+            this.mediaRecorder = new MediaRecorder(canvasStream, {
+                mimeType: selectedType,
                 videoBitsPerSecond: 2500000
-            };
-            
-            this.recorder = new MediaRecorder(canvasStream, options);
+            });
+
             this.recordedChunks = [];
-            
-            this.recorder.ondataavailable = (event) => {
-                if (event.data && event.data.size > 0) {
+
+            this.mediaRecorder.ondataavailable = (event) => {
+                console.log('録画データ受信:', event.data.size);
+                if (event.data.size > 0) {
                     this.recordedChunks.push(event.data);
                 }
             };
-            
-            this.recorder.onstop = () => {
-                this.saveRecording(mimeType);
+
+            this.mediaRecorder.onstop = () => {
+                console.log('録画停止、ダウンロードリンク作成中...');
+                this.createDownloadLink();
             };
-            
-            this.recorder.onerror = (error) => {
-                console.error('Recording error:', error);
-                this.showError('録画エラーが発生しました');
-                this.isRecording = false;
-                this.updateRecordButton();
+
+            this.mediaRecorder.onerror = (event) => {
+                console.error('MediaRecorder エラー:', event);
+                this.showError('録画中にエラーが発生しました');
             };
-            
-            this.recorder.start(100); // Collect data every 100ms
+
+            // 録画開始
+            this.mediaRecorder.start(100); // 100msごとにデータを受信
             this.isRecording = true;
-            this.updateRecordButton();
-            this.updateStatus('残像効果を録画中...');
-            
+            this.updateRecordingUI();
+            this.startRecordingTimer();
+
+            console.log('録画開始');
+
+            // 最大録画時間で自動停止
+            setTimeout(() => {
+                if (this.isRecording) {
+                    console.log('最大録画時間に到達、自動停止');
+                    this.stopRecording();
+                }
+            }, this.settings.recordingMaxDuration);
+
         } catch (error) {
-            console.error('Start recording error:', error);
-            this.showError('録画開始に失敗しました');
+            console.error('録画開始エラー:', error);
+            this.showError('録画を開始できませんでした: ' + error.message);
         }
     }
-    
+
     stopRecording() {
-        if (this.recorder && this.recorder.state !== 'inactive') {
-            try {
-                this.recorder.stop();
-            } catch (error) {
-                console.error('Stop recording error:', error);
-            }
+        if (this.mediaRecorder && this.isRecording) {
+            this.mediaRecorder.stop();
+            this.isRecording = false;
+            this.updateRecordingUI();
+            this.stopRecordingTimer();
+            console.log('録画停止要求');
         }
-        
-        this.isRecording = false;
-        this.updateRecordButton();
-        this.updateStatus('録画を停止中...');
     }
-    
-    saveRecording(mimeType) {
-        if (this.recordedChunks.length === 0) {
-            this.showError('録画データがありません');
-            return;
+
+    updateRecordingUI() {
+        if (this.isRecording) {
+            this.startBtn.classList.add('recording');
+            this.recordIcon.textContent = '■';
+            this.recordText.textContent = '録画停止';
+            this.recordingIndicator.style.display = 'flex';
+            this.downloadSection.style.display = 'none';
+        } else {
+            this.startBtn.classList.remove('recording');
+            this.recordIcon.textContent = '●';
+            this.recordText.textContent = '録画開始';
+            this.recordingIndicator.style.display = 'none';
         }
-        
-        try {
-            const blob = new Blob(this.recordedChunks, { type: mimeType });
+    }
+
+    startRecordingTimer() {
+        this.recordingStartTime = Date.now();
+        this.recordingTimer = setInterval(() => {
+            const elapsed = Date.now() - this.recordingStartTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            this.recordingTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    stopRecordingTimer() {
+        if (this.recordingTimer) {
+            clearInterval(this.recordingTimer);
+            this.recordingTimer = null;
+        }
+    }
+
+    createDownloadLink() {
+        if (this.recordedChunks.length > 0) {
+            console.log('ダウンロードリンク作成:', this.recordedChunks.length, 'チャンク');
+            
+            const blob = new Blob(this.recordedChunks, { type: 'video/mp4' });
             const url = URL.createObjectURL(blob);
             
-            const extension = mimeType.includes('webm') ? 'webm' : 'mp4';
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-            const filename = `echo-camera-${timestamp}.${extension}`;
+            this.downloadLink.href = url;
+            this.downloadLink.download = `video-effect-${Date.now()}.mp4`;
+            this.downloadSection.style.display = 'block';
             
-            // Create download link
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            console.log('ダウンロードリンク準備完了');
             
-            URL.revokeObjectURL(url);
-            
-            this.updateStatus(`保存完了: ${filename}`);
-            
-            // Reset status after 3 seconds
-            setTimeout(() => {
-                if (this.isCameraActive) {
-                    this.updateStatus('カメラアクティブ - 手を動かして残像効果を確認！');
-                }
-            }, 3000);
-            
-        } catch (error) {
-            console.error('Save recording error:', error);
-            this.showError('録画の保存に失敗しました');
-        }
-    }
-    
-    // UI Update Methods
-    updateCameraButton() {
-        const btnText = this.cameraBtn.querySelector('.btn-text');
-        const btnIcon = this.cameraBtn.querySelector('.btn-icon');
-        if (this.isCameraActive) {
-            btnText.textContent = 'Stop Camera';
-            btnIcon.textContent = '⏹️';
+            // メモリリークを防ぐため、クリック後にURLを解放
+            this.downloadLink.addEventListener('click', () => {
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                    console.log('URL解放完了');
+                }, 1000);
+            });
         } else {
-            btnText.textContent = 'Start Camera';
-            btnIcon.textContent = '📷';
+            console.warn('録画データが空です');
+            this.showError('録画データが空です。もう一度お試しください。');
         }
     }
-    
-    updateTorchButton() {
-        if (this.isTorchOn) {
-            this.torchBtn.classList.add('torch-active');
-        } else {
-            this.torchBtn.classList.remove('torch-active');
-        }
-    }
-    
-    updateRecordButton() {
-        const btnText = this.recordBtn.querySelector('.btn-text');
-        const btnIcon = this.recordBtn.querySelector('.btn-icon');
-        if (this.isRecording) {
-            this.recordBtn.classList.add('recording');
-            btnText.textContent = 'Stop';
-            btnIcon.textContent = '⏹️';
-        } else {
-            this.recordBtn.classList.remove('recording');
-            btnText.textContent = 'Record';
-            btnIcon.textContent = '⚫';
-        }
-    }
-    
-    enableControls() {
-        this.flipBtn.disabled = false;
-        this.torchBtn.disabled = false;
-        this.recordBtn.disabled = false;
-    }
-    
-    disableControls() {
-        this.flipBtn.disabled = true;
-        this.torchBtn.disabled = true;
-        this.recordBtn.disabled = true;
-        this.torchBtn.classList.remove('torch-active');
-        this.isTorchOn = false;
-    }
-    
-    updateStatus(text) {
-        this.statusText.textContent = text;
-    }
-    
+
     showError(message) {
-        this.errorText.textContent = message;
-        this.errorBox.classList.remove('hidden');
+        console.error('エラー表示:', message);
+        this.errorMessage.textContent = message;
+        this.errorMessage.style.display = 'block';
         
+        // 5秒後に自動的にエラーを隠す
         setTimeout(() => {
             this.hideError();
-        }, 4000);
+        }, 5000);
     }
-    
+
     hideError() {
-        this.errorBox.classList.add('hidden');
-    }
-    
-    handleCameraError(error) {
-        let errorMessage = 'カメラエラー: ';
-        
-        switch (error.name) {
-            case 'NotAllowedError':
-                errorMessage += 'カメラアクセスが拒否されました。ブラウザの設定でカメラを許可してください。';
-                break;
-            case 'NotFoundError':
-                errorMessage += 'カメラデバイスが見つかりません。';
-                break;
-            case 'NotSupportedError':
-                errorMessage += 'カメラがサポートされていません。';
-                break;
-            case 'NotReadableError':
-                errorMessage += 'カメラが他のアプリケーションで使用中です。';
-                break;
-            case 'OverconstrainedError':
-                errorMessage += 'カメラの制約が満たせません。';
-                break;
-            case 'SecurityError':
-                errorMessage += 'セキュリティエラー。HTTPSが必要です。';
-                break;
-            default:
-                errorMessage += error.message || '不明なエラーが発生しました';
-        }
-        
-        this.showError(errorMessage);
-        this.updateStatus('カメラエラー');
-        console.error('Camera error details:', error);
+        this.errorMessage.style.display = 'none';
     }
 }
 
-// Initialize app when DOM is loaded
+// アプリケーション初期化
 document.addEventListener('DOMContentLoaded', () => {
-    // Check for basic browser support
-    if (!navigator.mediaDevices?.getUserMedia) {
-        document.getElementById('error-text').textContent = 'このブラウザはカメラAPIをサポートしていません';
-        document.getElementById('error-message').classList.remove('hidden');
-        return;
-    }
-    
-    if (!window.MediaRecorder) {
-        document.getElementById('error-text').textContent = 'このブラウザは録画機能をサポートしていません';
-        document.getElementById('error-message').classList.remove('hidden');
-        return;
-    }
-    
-    try {
-        window.echoCameraApp = new EchoCameraApp();
-    } catch (error) {
-        console.error('App initialization error:', error);
-        document.getElementById('error-text').textContent = 'アプリの初期化に失敗しました';
-        document.getElementById('error-message').classList.remove('hidden');
-    }
+    console.log('DOM読み込み完了、アプリ初期化中...');
+    new VideoEffectApp();
 });
