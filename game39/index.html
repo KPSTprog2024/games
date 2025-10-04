@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>輪っかジャグリング・ダンス・ジェネレーター</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>輪っかジャグリング・ダンス・ジェネレーター</h1>
+            <p class="subtitle">数学的パラメータによる美しいダンスアニメーション</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Control Panel -->
+            <aside class="control-panel">
+                <div class="control-section">
+                    <h3>プリセット</h3>
+                    <div class="form-group">
+                        <select id="presetSelect" class="form-control">
+                            <option value="circle_waltz">円環ワルツ</option>
+                            <option value="lissajous_flare">リサジュー・フレア</option>
+                            <option value="epicycloid_fever">エピクロイド・フィーバー</option>
+                            <option value="sine_swing">サインウェーブ・スウィング</option>
+                            <option value="minimal_spin">ミニマル・スピン</option>
+                            <option value="custom_art">カスタム・アート</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="randomizeBtn" class="btn btn--secondary">ランダマイズ</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>再生制御</h3>
+                    <div class="button-group">
+                        <button id="playPauseBtn" class="btn btn--primary">一時停止</button>
+                        <button id="resetBtn" class="btn btn--secondary">リセット</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">再生速度</label>
+                        <select id="speedSelect" class="form-control">
+                            <option value="0.25">0.25x</option>
+                            <option value="0.5">0.5x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>基本設定</h3>
+                    <div class="form-group">
+                        <label class="form-label">輪っか数: <span id="ringsValue">12</span></label>
+                        <input type="range" id="ringsSlider" class="form-control" min="1" max="144" value="12">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ループ時間: <span id="loopTimeValue">10</span>秒</label>
+                        <input type="range" id="loopTimeSlider" class="form-control" min="1" max="30" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">輪っかサイズ: <span id="ringSizeValue">1.0</span></label>
+                        <input type="range" id="ringSizeSlider" class="form-control" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">線幅: <span id="lineWidthValue">2.0</span></label>
+                        <input type="range" id="lineWidthSlider" class="form-control" min="0.5" max="10.0" step="0.5" value="2.0">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>軌道設定</h3>
+                    <div class="form-group">
+                        <label class="form-label">軌道タイプ</label>
+                        <select id="orbitSelect" class="form-control">
+                            <option value="circle">円</option>
+                            <option value="lissajous">リサジュー</option>
+                            <option value="epicycloid">エピサイクロイド</option>
+                            <option value="sine_wave">サイン波</option>
+                            <option value="linear">直線往復</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">振幅X: <span id="amplitudeXValue">0.4</span></label>
+                        <input type="range" id="amplitudeXSlider" class="form-control" min="0" max="1" step="0.01" value="0.4">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">振幅Y: <span id="amplitudeYValue">0.4</span></label>
+                        <input type="range" id="amplitudeYSlider" class="form-control" min="0" max="1" step="0.01" value="0.4">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">周波数X: <span id="frequencyXValue">1.0</span></label>
+                        <input type="range" id="frequencyXSlider" class="form-control" min="0.5" max="10" step="0.1" value="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">周波数Y: <span id="frequencyYValue">1.0</span></label>
+                        <input type="range" id="frequencyYSlider" class="form-control" min="0.5" max="10" step="0.1" value="1.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">位相X: <span id="phaseXValue">0</span></label>
+                        <input type="range" id="phaseXSlider" class="form-control" min="0" max="6.28" step="0.1" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">位相Y: <span id="phaseYValue">1.57</span></label>
+                        <input type="range" id="phaseYSlider" class="form-control" min="0" max="6.28" step="0.1" value="1.57">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>対称性・視覚効果</h3>
+                    <div class="form-group">
+                        <label class="form-label">対称性</label>
+                        <select id="symmetrySelect" class="form-control">
+                            <option value="none">なし</option>
+                            <option value="mirror_x">線対称(X軸)</option>
+                            <option value="mirror_y">線対称(Y軸)</option>
+                            <option value="point">点対称</option>
+                            <option value="rotational_6">回転対称(6)</option>
+                            <option value="rotational_12">回転対称(12)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">視覚スタイル</label>
+                        <select id="visualSelect" class="form-control">
+                            <option value="stroke">ストローク</option>
+                            <option value="neon">ネオン発光</option>
+                            <option value="holographic">ホログラフィック</option>
+                            <option value="metallic">メタリック</option>
+                            <option value="wireframe">ワイヤーフレーム</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">残像モード</label>
+                        <select id="trailSelect" class="form-control">
+                            <option value="none">なし</option>
+                            <option value="fade">フェード</option>
+                            <option value="history">履歴</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">背景</label>
+                        <select id="backgroundSelect" class="form-control">
+                            <option value="dark_grid">ダークグリッド</option>
+                            <option value="space">宇宙</option>
+                            <option value="solid_black">ブラック</option>
+                        </select>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Canvas Container -->
+            <div class="canvas-container">
+                <canvas id="danceCanvas" width="800" height="600"></canvas>
+                <div class="canvas-overlay">
+                    <div class="fps-counter" id="fpsCounter">60 FPS</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
