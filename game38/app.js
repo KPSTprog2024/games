@@ -537,6 +537,86 @@ class DigitalArtApp {
                     {"type": "square", "centerI": 0, "centerJ": -4, "orientation": 1, "sizeN": 1, "clockwise": true},
                     {"type": "square", "centerI": 0, "centerJ": 4, "orientation": 3, "sizeN": 1, "clockwise": true}
                 ]
+            },
+            "square-grid-10x10": {
+                "name": "10×10スクエアグリッド",
+                "description": "整然と並ぶ100個の正方形による巨大グリッド",
+                "shapes": (() => {
+                    const shapes = [];
+                    const rows = 10;
+                    const cols = 10;
+                    const spacing = 1.4;
+                    const offset = (rows - 1) / 2;
+                    for (let row = 0; row < rows; row++) {
+                        for (let col = 0; col < cols; col++) {
+                            const centerI = (col - offset) * spacing;
+                            const centerJ = (row - offset) * spacing;
+                            shapes.push({
+                                "type": "square",
+                                "centerI": parseFloat(centerI.toFixed(2)),
+                                "centerJ": parseFloat(centerJ.toFixed(2)),
+                                "orientation": 0,
+                                "sizeN": 1,
+                                "clockwise": true
+                            });
+                        }
+                    }
+                    return shapes;
+                })()
+            },
+            "square-grid-staggered": {
+                "name": "シフトスクエアグリッド",
+                "description": "まだらにずれた配置が織りなすアシンメトリックな格子",
+                "shapes": (() => {
+                    const shapes = [];
+                    const rows = 10;
+                    const cols = 10;
+                    const spacing = 1.4;
+                    const offset = (rows - 1) / 2;
+                    for (let row = 0; row < rows; row++) {
+                        const rowShift = (row % 2 === 0 ? -0.35 : 0.35);
+                        for (let col = 0; col < cols; col++) {
+                            const baseI = (col - offset) * spacing;
+                            const baseJ = (row - offset) * spacing;
+                            const jitterI = rowShift + ((col % 3) - 1) * 0.2;
+                            const jitterJ = ((row + col) % 3 - 1) * 0.25;
+                            shapes.push({
+                                "type": "square",
+                                "centerI": parseFloat((baseI + jitterI).toFixed(2)),
+                                "centerJ": parseFloat((baseJ + jitterJ).toFixed(2)),
+                                "orientation": (row + col) % 4,
+                                "sizeN": 1,
+                                "clockwise": true
+                            });
+                        }
+                    }
+                    return shapes;
+                })()
+            },
+            "triangle-overlap-spiral": {
+                "name": "トライアングルスパイラル",
+                "description": "重なり合う三角形が描くダイナミックな螺旋",
+                "shapes": (() => {
+                    const shapes = [];
+                    const count = 18;
+                    for (let step = 0; step < count; step++) {
+                        const angle = step * 0.55;
+                        const radius = 0.8 + step * 0.55;
+                        const centerI = Math.cos(angle) * radius;
+                        const centerJ = Math.sin(angle) * radius;
+                        const orientation = Math.floor((angle / (Math.PI / 3))) % 3;
+                        const sizeN = 1 + Math.floor(step / 6);
+                        shapes.push({
+                            "type": "triangle",
+                            "centerI": parseFloat(centerI.toFixed(2)),
+                            "centerJ": parseFloat(centerJ.toFixed(2)),
+                            "orientation": orientation,
+                            "sizeN": sizeN,
+                            "clockwise": step % 2 === 0
+                        });
+                    }
+                    return shapes;
+                })()
             }
         };
         
