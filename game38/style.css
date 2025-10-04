@@ -774,7 +774,7 @@ select.form-control {
 }
 
 /* フォームグループ */
-.form-group {
+.pro-menu .form-group {
   margin-bottom: var(--space-20);
 }
 
@@ -1025,7 +1025,7 @@ input[type="range"]::-moz-range-thumb {
     padding-top: 70px;
   }
   
-  .form-group {
+  .pro-menu .form-group {
     margin-bottom: var(--space-16);
   }
   
