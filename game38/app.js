@@ -538,6 +538,95 @@ class DigitalArtApp {
                     {"type": "square", "centerI": 0, "centerJ": 4, "orientation": 3, "sizeN": 1, "clockwise": true}
                 ]
             },
+
+            "cosmic-rings": {
+                "name": "コズミックリングス",
+                "description": "中心から重なり合う同心正方形による宇宙的な広がり",
+                "shapes": (() => {
+                    const sizes = [2, 3, 4, 5, 6];
+                    return sizes.map((size, index) => ({
+                        "type": "square",
+                        "centerI": 0,
+                        "centerJ": 0,
+                        "orientation": index % 4,
+                        "sizeN": size,
+                        "clockwise": index % 2 === 0
+                    }));
+                })()
+            },
+            "mandala-matrix": {
+                "name": "マンダラマトリックス",
+                "description": "コズミックリングスを3×3に配置した神聖幾何学的な構成",
+                "shapes": (() => {
+                    const shapes = [];
+                    const sizes = [2, 3, 4, 5, 6];
+                    const spacing = 14;
+                    const offsets = [-spacing, 0, spacing];
+                    offsets.forEach((offsetJ, rowIndex) => {
+                        offsets.forEach((offsetI, colIndex) => {
+                            sizes.forEach((size, index) => {
+                                shapes.push({
+                                    "type": "square",
+                                    "centerI": offsetI,
+                                    "centerJ": offsetJ,
+                                    "orientation": (index + rowIndex + colIndex) % 4,
+                                    "sizeN": size,
+                                    "clockwise": (index + rowIndex) % 2 === 0
+                                });
+                            });
+                        });
+                    });
+                    return shapes;
+                })()
+            },
+            "mystic-pentagons": {
+                "name": "ミスティックペンタゴンズ",
+                "description": "回転する五つの三角形で描く神秘的な輪",
+                "shapes": (() => {
+                    const sizes = [2, 3, 4, 5, 6];
+                    return sizes.map((size, index) => ({
+                        "type": "triangle",
+                        "centerI": 0,
+                        "centerJ": 0,
+                        "orientation": index % 6,
+                        "sizeN": size,
+                        "clockwise": index % 2 === 0
+                    }));
+                })()
+            },
+            "crystal-pyramid": {
+                "name": "クリスタルピラミッド",
+                "description": "ミスティックペンタゴンズを積層したピラミッド構造",
+                "shapes": (() => {
+                    const shapes = [];
+                    const sizes = [2, 3, 4, 5, 6];
+                    const columnSpacing = 12;
+                    const rowSpacing = 12;
+                    const rows = [
+                        { count: 3, centerJ: rowSpacing },
+                        { count: 2, centerJ: 0 },
+                        { count: 1, centerJ: -rowSpacing }
+                    ];
+                    rows.forEach((row, rowIndex) => {
+                        const startI = -((row.count - 1) * columnSpacing) / 2;
+                        for (let col = 0; col < row.count; col++) {
+                            const centerI = startI + col * columnSpacing;
+                            sizes.forEach((size, index) => {
+                                shapes.push({
+                                    "type": "triangle",
+                                    "centerI": parseFloat(centerI.toFixed(2)),
+                                    "centerJ": row.centerJ,
+                                    "orientation": (index + rowIndex + col) % 6,
+                                    "sizeN": size,
+                                    "clockwise": (index + col) % 2 === 0
+                                });
+                            });
+                        }
+                    });
+                    return shapes;
+                })()
+            },
+
             "square-grid-10x10": {
                 "name": "10×10スクエアグリッド",
                 "description": "整然と並ぶ100個の正方形による巨大グリッド",
