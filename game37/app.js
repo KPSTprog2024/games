@@ -14,6 +14,8 @@ class VideoEffectApp {
         this.permissionModal = document.getElementById('permissionModal');
         this.requestPermissionBtn = document.getElementById('requestPermission');
 
+        this.handleVideoResize = this.handleVideoResize.bind(this);
+
         // 設定
         this.settings = {
             videoWidth: 640,
@@ -63,6 +65,15 @@ class VideoEffectApp {
     }
 
     setupEventListeners() {
+        this.video.addEventListener('loadedmetadata', this.handleVideoResize);
+        this.video.addEventListener('resize', this.handleVideoResize);
+
+        if (window.screen && window.screen.orientation && typeof window.screen.orientation.addEventListener === 'function') {
+            window.screen.orientation.addEventListener('change', this.handleVideoResize);
+        } else {
+            window.addEventListener('orientationchange', this.handleVideoResize);
+        }
+
         // エフェクトボタン
         document.querySelectorAll('.effect-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -95,7 +106,7 @@ class VideoEffectApp {
     setupCanvas() {
         this.canvas.width = this.settings.videoWidth;
         this.canvas.height = this.settings.videoHeight;
-        
+
         // キャンバスに初期メッセージを表示
         this.ctx.fillStyle = '#333';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -147,19 +158,38 @@ class VideoEffectApp {
             
             // ビデオが準備できるまで待つ
             await new Promise((resolve, reject) => {
-                this.video.onloadedmetadata = () => {
+                const handleMetadata = () => {
                     console.log('ビデオメタデータが読み込まれました');
+                    this.handleVideoResize();
+                    cleanup();
                     resolve();
                 };
-                this.video.onerror = (error) => {
+
+                const handleError = (error) => {
                     console.error('ビデオエラー:', error);
+                    cleanup();
                     reject(new Error('ビデオの読み込みに失敗しました'));
                 };
-                
-                // タイムアウト設定
-                setTimeout(() => {
+
+                const handleTimeout = () => {
+                    cleanup();
                     reject(new Error('ビデオの読み込みがタイムアウトしました'));
-                }, 10000);
+                };
+
+                let timeoutId = null;
+
+                const cleanup = () => {
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    this.video.removeEventListener('loadedmetadata', handleMetadata);
+                    this.video.removeEventListener('error', handleError);
+                };
+
+                timeoutId = setTimeout(handleTimeout, 10000);
+
+                this.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
+                this.video.addEventListener('error', handleError, { once: true });
             });
 
             // ビデオ再生開始
@@ -220,11 +250,53 @@ class VideoEffectApp {
         console.log('ビデオ処理を開始します');
         const processFrame = () => {
             if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
+                this.ensureCanvasMatchesVideo();
                 this.applyEffect();
             }
             this.animationId = requestAnimationFrame(processFrame);
         };
         processFrame();
+    }
+
+    ensureCanvasMatchesVideo() {
+        const videoWidth = this.video.videoWidth;
+        const videoHeight = this.video.videoHeight;
+
+        if (!videoWidth || !videoHeight) {
+            return;
+        }
+
+        if (videoWidth !== this.canvas.width || videoHeight !== this.canvas.height) {
+            this.updateCanvasDimensions(videoWidth, videoHeight);
+        }
+    }
+
+    handleVideoResize() {
+        const videoWidth = this.video.videoWidth;
+        const videoHeight = this.video.videoHeight;
+
+        if (!videoWidth || !videoHeight) {
+            return;
+        }
+
+        this.updateCanvasDimensions(videoWidth, videoHeight);
+    }
+
+    updateCanvasDimensions(width, height) {
+        if (!width || !height) {
+            return;
+        }
+
+        if (this.canvas.width === width && this.canvas.height === height) {
+            return;
+        }
+
+        this.canvas.width = width;
+        this.canvas.height = height;
+        this.settings.videoWidth = width;
+        this.settings.videoHeight = height;
+        this.frameBuffer = [];
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     applyEffect() {
