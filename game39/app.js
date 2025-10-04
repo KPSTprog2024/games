@@ -137,7 +137,14 @@ class RingDanceGenerator {
         // Trail history for effects
         this.trailHistory = [];
         this.maxHistoryLength = 20;
-        
+
+        // Auto randomization
+        this.autoRandomEnabled = false;
+        this.autoRandomInterval = 12;
+        this.autoRandomTimer = null;
+        this.autoRandomTransitionDuration = 3; // seconds
+        this.transition = null;
+
         this.initializeControls();
         this.loadPreset('circle_waltz');
         this.startAnimation();
@@ -170,7 +177,37 @@ class RingDanceGenerator {
         document.getElementById('randomizeBtn').addEventListener('click', () => {
             this.randomizeParameters();
         });
-        
+
+        // Auto random toggle
+        const autoRandomBtn = document.getElementById('autoRandomBtn');
+        if (autoRandomBtn) {
+            autoRandomBtn.addEventListener('click', () => {
+                this.autoRandomEnabled = !this.autoRandomEnabled;
+                autoRandomBtn.textContent = this.autoRandomEnabled ? 'オートランダム: ON' : 'オートランダム: OFF';
+                if (this.autoRandomEnabled) {
+                    this.scheduleNextAutoRandom();
+                } else if (this.autoRandomTimer) {
+                    clearTimeout(this.autoRandomTimer);
+                    this.autoRandomTimer = null;
+                }
+            });
+            autoRandomBtn.textContent = 'オートランダム: OFF';
+        }
+
+        const autoIntervalSlider = document.getElementById('autoIntervalSlider');
+        const autoIntervalValue = document.getElementById('autoIntervalValue');
+        if (autoIntervalSlider && autoIntervalValue) {
+            autoIntervalSlider.value = this.autoRandomInterval;
+            autoIntervalValue.textContent = this.autoRandomInterval.toString();
+            autoIntervalSlider.addEventListener('input', (e) => {
+                this.autoRandomInterval = parseFloat(e.target.value);
+                autoIntervalValue.textContent = this.autoRandomInterval.toString();
+                if (this.autoRandomEnabled) {
+                    this.scheduleNextAutoRandom();
+                }
+            });
+        }
+
         // Parameter sliders
         this.setupSlider('ringsSlider', 'ringsValue', 'rings');
         this.setupSlider('loopTimeSlider', 'loopTimeValue', 'loopTime', '秒');
@@ -242,6 +279,8 @@ class RingDanceGenerator {
     updateUIFromParams() {
         document.getElementById('ringsSlider').value = this.params.rings;
         document.getElementById('ringsValue').textContent = this.params.rings;
+        document.getElementById('loopTimeSlider').value = this.params.loopTime;
+        document.getElementById('loopTimeValue').textContent = this.params.loopTime;
         document.getElementById('ringSizeSlider').value = this.params.ringSize;
         document.getElementById('ringSizeValue').textContent = this.params.ringSize;
         document.getElementById('lineWidthSlider').value = this.params.lineWidth;
@@ -258,37 +297,108 @@ class RingDanceGenerator {
         document.getElementById('phaseXValue').textContent = this.params.phaseX.toFixed(2);
         document.getElementById('phaseYSlider').value = this.params.phaseY;
         document.getElementById('phaseYValue').textContent = this.params.phaseY.toFixed(2);
-        
+
         document.getElementById('orbitSelect').value = this.params.orbitType;
         document.getElementById('symmetrySelect').value = this.params.symmetry;
         document.getElementById('visualSelect').value = this.params.visualStyle;
+        document.getElementById('trailSelect').value = this.params.trailMode;
+        document.getElementById('backgroundSelect').value = this.params.background;
     }
-    
-    randomizeParameters() {
-        this.params.rings = Math.floor(Math.random() * 48) + 6;
-        this.params.amplitudeX = Math.random() * 0.8 + 0.1;
-        this.params.amplitudeY = Math.random() * 0.8 + 0.1;
-        this.params.frequencyX = Math.random() * 8 + 0.5;
-        this.params.frequencyY = Math.random() * 8 + 0.5;
-        this.params.phaseX = Math.random() * Math.PI * 2;
-        this.params.phaseY = Math.random() * Math.PI * 2;
-        this.params.rotationSpeed = Math.random() * 4 + 0.5;
-        
+
+    cloneParams(params) {
+        return { ...params };
+    }
+
+    generateRandomParams(baseParams = this.params) {
+        const newParams = { ...baseParams };
+        newParams.rings = Math.floor(Math.random() * 48) + 6;
+        newParams.amplitudeX = Math.random() * 0.8 + 0.1;
+        newParams.amplitudeY = Math.random() * 0.8 + 0.1;
+        newParams.frequencyX = Math.random() * 8 + 0.5;
+        newParams.frequencyY = Math.random() * 8 + 0.5;
+        newParams.phaseX = Math.random() * Math.PI * 2;
+        newParams.phaseY = Math.random() * Math.PI * 2;
+        newParams.rotationSpeed = Math.random() * 4 + 0.5;
+
         const orbitTypes = ['circle', 'lissajous', 'epicycloid', 'sine_wave', 'linear'];
         const symmetryTypes = ['none', 'mirror_x', 'mirror_y', 'point', 'rotational_6', 'rotational_12'];
         const visualStyles = ['stroke', 'neon', 'holographic', 'metallic', 'wireframe'];
-        
-        this.params.orbitType = orbitTypes[Math.floor(Math.random() * orbitTypes.length)];
-        this.params.symmetry = symmetryTypes[Math.floor(Math.random() * symmetryTypes.length)];
-        this.params.visualStyle = visualStyles[Math.floor(Math.random() * visualStyles.length)];
-        
+
+        newParams.orbitType = orbitTypes[Math.floor(Math.random() * orbitTypes.length)];
+        newParams.symmetry = symmetryTypes[Math.floor(Math.random() * symmetryTypes.length)];
+        newParams.visualStyle = visualStyles[Math.floor(Math.random() * visualStyles.length)];
+
+        return newParams;
+    }
+
+    scheduleNextAutoRandom() {
+        if (this.autoRandomTimer) {
+            clearTimeout(this.autoRandomTimer);
+        }
+        this.autoRandomTimer = setTimeout(() => this.triggerAutoRandom(), this.autoRandomInterval * 1000);
+    }
+
+    triggerAutoRandom() {
+        if (!this.autoRandomEnabled) return;
+        if (this.transition) {
+            this.scheduleNextAutoRandom();
+            return;
+        }
+        this.startAutoRandomTransition();
+        this.scheduleNextAutoRandom();
+    }
+
+    startAutoRandomTransition() {
+        const newParams = this.generateRandomParams(this.params);
+        this.transition = {
+            fromParams: this.cloneParams(this.params),
+            toParams: newParams,
+            progress: 0,
+            duration: this.autoRandomTransitionDuration * 1000,
+            fromTime: this.currentTime,
+            toTime: 0
+        };
+        this.trailHistory = [];
+    }
+
+    easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    renderEffect(params, time, alpha = 1) {
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+
+        const normalizedTime = (time / params.loopTime) % 1;
+        let positions = [];
+
+        for (let i = 0; i < params.rings; i++) {
+            const ringTime = normalizedTime + (i / params.rings) * 0.1;
+            const pos = this.calculateOrbitPosition(ringTime % 1, i, params);
+            positions.push(pos);
+        }
+
+        positions = this.applySymmetry(positions, params);
+
+        positions.forEach((pos, index) => {
+            this.drawRing(pos, index, positions.length, params);
+        });
+
+        this.ctx.restore();
+    }
+
+    randomizeParameters() {
+        if (this.transition) {
+            this.transition = null;
+        }
+        this.params = this.generateRandomParams(this.params);
         this.updateUIFromParams();
         this.currentTime = 0;
         this.trailHistory = [];
     }
-    
-    calculateOrbitPosition(t, ringIndex = 0) {
-        const { orbitType, amplitudeX, amplitudeY, frequencyX, frequencyY, phaseX, phaseY, offsetX, offsetY } = this.params;
+
+    calculateOrbitPosition(t, ringIndex = 0, params = this.params) {
+        const { orbitType, amplitudeX, amplitudeY, frequencyX, frequencyY, phaseX, phaseY, offsetX, offsetY } = params;
         
         let x, y;
         
@@ -330,8 +440,8 @@ class RingDanceGenerator {
         return { x, y };
     }
     
-    applySymmetry(positions) {
-        const { symmetry } = this.params;
+    applySymmetry(positions, params = this.params) {
+        const { symmetry } = params;
         let result = [...positions];
         
         switch (symmetry) {
@@ -375,13 +485,15 @@ class RingDanceGenerator {
         return result;
     }
     
-    drawBackground() {
-        const { background } = this.params;
+    drawBackground(params = this.params, alpha = 1) {
+        const { background } = params;
         const { width, height } = this.canvas;
-        
+
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, width, height);
-        
+
         if (background === 'dark_grid') {
             this.ctx.strokeStyle = 'rgba(50, 184, 198, 0.1)';
             this.ctx.lineWidth = 1;
@@ -395,7 +507,7 @@ class RingDanceGenerator {
                 this.ctx.moveTo(0, y);
                 this.ctx.lineTo(width, y);
             }
-            
+
             this.ctx.stroke();
         } else if (background === 'space') {
             const gradient = this.ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height)/2);
@@ -403,7 +515,7 @@ class RingDanceGenerator {
             gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
             this.ctx.fillStyle = gradient;
             this.ctx.fillRect(0, 0, width, height);
-            
+
             // Add some stars
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             for (let i = 0; i < 100; i++) {
@@ -413,6 +525,8 @@ class RingDanceGenerator {
                 this.ctx.fillRect(x, y, size, size);
             }
         }
+
+        this.ctx.restore();
     }
     
     drawTrails() {
@@ -455,11 +569,11 @@ class RingDanceGenerator {
         };
     }
     
-    drawRing(position, ringIndex, totalRings) {
+    drawRing(position, ringIndex, totalRings, params = this.params) {
         const canvasPos = this.normalizedToCanvas(position);
-        const { visualStyle, ringSize, lineWidth } = this.params;
+        const { visualStyle, ringSize, lineWidth } = params;
         const radius = 10 * ringSize;
-        
+
         // Calculate color based on ring index
         const hue = (ringIndex / totalRings) * 360;
         const baseColor = `hsl(${hue}, 70%, 60%)`;
@@ -541,14 +655,26 @@ class RingDanceGenerator {
     }
     
     animate(currentTime) {
+        let deltaTime = currentTime - this.lastFrameTime;
+        if (this.lastFrameTime === 0) {
+            deltaTime = 0;
+        }
+
         if (this.isPlaying) {
-            const deltaTime = currentTime - this.lastFrameTime;
-            this.currentTime += (deltaTime / 1000) * this.params.speed * this.params.rotationSpeed;
-            
-            // Normalize time to loop
-            const normalizedTime = (this.currentTime / this.params.loopTime) % 1;
-            
-            // Calculate FPS
+            if (this.transition) {
+                const fromParams = this.transition.fromParams;
+                const toParams = this.transition.toParams;
+
+                const fromSpeed = (fromParams.speed ?? this.params.speed) * (fromParams.rotationSpeed ?? 1);
+                const toSpeed = (toParams.speed ?? this.params.speed) * (toParams.rotationSpeed ?? 1);
+
+                this.transition.fromTime += (deltaTime / 1000) * fromSpeed;
+                this.transition.toTime += (deltaTime / 1000) * toSpeed;
+                this.transition.progress = Math.min(1, this.transition.progress + deltaTime / this.transition.duration);
+            } else {
+                this.currentTime += (deltaTime / 1000) * this.params.speed * this.params.rotationSpeed;
+            }
+
             if (deltaTime > 0) {
                 this.fps = Math.round(1000 / deltaTime);
                 this.frameCount++;
@@ -557,45 +683,59 @@ class RingDanceGenerator {
                 }
             }
         }
-        
+
         this.lastFrameTime = currentTime;
-        
-        // Clear canvas or apply trail effects
-        if (this.params.trailMode === 'none') {
-            this.drawBackground();
+
+        if (this.transition) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            const easedProgress = this.easeInOutCubic(this.transition.progress);
+
+            this.drawBackground(this.transition.fromParams, 1 - easedProgress);
+            this.drawBackground(this.transition.toParams, easedProgress);
+
+            this.renderEffect(this.transition.fromParams, this.transition.fromTime, 1 - easedProgress);
+            this.renderEffect(this.transition.toParams, this.transition.toTime, easedProgress);
+
+            if (this.transition.progress >= 1) {
+                this.params = this.cloneParams(this.transition.toParams);
+                this.currentTime = this.transition.toTime;
+                this.updateUIFromParams();
+                this.transition = null;
+            }
         } else {
-            if (this.frameCount % 60 === 0) {
-                this.drawBackground();
+            if (this.params.trailMode === 'none') {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.drawBackground(this.params, 1);
+            } else {
+                if (this.frameCount % 60 === 0) {
+                    this.drawBackground(this.params, 1);
+                }
+                this.drawTrails();
             }
-            this.drawTrails();
-        }
-        
-        // Calculate ring positions
-        const normalizedTime = (this.currentTime / this.params.loopTime) % 1;
-        let positions = [];
-        
-        for (let i = 0; i < this.params.rings; i++) {
-            const ringTime = normalizedTime + (i / this.params.rings) * 0.1; // Phase offset
-            const pos = this.calculateOrbitPosition(ringTime % 1, i);
-            positions.push(pos);
-        }
-        
-        // Apply symmetry
-        positions = this.applySymmetry(positions);
-        
-        // Store for trail effect
-        if (this.params.trailMode === 'history') {
-            this.trailHistory.push([...positions]);
-            if (this.trailHistory.length > this.maxHistoryLength) {
-                this.trailHistory.shift();
+
+            const normalizedTime = (this.currentTime / this.params.loopTime) % 1;
+            let positions = [];
+
+            for (let i = 0; i < this.params.rings; i++) {
+                const ringTime = normalizedTime + (i / this.params.rings) * 0.1;
+                const pos = this.calculateOrbitPosition(ringTime % 1, i, this.params);
+                positions.push(pos);
             }
+
+            positions = this.applySymmetry(positions, this.params);
+
+            if (this.params.trailMode === 'history') {
+                this.trailHistory.push([...positions]);
+                if (this.trailHistory.length > this.maxHistoryLength) {
+                    this.trailHistory.shift();
+                }
+            }
+
+            positions.forEach((pos, index) => {
+                this.drawRing(pos, index, positions.length, this.params);
+            });
         }
-        
-        // Draw rings
-        positions.forEach((pos, index) => {
-            this.drawRing(pos, index, positions.length);
-        });
-        
+
         requestAnimationFrame((time) => this.animate(time));
     }
     
