@@ -897,6 +897,21 @@ select.form-control {
   cursor: pointer;
 }
 
+.form-checkbox-row {
+  display: flex;
+  gap: var(--space-12);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
 /* ボタングループ */
 .button-group {
   display: flex;
