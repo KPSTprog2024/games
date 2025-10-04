@@ -13,6 +13,7 @@ class VideoEffectApp {
         this.recordingTime = document.getElementById('recordingTime');
         this.permissionModal = document.getElementById('permissionModal');
         this.requestPermissionBtn = document.getElementById('requestPermission');
+        this.cameraToggleBtn = document.getElementById('cameraToggle');
 
         this.handleVideoResize = this.handleVideoResize.bind(this);
 
@@ -35,6 +36,14 @@ class VideoEffectApp {
         this.recordingStartTime = 0;
         this.recordingTimer = null;
         this.stream = null;
+        this.desiredFacingMode = 'user';
+        this.activeFacingMode = 'user';
+        this.isSwitchingCamera = false;
+        this.videoProcessingStarted = false;
+
+        if (this.cameraToggleBtn) {
+            this.updateCameraToggleUI();
+        }
         
         this.init();
     }
@@ -88,6 +97,13 @@ class VideoEffectApp {
             this.toggleRecording();
         });
 
+        if (this.cameraToggleBtn) {
+            this.cameraToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleCameraFacingMode();
+            });
+        }
+
         // 権限要求ボタン
         this.requestPermissionBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -140,69 +156,16 @@ class VideoEffectApp {
             }
 
             console.log('getUserMediaを呼び出し中...');
-            
-            const constraints = {
-                video: {
-                    width: { ideal: this.settings.videoWidth },
-                    height: { ideal: this.settings.videoHeight },
-                    frameRate: { ideal: this.settings.frameRate },
-                    facingMode: 'user'
-                },
-                audio: false
-            };
 
-            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            await this.startCamera(this.desiredFacingMode);
             console.log('カメラストリームを取得しました:', this.stream);
 
-            this.video.srcObject = this.stream;
-            
-            // ビデオが準備できるまで待つ
-            await new Promise((resolve, reject) => {
-                const handleMetadata = () => {
-                    console.log('ビデオメタデータが読み込まれました');
-                    this.handleVideoResize();
-                    cleanup();
-                    resolve();
-                };
-
-                const handleError = (error) => {
-                    console.error('ビデオエラー:', error);
-                    cleanup();
-                    reject(new Error('ビデオの読み込みに失敗しました'));
-                };
-
-                const handleTimeout = () => {
-                    cleanup();
-                    reject(new Error('ビデオの読み込みがタイムアウトしました'));
-                };
-
-                let timeoutId = null;
-
-                const cleanup = () => {
-                    if (timeoutId) {
-                        clearTimeout(timeoutId);
-                    }
-                    this.video.removeEventListener('loadedmetadata', handleMetadata);
-                    this.video.removeEventListener('error', handleError);
-                };
-
-                timeoutId = setTimeout(handleTimeout, 10000);
-
-                this.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
-                this.video.addEventListener('error', handleError, { once: true });
-            });
-
-            // ビデオ再生開始
-            await this.video.play();
-            console.log('ビデオ再生を開始しました');
-
-            // 映像処理開始
-            this.startVideoProcessing();
-            
             // モーダルを閉じる
             this.hidePermissionModal();
             this.hideError();
-            
+
+            this.updateCameraToggleUI({ mode: this.activeFacingMode, switching: false });
+
             console.log('カメラ初期化完了');
 
         } catch (error) {
@@ -226,7 +189,195 @@ class VideoEffectApp {
             // ボタンを元に戻す
             this.requestPermissionBtn.disabled = false;
             this.requestPermissionBtn.textContent = 'カメラを使用する';
+            this.updateCameraToggleUI({ mode: this.activeFacingMode, switching: false });
         }
+    }
+
+    async startCamera(facingMode = 'user', { allowFallback = true } = {}) {
+        console.log('startCamera called with facingMode:', facingMode);
+
+        const constraints = {
+            video: {
+                width: { ideal: this.settings.videoWidth },
+                height: { ideal: this.settings.videoHeight },
+                frameRate: { ideal: this.settings.frameRate },
+                facingMode
+            },
+            audio: false
+        };
+
+        const previousStream = this.stream;
+        let newStream = null;
+
+        try {
+            newStream = await navigator.mediaDevices.getUserMedia(constraints);
+            this.video.srcObject = newStream;
+
+            await this.waitForVideoReady();
+
+            await this.video.play();
+            console.log('ビデオ再生を開始しました');
+
+            this.stream = newStream;
+            this.activeFacingMode = facingMode;
+            this.desiredFacingMode = facingMode;
+
+            this.frameBuffer = [];
+
+            if (!this.videoProcessingStarted) {
+                this.startVideoProcessing();
+            }
+
+            return true;
+        } catch (error) {
+            console.error('カメラ取得エラー:', error);
+
+            if (previousStream) {
+                this.video.srcObject = previousStream;
+                try {
+                    await this.video.play();
+                } catch (playbackError) {
+                    console.warn('元のカメラの再生に失敗しました:', playbackError);
+                }
+            } else {
+                this.video.srcObject = null;
+            }
+
+            if (newStream) {
+                this.stopStream(newStream);
+            }
+
+            if (allowFallback && facingMode === 'environment') {
+                console.warn('背面カメラが利用できないため前面カメラにフォールバックします');
+                return this.startCamera('user', { allowFallback: false });
+            }
+            throw error;
+        } finally {
+            if (previousStream && previousStream !== this.stream) {
+                this.stopStream(previousStream);
+            }
+        }
+    }
+
+    async waitForVideoReady() {
+        if (this.video.readyState >= this.video.HAVE_METADATA) {
+            this.handleVideoResize();
+            return;
+        }
+
+        await new Promise((resolve, reject) => {
+            let timeoutId = null;
+
+            const cleanup = () => {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                this.video.removeEventListener('loadedmetadata', handleMetadata);
+                this.video.removeEventListener('error', handleError);
+            };
+
+            const handleMetadata = () => {
+                console.log('ビデオメタデータが読み込まれました');
+                cleanup();
+                this.handleVideoResize();
+                resolve();
+            };
+
+            const handleError = (event) => {
+                console.error('ビデオエラー:', event);
+                cleanup();
+                reject(new Error('ビデオの読み込みに失敗しました'));
+            };
+
+            const handleTimeout = () => {
+                cleanup();
+                reject(new Error('ビデオの読み込みがタイムアウトしました'));
+            };
+
+            timeoutId = setTimeout(handleTimeout, 10000);
+
+            this.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
+            this.video.addEventListener('error', handleError, { once: true });
+        });
+    }
+
+    stopStream(stream) {
+        if (!stream) {
+            return;
+        }
+
+        stream.getTracks().forEach(track => {
+            try {
+                track.stop();
+            } catch (error) {
+                console.warn('トラックの停止に失敗しました:', error);
+            }
+        });
+    }
+
+    async toggleCameraFacingMode() {
+        if (this.isSwitchingCamera) {
+            return;
+        }
+
+        if (!this.stream) {
+            this.showError('カメラを有効にしてから切り替えてください。');
+            return;
+        }
+
+        const nextFacingMode = this.activeFacingMode === 'environment' ? 'user' : 'environment';
+
+        this.isSwitchingCamera = true;
+        this.updateCameraToggleUI({ mode: nextFacingMode, switching: true });
+
+        try {
+            await this.startCamera(nextFacingMode);
+            this.hideError();
+        } catch (error) {
+            console.error('カメラ切り替えエラー:', error);
+            this.showError('カメラの切り替えに失敗しました。');
+            this.desiredFacingMode = this.activeFacingMode;
+        } finally {
+            this.isSwitchingCamera = false;
+            this.updateCameraToggleUI({ mode: this.activeFacingMode, switching: false });
+        }
+    }
+
+    updateCameraToggleUI({ mode = this.activeFacingMode, switching = false } = {}) {
+        if (!this.cameraToggleBtn) {
+            return;
+        }
+
+        const button = this.cameraToggleBtn;
+        const iconSpan = button.querySelector('.camera-toggle-icon');
+        const textSpan = button.querySelector('.camera-toggle-text');
+
+        if (switching) {
+            button.disabled = true;
+            button.classList.add('is-switching');
+            if (textSpan) {
+                textSpan.textContent = '切替中...';
+            }
+            button.setAttribute('aria-label', 'カメラ切替中');
+            button.setAttribute('aria-busy', 'true');
+            return;
+        }
+
+        button.classList.remove('is-switching');
+        button.removeAttribute('aria-busy');
+        button.disabled = !this.stream;
+
+        const nextFacingMode = mode === 'environment' ? 'user' : 'environment';
+
+        if (textSpan) {
+            textSpan.textContent = nextFacingMode === 'environment' ? '背面カメラ' : '前面カメラ';
+        }
+
+        if (iconSpan) {
+            iconSpan.classList.toggle('is-rear', mode === 'environment');
+        }
+
+        button.setAttribute('aria-label', `カメラを${nextFacingMode === 'environment' ? '背面' : '前面'}に切り替える`);
     }
 
     selectEffect(effectId) {
@@ -248,6 +399,10 @@ class VideoEffectApp {
 
     startVideoProcessing() {
         console.log('ビデオ処理を開始します');
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        this.videoProcessingStarted = true;
         const processFrame = () => {
             if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
                 this.ensureCanvasMatchesVideo();

@@ -38,10 +38,16 @@
         </div>
 
         <div class="recording-controls">
-            <button id="startBtn" class="btn btn--primary record-btn">
-                <span id="recordIcon">●</span>
-                <span id="recordText">録画開始</span>
-            </button>
+            <div class="recording-buttons">
+                <button id="cameraToggle" class="btn btn--secondary camera-toggle-btn" type="button">
+                    <span class="camera-toggle-icon" aria-hidden="true">📷</span>
+                    <span class="camera-toggle-text">背面カメラ</span>
+                </button>
+                <button id="startBtn" class="btn btn--primary record-btn" type="button">
+                    <span id="recordIcon">●</span>
+                    <span id="recordText">録画開始</span>
+                </button>
+            </div>
             <div id="downloadSection" style="display: none;">
                 <p>録画完了！</p>
                 <a id="downloadLink" class="btn btn--secondary" download="video-effect.mp4">
