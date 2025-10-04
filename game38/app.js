@@ -252,22 +252,33 @@ class AnimationManager {
 class Grid {
     constructor(size = 16) {
         this.size = size;
+        this.width = 0;
+        this.height = 0;
+        this.originX = 0;
+        this.originY = 0;
     }
-    
+
+    updateDimensions(width, height) {
+        this.width = width;
+        this.height = height;
+        this.originX = width / 2;
+        this.originY = height / 2;
+    }
+
     gridToPixel(i, j) {
         return {
-            x: (i + 0.5) * this.size,
-            y: (j + 0.5) * this.size
+            x: this.originX + i * this.size,
+            y: this.originY + j * this.size
         };
     }
-    
+
     pixelToGrid(x, y) {
         return {
-            i: Math.floor(x / this.size),
-            j: Math.floor(y / this.size)
+            i: Math.round((x - this.originX) / this.size),
+            j: Math.round((y - this.originY) / this.size)
         };
     }
-    
+
     snapToGrid(x, y) {
         const grid = this.pixelToGrid(x, y);
         return this.gridToPixel(grid.i, grid.j);
@@ -644,18 +655,25 @@ class DigitalArtApp {
     }
     
     setupCanvas() {
-        // キャンバスサイズを画面全体に設定
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        this.canvas.style.width = window.innerWidth + 'px';
-        this.canvas.style.height = window.innerHeight + 'px';
-        
+        const applyDimensions = () => {
+            // キャンバスサイズを画面全体に設定
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+            this.canvas.style.width = window.innerWidth + 'px';
+            this.canvas.style.height = window.innerHeight + 'px';
+
+            this.grid.updateDimensions(this.canvas.width, this.canvas.height);
+        };
+
+        applyDimensions();
         this.ctx.imageSmoothingEnabled = true;
-        
-        // リサイズハンドリング
-        window.addEventListener('resize', () => {
-            this.setupCanvas();
-        });
+
+        if (!this._handleResize) {
+            this._handleResize = () => {
+                applyDimensions();
+            };
+            window.addEventListener('resize', this._handleResize);
+        }
     }
     
     setupEventListeners() {
