@@ -590,9 +590,11 @@ class DigitalArtApp {
             square.zIndex = Date.now() + 1;
             this.state.shapes.set(square.id, square);
             this.updateShapeCounts();
+            this.updateVertexHandles();
         }, 10); // 少し遅延させてzIndexを確実に分ける
-        
+
         this.updateShapeCounts();
+        this.updateVertexHandles();
     }
     
     setupAnimationManager() {
@@ -766,8 +768,16 @@ class DigitalArtApp {
         });
         
         // アクション
+        const deleteSelectedButton = document.getElementById('deleteSelected');
+        deleteSelectedButton.addEventListener('click', () => {
+            if (!deleteSelectedButton.disabled) {
+                this.deleteSelectedShape();
+            }
+        });
         document.getElementById('exportPNG').addEventListener('click', this.exportPNG.bind(this));
         document.getElementById('clearAll').addEventListener('click', this.clearAll.bind(this));
+
+        this.updateDeleteButtonState();
     }
     
     setupUI() {
@@ -826,7 +836,7 @@ class DigitalArtApp {
             this.state.shapes.set(square.id, square);
             this.state.selectedShapeId = square.id; // 新しい図形を選択状態に
         }
-        
+
         this.updateVertexHandles(); // ハンドル更新
         this.updateShapeCounts();
     }
@@ -839,7 +849,7 @@ class DigitalArtApp {
         this.state.shapes.clear();
         this.state.selectedShapeId = null;
         this.addShapeCounter = 0; // カウンターもリセット
-        
+
         // 新しいパターンを適用
         pattern.shapes.forEach((shapeData, index) => {
             let shape;
@@ -868,8 +878,9 @@ class DigitalArtApp {
                 this.state.shapes.set(shape.id, shape);
             }
         });
-        
+
         this.updateShapeCounts();
+        this.updateVertexHandles();
     }
     
     onPointerDown(event) {
@@ -895,14 +906,14 @@ class DigitalArtApp {
                 lastX: x,
                 lastY: y
             };
-            
+
             this.state.selectedShapeId = hitResult.shapeId;
             this.updateVertexHandles();
-            
+
             this.canvas.style.cursor = 'grabbing';
         } else {
             this.state.selectedShapeId = null;
-            this.vertexHandles = [];
+            this.updateVertexHandles();
         }
     }
     
@@ -1016,6 +1027,8 @@ class DigitalArtApp {
                 }
             }
         }
+
+        this.updateDeleteButtonState();
     }
     
     applyPreset(presetName) {
@@ -1136,18 +1149,42 @@ class DigitalArtApp {
         if (confirm('すべての図形を削除しますか？')) {
             this.state.shapes.clear();
             this.state.selectedShapeId = null;
-            this.vertexHandles = [];
+            this.updateVertexHandles();
             this.addShapeCounter = 0;
             this.updateShapeCounts();
         }
     }
-    
+
+    deleteSelectedShape() {
+        const shapeId = this.state.selectedShapeId;
+        if (!shapeId || !this.state.shapes.has(shapeId)) {
+            this.updateDeleteButtonState();
+            return;
+        }
+
+        this.state.shapes.delete(shapeId);
+        this.state.selectedShapeId = null;
+        this.updateVertexHandles();
+        this.updateShapeCounts();
+    }
+
     updateShapeCounts() {
         const triangleCount = Array.from(this.state.shapes.values()).filter(s => s.type === 'triangle').length;
         const squareCount = Array.from(this.state.shapes.values()).filter(s => s.type === 'square').length;
-        
+
         document.getElementById('triangleCount').textContent = triangleCount;
         document.getElementById('squareCount').textContent = squareCount;
+        this.updateDeleteButtonState();
+    }
+
+    updateDeleteButtonState() {
+        const deleteButton = document.getElementById('deleteSelected');
+        if (!deleteButton) return;
+
+        const hasSelection = !!(this.state.selectedShapeId && this.state.shapes.has(this.state.selectedShapeId));
+        deleteButton.disabled = !hasSelection;
+        deleteButton.setAttribute('aria-disabled', String(!hasSelection));
+        deleteButton.title = hasSelection ? '' : '図形が選択されていません';
     }
     
     updateFPS(currentTime) {
