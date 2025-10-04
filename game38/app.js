@@ -436,6 +436,7 @@ class DigitalArtApp {
             nextTriangleId: 1,
             nextSquareId: 1,
             showHandles: true,
+            showGridOverlay: false,
             visual: {
                 preset: 'neon-basic',
                 colorMode: 'static',
@@ -753,6 +754,10 @@ class DigitalArtApp {
             this.state.showHandles = e.target.checked;
             this.updateVertexHandles();
         });
+
+        document.getElementById('showGridOverlay').addEventListener('change', (e) => {
+            this.state.showGridOverlay = e.target.checked;
+        });
         
         // アニメーション制御
         document.getElementById('playAnimation').addEventListener('click', () => {
@@ -789,6 +794,7 @@ class DigitalArtApp {
         document.getElementById('hueOffset').value = this.state.visual.hueOffset;
         document.getElementById('animationSpeed').value = this.state.animation.speed;
         document.getElementById('showHandles').checked = this.state.showHandles;
+        document.getElementById('showGridOverlay').checked = this.state.showGridOverlay;
     }
     
     toggleMenu() {
@@ -1199,7 +1205,7 @@ class DigitalArtApp {
     
     startAnimationLoop() {
         let lastTime = 0;
-        
+
         const animate = (currentTime) => {
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
@@ -1218,18 +1224,78 @@ class DigitalArtApp {
         
         requestAnimationFrame(animate);
     }
-    
+
+    drawGridOverlay() {
+        const { width, height } = this.canvas;
+        const ctx = this.ctx;
+        const spacing = this.grid.size;
+
+        if (!spacing) {
+            return;
+        }
+
+        ctx.save();
+        ctx.lineWidth = 1;
+
+        // 中心クロスヘア
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(this.grid.originX, 0);
+        ctx.lineTo(this.grid.originX, height);
+        ctx.moveTo(0, this.grid.originY);
+        ctx.lineTo(width, this.grid.originY);
+        ctx.stroke();
+
+        // 補助グリッドライン
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.setLineDash([2, 10]);
+        for (let x = this.grid.originX + spacing; x < width; x += spacing) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+
+        for (let x = this.grid.originX - spacing; x > 0; x -= spacing) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+
+        for (let y = this.grid.originY + spacing; y < height; y += spacing) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+
+        for (let y = this.grid.originY - spacing; y > 0; y -= spacing) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
     render() {
         const width = this.canvas.width;
         const height = this.canvas.height;
-        
+
         // 画面をクリア
         this.ctx.clearRect(0, 0, width, height);
         
         // 背景描画
         const theme = this.themes[this.state.visual.preset];
         this.backgroundEffects.drawBackground(this.ctx, this.state.visual.backgroundMode, theme?.settings || {});
-        
+
+        if (this.state.showGridOverlay) {
+            this.drawGridOverlay();
+        }
+
         // 図形描画（zIndex順）
         const sortedShapes = Array.from(this.state.shapes.values()).sort((a, b) => a.zIndex - b.zIndex);
         const progress = this.animationManager.progress;
