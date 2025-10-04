@@ -2,111 +2,176 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="レインボーカメラ">
-    <title>レインボーカメラ - 虹色残像エフェクト</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デジタルアート統合ミニアプリ</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app">
-        <!-- Top Status Bar -->
-        <div class="topbar">
-            <div class="status-left">
-                <span id="fpsDisplay">30 FPS</span>
-            </div>
-            <div class="status-center">
-                <div id="recordingIndicator" class="recording-indicator hidden">
-                    <div class="rec-dot"></div>
-                    <span id="recordingTime">00:00</span>
+    <div class="app-container">
+        <!-- メインキャンバス -->
+        <canvas id="mainCanvas" class="main-canvas"></canvas>
+        
+        <!-- メイン再生ボタン（大きい） -->
+        <button id="mainPlayButton" class="main-play-button btn btn--primary" aria-label="アニメーション再生">
+            ▶️
+        </button>
+        
+        <!-- 図形追加ボタン（右下） -->
+        <div class="shape-controls">
+            <button id="addTriangle" class="shape-btn btn btn--primary" aria-label="三角形追加">
+                △
+            </button>
+            <button id="addSquare" class="shape-btn btn btn--primary" aria-label="正方形追加">
+                ◻
+            </button>
+        </div>
+        
+        <!-- メニューボタン -->
+        <button id="menuToggle" class="menu-toggle btn btn--primary" aria-label="メニューを開く">
+            🎛️
+        </button>
+        
+        <!-- 詳細メニュー -->
+        <div id="proMenu" class="pro-menu hidden">
+            <div class="pro-menu__content">
+                <h3 class="pro-menu__title">🎨 プロ機能</h3>
+                
+                <!-- サンプルパターン -->
+                <div class="form-group">
+                    <label for="samplePattern" class="form-label">🎨 サンプルパターン</label>
+                    <select id="samplePattern" class="form-control">
+                        <option value="">パターンを選択...</option>
+                        <option value="grid-matrix">格子マトリックス</option>
+                        <option value="flower-mandala">フラワーマンダラ</option>
+                        <option value="layered-drift">レイヤードドリフト</option>
+                        <option value="spiral-galaxy">スパイラルギャラクシー</option>
+                        <option value="wave-pattern">ウェーブパターン</option>
+                        <option value="minimalist-zen">ミニマリスト禅</option>
+                    </select>
                 </div>
-            </div>
-            <div class="status-right"></div>
-        </div>
-
-        <!-- Camera Stage -->
-        <div class="stage">
-            <div class="letterbox">
-                <video id="video" autoplay muted playsinline></video>
-                <canvas id="canvas"></canvas>
-            </div>
-        </div>
-
-        <!-- Bottom Controls -->
-        <div class="bottombar">
-            <div class="controls" id="controls">
-                <!-- Effect Controls -->
-                <div class="effect-sliders">
-                    <div class="slider-row">
-                        <label>強度</label>
-                        <input type="range" id="intensity" min="0" max="100" value="70" class="slider">
-                        <span id="intensityValue">70%</span>
+                
+                <div class="form-group">
+                    <div class="button-group">
+                        <button id="applyPattern" class="btn btn--primary btn--sm">パターン適用</button>
+                        <button id="clearAll" class="btn btn--outline btn--sm">全消去</button>
                     </div>
-                    <div class="slider-row">
-                        <label>色相</label>
-                        <input type="range" id="hue" min="0" max="100" value="20" class="slider">
-                        <span id="hueValue">20%</span>
-                    </div>
-                    <div class="slider-row">
-                        <label>長さ</label>
-                        <input type="range" id="length" min="1" max="20" value="8" class="slider">
-                        <span id="lengthValue">8</span>
+                </div>
+                
+                <!-- 基本操作 -->
+                <div class="form-group">
+                    <label class="form-label">図形追加</label>
+                    <div class="button-group">
+                        <button id="addTriangleMenu" class="btn btn--secondary btn--sm">△ 三角形</button>
+                        <button id="addSquareMenu" class="btn btn--secondary btn--sm">◻ 正方形</button>
                     </div>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="action-row">
-                    <button id="switchCamera" class="btn btn--outline btn--sm">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM15 15.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
-                        </svg>
-                    </button>
-                    
-                    <button id="recordBtn" class="record-btn">
-                        <div class="record-circle"></div>
-                    </button>
-                    
-                    <button id="downloadBtn" class="btn btn--outline btn--sm hidden">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                        </svg>
-                    </button>
+                
+                <!-- アニメーション制御 -->
+                <div class="form-group">
+                    <label class="form-label">🎬 アニメーション制御</label>
+                    <div class="button-group">
+                        <button id="playAnimation" class="btn btn--primary btn--sm">▶️ 再生（0.5秒暗転付き）</button>
+                        <button id="stopAnimation" class="btn btn--secondary btn--sm">⏹️ 停止</button>
+                        <button id="resetAnimation" class="btn btn--outline btn--sm">🔄 リセット</button>
+                    </div>
+                    <div class="animation-status">
+                        <div class="progress-bar">
+                            <div id="progressBar" class="progress-fill"></div>
+                        </div>
+                        <div id="animationPhase" class="phase-display">編集モード</div>
+                        <div id="timeDisplay" class="time-display">時間: 0.0 / 3.5s</div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Start Screen -->
-            <div id="startScreen" class="start-screen">
-                <h2>レインボーカメラ</h2>
-                <p>虹色の残像エフェクト</p>
-                <button id="startBtn" class="btn btn--primary btn--lg">カメラ開始</button>
+                
+                <!-- プリセットテーマ -->
+                <div class="form-group">
+                    <label for="presetSelect" class="form-label">🎨 プリセットテーマ</label>
+                    <select id="presetSelect" class="form-control">
+                        <option value="neon-basic">ネオンベーシック</option>
+                        <option value="neon-cyberpunk">サイバーパンク</option>
+                        <option value="aurora-rings">オーロラリング</option>
+                        <option value="matrix-grid">マトリックス</option>
+                        <option value="radial-spectrum">放射スペクトラム</option>
+                        <option value="noise-flow">ノイズフロー</option>
+                    </select>
+                </div>
+                
+                <!-- 色モード -->
+                <div class="form-group">
+                    <label for="colorMode" class="form-label">🌈 色モード</label>
+                    <select id="colorMode" class="form-control">
+                        <option value="static">固定色</option>
+                        <option value="hueCycle">色相サイクル</option>
+                        <option value="radialMap">放射マップ</option>
+                        <option value="ringBands">リングバンド</option>
+                        <option value="noiseFlow">ノイズフロー</option>
+                        <option value="gridIndex">格子インデックス</option>
+                    </select>
+                </div>
+                
+                <!-- 背景エフェクト -->
+                <div class="form-group">
+                    <label for="backgroundMode" class="form-label">🌌 背景エフェクト</label>
+                    <select id="backgroundMode" class="form-control">
+                        <option value="solid">単色</option>
+                        <option value="gradientPulse">グラデーション脈動</option>
+                        <option value="stars">星座</option>
+                        <option value="darkNoise">ダークノイズ</option>
+                    </select>
+                </div>
+                
+                <!-- エフェクト強度 -->
+                <div class="form-group">
+                    <label for="effectIntensity" class="form-label">
+                        ⚡ エフェクト強度: <span id="intensityValue">100</span>%
+                    </label>
+                    <input type="range" id="effectIntensity" class="form-control" min="0" max="200" value="100">
+                </div>
+                
+                <!-- 色相オフセット -->
+                <div class="form-group">
+                    <label for="hueOffset" class="form-label">
+                        🎨 色相オフセット: <span id="hueValue">0</span>°
+                    </label>
+                    <input type="range" id="hueOffset" class="form-control" min="0" max="360" value="0">
+                </div>
+                
+                <!-- アニメーション速度 -->
+                <div class="form-group">
+                    <label for="animationSpeed" class="form-label">
+                        ⚡ アニメーション速度: <span id="speedValue">1.0</span>x
+                    </label>
+                    <input type="range" id="animationSpeed" class="form-control" min="0.1" max="3.0" step="0.1" value="1.0">
+                </div>
+                
+                <!-- ハンドル表示 -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="showHandles" checked>
+                        ⚙️ 頂点ハンドル表示
+                    </label>
+                </div>
+                
+                <!-- アクション -->
+                <div class="form-group">
+                    <div class="button-group">
+                        <button id="exportPNG" class="btn btn--primary btn--sm">📷 PNG出力</button>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- Permission Modal -->
-        <div id="permissionModal" class="modal hidden">
-            <div class="modal-content">
-                <h3>カメラアクセス</h3>
-                <p>カメラとマイクの使用許可が必要です</p>
-                <div class="modal-actions">
-                    <button id="allowBtn" class="btn btn--primary">許可する</button>
-                    <button id="cancelBtn" class="btn btn--secondary">キャンセル</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Error Modal -->
-        <div id="errorModal" class="modal hidden">
-            <div class="modal-content">
-                <h3>エラー</h3>
-                <p id="errorText">エラーが発生しました</p>
-                <div class="modal-actions">
-                    <button id="closeErrorBtn" class="btn btn--secondary">閉じる</button>
-                </div>
-            </div>
+        
+        <!-- オーバーレイ -->
+        <div id="menuOverlay" class="menu-overlay hidden"></div>
+        
+        <!-- ステータス表示 -->
+        <div id="statusInfo" class="status-info">
+            <div class="status-item">三角形: <span id="triangleCount">1</span></div>
+            <div class="status-item">正方形: <span id="squareCount">1</span></div>
+            <div class="status-item">FPS: <span id="fpsDisplay">60</span></div>
         </div>
     </div>
-
+    
     <script src="app.js"></script>
 </body>
 </html>
