@@ -738,349 +738,312 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* Custom styles for Echo Camera Final */
-
-.app-container {
+/* Application-specific styles */
+body {
+    padding: 0;
+    margin: 0;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
     background-color: var(--color-background);
+    -webkit-text-size-adjust: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.container {
+    max-width: 100%;
     padding: var(--space-16);
-    gap: var(--space-16);
+    margin: 0 auto;
 }
 
-.app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-12) 0;
-    border-bottom: 1px solid var(--color-border);
+header {
+    text-align: center;
+    margin-bottom: var(--space-24);
 }
 
-.app-header h1 {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-semibold);
+header h1 {
+    font-size: var(--font-size-3xl);
     color: var(--color-text);
-}
-
-.status-indicator {
-    background: var(--color-bg-1);
-    padding: var(--space-6) var(--space-12);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-}
-
-.camera-container {
-    position: relative;
-    width: 100%;
-    background: var(--color-black);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin-bottom: var(--space-16);
-    /* Aspect ratio will be set dynamically by JavaScript */
-    aspect-ratio: 3/4; /* Default for portrait */
-}
-
-.main-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: var(--color-black);
-}
-
-.controls-panel {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    padding: var(--space-16);
-    border: 1px solid var(--color-card-border);
-    margin-bottom: var(--space-16);
-}
-
-.control-group {
-    margin-bottom: var(--space-16);
-}
-
-.control-group:last-child {
-    margin-bottom: 0;
-}
-
-.control-label {
-    display: block;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
     margin-bottom: var(--space-8);
+}
+
+header p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-lg);
+    margin: 0;
+}
+
+.controls {
+    margin-bottom: var(--space-24);
+}
+
+.controls h3 {
+    font-size: var(--font-size-xl);
+    text-align: center;
+    margin-bottom: var(--space-16);
     color: var(--color-text);
 }
 
-.parameter-slider {
-    width: 100%;
-    height: 6px;
-    background: var(--color-secondary);
-    border-radius: var(--radius-sm);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-    transition: background var(--duration-fast) var(--ease-standard);
-}
-
-.parameter-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: var(--color-primary);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-    transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.parameter-slider::-webkit-slider-thumb:hover {
-    background: var(--color-primary-hover);
-    transform: scale(1.1);
-}
-
-.parameter-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: var(--color-primary);
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-    box-shadow: var(--shadow-sm);
-}
-
-.parameter-slider:focus {
-    outline: var(--focus-outline);
-}
-
-.button-grid {
+.effect-buttons {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-12);
-    margin-top: auto;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--space-8);
+    margin-bottom: var(--space-16);
 }
 
-.btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-16);
-    min-height: 80px;
-    border-radius: var(--radius-lg);
-    font-family: var(--font-family-base);
+.effect-btn {
+    padding: var(--space-12) var(--space-8);
+    min-height: 44px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     cursor: pointer;
     transition: all var(--duration-normal) var(--ease-standard);
-    border: 1px solid var(--color-border);
-    position: relative;
-    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+.effect-btn:hover,
+.effect-btn:focus {
+    background-color: var(--color-secondary);
+    border-color: var(--color-primary);
 }
 
-.btn:active {
-    transform: scale(0.95);
-}
-
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn--primary {
-    background: var(--color-primary);
+.effect-btn.active {
+    background-color: var(--color-primary);
     color: var(--color-btn-primary-text);
     border-color: var(--color-primary);
 }
 
-.btn--primary:hover:not(:disabled) {
-    background: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto var(--space-24);
+    background-color: var(--color-charcoal-800);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
 }
 
-.btn--secondary {
-    background: var(--color-secondary);
-    color: var(--color-text);
-}
-
-.btn--secondary:hover:not(:disabled) {
-    background: var(--color-secondary-hover);
-}
-
-.btn--outline {
-    background: transparent;
-    color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.btn--outline:hover:not(:disabled) {
-    background: var(--color-bg-1);
-}
-
-.btn-icon {
-    font-size: var(--font-size-2xl);
-    margin-bottom: var(--space-4);
-    line-height: 1;
-}
-
-.btn-text {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    line-height: 1.2;
-}
-
-/* Recording state */
-.btn.recording {
-    background: var(--color-error);
-    color: var(--color-white);
-    border-color: var(--color-error);
-    animation: recordingPulse 1s infinite;
-}
-
-@keyframes recordingPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-}
-
-/* Torch active state */
-.btn.torch-active {
-    background: var(--color-warning);
-    color: var(--color-white);
-    border-color: var(--color-warning);
-}
-
-.error-message {
-    padding: var(--space-16);
-    background: rgba(var(--color-error-rgb), 0.1);
-    border: 1px solid rgba(var(--color-error-rgb), 0.2);
-    border-radius: var(--radius-base);
-    color: var(--color-error);
-    text-align: center;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    margin-top: var(--space-16);
-}
-
-.error-message.hidden {
+#video {
     display: none;
 }
 
-/* iPhone 15 Pro specific optimizations */
-@media (max-width: 430px) {
-    .app-container {
+#canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 4/3;
+}
+
+.recording-indicator {
+    position: absolute;
+    top: var(--space-16);
+    left: var(--space-16);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+.recording-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-red-400);
+    border-radius: 50%;
+    animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 1; }
+    to { opacity: 0.3; }
+}
+
+.recording-controls {
+    text-align: center;
+    margin-bottom: var(--space-24);
+}
+
+.record-btn {
+    min-height: 56px;
+    min-width: 150px;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.record-btn.recording {
+    background-color: var(--color-red-500);
+    border-color: var(--color-red-500);
+}
+
+.record-btn.recording:hover {
+    background-color: var(--color-red-400);
+}
+
+#recordIcon {
+    font-size: var(--font-size-2xl);
+}
+
+#downloadSection {
+    margin-top: var(--space-16);
+}
+
+#downloadSection p {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-success);
+    margin-bottom: var(--space-12);
+}
+
+.error-message {
+    background-color: rgba(var(--color-error-rgb), 0.1);
+    border: 1px solid rgba(var(--color-error-rgb), 0.3);
+    color: var(--color-error);
+    padding: var(--space-16);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-16);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+}
+
+.instructions {
+    background-color: var(--color-bg-3);
+    padding: var(--space-20);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(var(--color-success-rgb), 0.2);
+}
+
+.instructions h3 {
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+    margin-bottom: var(--space-16);
+}
+
+.instructions ol {
+    margin: 0;
+    padding-left: var(--space-20);
+}
+
+.instructions li {
+    margin-bottom: var(--space-8);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-normal);
+}
+
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-16);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    padding: var(--space-24);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.modal-content h3 {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text);
+    margin-bottom: var(--space-16);
+}
+
+.modal-content p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-20);
+    line-height: var(--line-height-normal);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .container {
         padding: var(--space-12);
-        gap: var(--space-12);
     }
     
-    .camera-container {
-        /* iPhone 15 Pro portrait camera aspect ratio */
-        aspect-ratio: 3/4;
+    header h1 {
+        font-size: var(--font-size-2xl);
     }
     
-    .button-grid {
-        gap: var(--space-8);
+    .effect-buttons {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .btn {
-        min-height: 70px;
-        padding: var(--space-12);
-    }
-    
-    .btn-icon {
-        font-size: var(--font-size-xl);
-    }
-    
-    .controls-panel {
-        padding: var(--space-12);
-    }
-}
-
-/* Landscape mode adjustments */
-@media (orientation: landscape) and (max-height: 500px) {
-    .app-container {
-        flex-direction: row;
-        align-items: stretch;
-        gap: var(--space-16);
-    }
-    
-    .camera-container {
-        flex: 2;
-        aspect-ratio: 16/9;
-        margin-bottom: 0;
-        max-width: 60%;
-    }
-    
-    .controls-and-buttons {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-16);
-    }
-    
-    .button-grid {
-        grid-template-columns: 1fr;
-        margin-top: auto;
-    }
-}
-
-/* iOS Safari specific optimizations */
-@supports (-webkit-touch-callout: none) {
-    .camera-container {
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-    }
-    
-    .btn {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-user-select: none;
-        user-select: none;
-    }
-    
-    .parameter-slider {
-        -webkit-tap-highlight-color: transparent;
-    }
-}
-
-/* Safe area adjustments for iPhone */
-@supports (padding: max(0px)) {
-    .app-container {
-        padding-top: max(var(--space-16), env(safe-area-inset-top));
-        padding-bottom: max(var(--space-16), env(safe-area-inset-bottom));
-        padding-left: max(var(--space-16), env(safe-area-inset-left));
-        padding-right: max(var(--space-16), env(safe-area-inset-right));
-    }
-}
-
-/* Dark mode specific adjustments */
-@media (prefers-color-scheme: dark) {
-    .parameter-slider::-webkit-slider-track {
-        background: var(--color-secondary);
-    }
-}
-
-/* Additional responsive breakpoints */
-@media (max-width: 375px) {
-    .app-header h1 {
-        font-size: var(--font-size-xl);
-    }
-    
-    .control-label {
+    .effect-btn {
         font-size: var(--font-size-xs);
+        padding: var(--space-10) var(--space-6);
+    }
+    
+    .record-btn {
+        min-width: 120px;
+        font-size: var(--font-size-base);
     }
 }
 
-@media (max-height: 700px) and (orientation: portrait) {
-    .camera-container {
-        max-height: 40vh;
-        aspect-ratio: auto;
+/* Safari specific fixes */
+@supports (-webkit-appearance: none) {
+    .effect-btn,
+    .record-btn {
+        -webkit-appearance: none;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
+}
+
+/* Prevent zoom on focus for iOS */
+input, textarea, select {
+    font-size: 16px !important;
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: var(--space-32);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-lg);
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-top: 2px solid var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: var(--space-8);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
