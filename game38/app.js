@@ -538,6 +538,7 @@ class DigitalArtApp {
                     {"type": "square", "centerI": 0, "centerJ": 4, "orientation": 3, "sizeN": 1, "clockwise": true}
                 ]
             },
+
             "cosmic-rings": {
                 "name": "コズミックリングス",
                 "description": "中心から重なり合う同心正方形による宇宙的な広がり",
@@ -625,6 +626,7 @@ class DigitalArtApp {
                     return shapes;
                 })()
             },
+
             "square-grid-10x10": {
                 "name": "10×10スクエアグリッド",
                 "description": "整然と並ぶ100個の正方形による巨大グリッド",
