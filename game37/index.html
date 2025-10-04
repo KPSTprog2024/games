@@ -3,82 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Echo Camera Final</title>
+    <title>知覚のズレ体験アプリ</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <header class="app-header">
-            <h1>Echo Camera Final</h1>
-            <div class="status-indicator">
-                <span id="status-text">Ready</span>
-            </div>
+    <div class="container">
+        <header>
+            <h1>知覚のズレ体験アプリ</h1>
+            <p>科学実験で映像エフェクトを体験しよう！</p>
         </header>
 
-        <div class="camera-container">
-            <video id="video" autoplay muted playsinline style="display: none;"></video>
-            <canvas id="main-canvas" class="main-canvas"></canvas>
-        </div>
-
-        <!-- Parameter Controls -->
-        <div class="controls-panel">
-            <div class="control-group">
-                <label for="framerate-select" class="control-label">Frame Rate</label>
-                <select id="framerate-select" class="form-control">
-                    <option value="30">30 fps</option>
-                    <option value="24">24 fps</option>
-                    <option value="15">15 fps</option>
-                    <option value="12">12 fps</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="opacity-slider" class="control-label">
-                    古いフレーム透明度: <span id="opacity-value">0.6</span>
-                </label>
-                <input type="range" id="opacity-slider" class="parameter-slider" 
-                       min="0.1" max="0.9" step="0.1" value="0.6">
-            </div>
-
-            <div class="control-group">
-                <label for="interval-slider" class="control-label">
-                    フレーム間隔: <span id="interval-value">12</span>
-                </label>
-                <input type="range" id="interval-slider" class="parameter-slider" 
-                       min="4" max="20" step="2" value="12">
-            </div>
-
-            <div class="control-group">
-                <label for="cycles-slider" class="control-label">
-                    サイクル数: <span id="cycles-value">5</span>
-                </label>
-                <input type="range" id="cycles-slider" class="parameter-slider" 
-                       min="3" max="8" step="1" value="5">
+        <div class="controls">
+            <h3>エフェクトを選択</h3>
+            <div class="effect-buttons">
+                <button class="effect-btn active" data-effect="none">なし</button>
+                <button class="effect-btn" data-effect="delay-0.5">遅延0.5秒</button>
+                <button class="effect-btn" data-effect="delay-1">遅延1秒</button>
+                <button class="effect-btn" data-effect="delay-2">遅延2秒</button>
+                <button class="effect-btn" data-effect="mirror">水平ミラー</button>
+                <button class="effect-btn" data-effect="half-mirror">半分ミラー</button>
+                <button class="effect-btn" data-effect="timeslice">タイムスライス</button>
+                <button class="effect-btn" data-effect="trail">残像</button>
+                <button class="effect-btn" data-effect="rgb-delay">RGB遅延</button>
             </div>
         </div>
 
-        <!-- Control Buttons -->
-        <div class="button-grid">
-            <button id="camera-btn" class="btn btn--primary">
-                <span class="btn-icon">📷</span>
-                <span class="btn-text">Start Camera</span>
-            </button>
-            <button id="flip-btn" class="btn btn--secondary" disabled>
-                <span class="btn-icon">🔄</span>
-                <span class="btn-text">Flip</span>
-            </button>
-            <button id="torch-btn" class="btn btn--secondary" disabled>
-                <span class="btn-icon">🔦</span>
-                <span class="btn-text">Torch</span>
-            </button>
-            <button id="record-btn" class="btn btn--outline" disabled>
-                <span class="btn-icon">⚫</span>
-                <span class="btn-text">Record</span>
-            </button>
+        <div class="video-container">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div class="recording-indicator" id="recordingIndicator" style="display: none;">
+                <span class="recording-dot"></span>
+                録画中... <span id="recordingTime">00:00</span>
+            </div>
         </div>
 
-        <div id="error-message" class="error-message hidden">
-            <span id="error-text"></span>
+        <div class="recording-controls">
+            <button id="startBtn" class="btn btn--primary record-btn">
+                <span id="recordIcon">●</span>
+                <span id="recordText">録画開始</span>
+            </button>
+            <div id="downloadSection" style="display: none;">
+                <p>録画完了！</p>
+                <a id="downloadLink" class="btn btn--secondary" download="video-effect.mp4">
+                    ダウンロード
+                </a>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        
+        <div class="instructions">
+            <h3>使い方</h3>
+            <ol>
+                <li>カメラの使用を許可してください</li>
+                <li>上のボタンでエフェクトを選択</li>
+                <li>録画ボタンを押して撮影開始</li>
+                <li>もう一度押すと録画停止</li>
+                <li>ダウンロードして保存・共有</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="permissionModal" class="modal">
+        <div class="modal-content">
+            <h3>カメラの使用許可</h3>
+            <p>このアプリはカメラを使って映像エフェクトを体験します。カメラの使用を許可してください。</p>
+            <button id="requestPermission" class="btn btn--primary">カメラを使用する</button>
         </div>
     </div>
 
