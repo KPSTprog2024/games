@@ -1114,6 +1114,10 @@ input[type="range"]::-moz-range-thumb {
   padding: var(--space-32);
 }
 
+.presentation-overlay.hidden {
+  display: none;
+}
+
 .presentation-overlay:focus-visible {
   outline: 3px solid rgba(255, 255, 255, 0.6);
   outline-offset: 6px;
