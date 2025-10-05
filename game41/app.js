@@ -51,7 +51,7 @@ class DigitSpanApp {
                 allowLeadingZero: true,
                 maxRepeatRun: 2,
                 beep: true,
-                digitIntervalMs: 300,
+                digitIntervalMs: 100,
                 preDelayMs: 300,
                 postDelayMs: 300
             },
