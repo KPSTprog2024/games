@@ -419,6 +419,11 @@ class DigitalArtApp {
         this.vertexHandles = [];
         this.animationManager = new AnimationManager();
 
+        this.appContainer = document.querySelector('.app-container');
+        this.presentationOverlay = document.getElementById('presentationOverlay');
+        this.presentationHidden = false;
+        this.history = [];
+
         this.addShapeCounter = 0;
 
         // 状態
@@ -459,6 +464,7 @@ class DigitalArtApp {
         this.setupAnimationManager();
         this.initializeDefaultShapes();
         this.startAnimationLoop();
+        this.updateUndoButtonState();
     }
 
     // ---- 初期化 ----
@@ -535,6 +541,35 @@ class DigitalArtApp {
         document.getElementById('mainPlayButton').addEventListener('click', () => {
             this.animationManager.isPlaying ? this.animationManager.stop() : this.animationManager.start();
         });
+
+        document.getElementById('undoAction').addEventListener('click', () => this.undoLastAction());
+        document.getElementById('toggleVisibility').addEventListener('click', () => this.togglePresentationMode());
+
+        const quickClearAllButton = document.getElementById('quickClearAll');
+        if (quickClearAllButton) {
+            const triggerQuickClear = () => this.clearAll('消してよいですか？');
+            quickClearAllButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                triggerQuickClear();
+            });
+            quickClearAllButton.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    triggerQuickClear();
+                }
+            });
+        }
+        if (this.presentationOverlay) {
+            this.presentationOverlay.addEventListener('click', () => this.deactivatePresentationHide(true));
+            this.presentationOverlay.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    this.deactivatePresentationHide(true);
+                }
+            });
+        }
 
         // 右下UI
         document.getElementById('addTriangle').addEventListener('click', () => this.addShape('triangle'));
@@ -616,7 +651,10 @@ class DigitalArtApp {
         const del = document.getElementById('deleteSelected');
         del.addEventListener('click', ()=> { if (!del.disabled) this.deleteSelectedShape(); });
         document.getElementById('exportPNG').addEventListener('click', this.exportPNG.bind(this));
-        document.getElementById('clearAll').addEventListener('click', this.clearAll.bind(this));
+        const clearAllButton = document.getElementById('clearAll');
+        if (clearAllButton) {
+            clearAllButton.addEventListener('click', () => this.clearAll());
+        }
 
         this.updateDeleteButtonState();
     }
@@ -647,6 +685,41 @@ class DigitalArtApp {
         }
     }
 
+    togglePresentationMode() {
+        if (this.presentationHidden) this.deactivatePresentationHide(true);
+        else this.activatePresentationHide();
+    }
+
+    activatePresentationHide() {
+        if (this.presentationHidden) return;
+        this.presentationHidden = true;
+        this.animationManager.reset();
+        this.closeMenu();
+        if (this.appContainer) this.appContainer.classList.add('presentation-hidden');
+        if (this.presentationOverlay) {
+            this.presentationOverlay.classList.remove('hidden');
+            this.presentationOverlay.setAttribute('aria-hidden', 'false');
+            this.presentationOverlay.setAttribute('tabindex', '0');
+            setTimeout(() => {
+                if (this.presentationOverlay) {
+                    this.presentationOverlay.focus({ preventScroll: true });
+                }
+            }, 0);
+        }
+    }
+
+    deactivatePresentationHide(autoPlay = false) {
+        if (!this.presentationHidden) return;
+        this.presentationHidden = false;
+        if (this.appContainer) this.appContainer.classList.remove('presentation-hidden');
+        if (this.presentationOverlay) {
+            this.presentationOverlay.classList.add('hidden');
+            this.presentationOverlay.setAttribute('aria-hidden', 'true');
+            this.presentationOverlay.setAttribute('tabindex', '-1');
+        }
+        if (autoPlay) this.animationManager.start();
+    }
+
     // ---- 図形/パターン ----
     addShape(type, clockwise = true) {
         if (this.state.shapes.size >= 100) return;
@@ -656,18 +729,22 @@ class DigitalArtApp {
         const centerI = Math.round(Math.cos(angle) * distance);
         const centerJ = Math.round(Math.sin(angle) * distance);
 
+        let createdId = null;
         if (type === 'triangle') {
             const t = new Triangle(`triangle-${this.state.nextTriangleId++}`, centerI, centerJ, 0, 3, clockwise);
             t.zIndex = Date.now();
             this.state.shapes.set(t.id, t);
             this.state.selectedShapeId = t.id;
+            createdId = t.id;
         } else {
             const s = new Square(`square-${this.state.nextSquareId++}`, centerI, centerJ, 0, 3, clockwise);
             s.zIndex = Date.now();
             this.state.shapes.set(s.id, s);
             this.state.selectedShapeId = s.id;
+            createdId = s.id;
         }
         this.updateCountsAndHandles();
+        if (createdId) this.recordAction({ type: 'shape-add', shapeId: createdId });
     }
 
     applyPattern(patternName) {
@@ -767,6 +844,7 @@ class DigitalArtApp {
             if (cur.total > 0) {
                 this.state.freehand.strokes.push(cur);
                 this._enforceStrokePointBudget(); // 安全上限
+                this.recordAction({ type: 'stroke-add', stroke: cur });
             }
             this.state.freehand.current = null;
             this.updateCountsAndHandles();
@@ -861,6 +939,14 @@ class DigitalArtApp {
         btn.title = ok ? '' : '図形が選択されていません';
     }
 
+    updateUndoButtonState() {
+        const btn = document.getElementById('undoAction');
+        if (!btn) return;
+        const hasHistory = this.history.length > 0;
+        btn.disabled = !hasHistory;
+        btn.setAttribute('aria-disabled', String(!hasHistory));
+    }
+
     updateCountsAndHandles() {
         const t = Array.from(this.state.shapes.values()).filter(s => s.type === 'triangle').length;
         const s = Array.from(this.state.shapes.values()).filter(s => s.type === 'square').length;
@@ -870,6 +956,46 @@ class DigitalArtApp {
         document.getElementById('strokeCount').textContent = strokes;
         this.updateDeleteButtonState();
         this.updateVertexHandles();
+        this.updateUndoButtonState();
+    }
+
+    recordAction(action) {
+        if (!action) return;
+        this.history.push(action);
+        if (this.history.length > 100) this.history.shift();
+        this.updateUndoButtonState();
+    }
+
+    undoLastAction() {
+        const last = this.history.pop();
+        if (!last) { this.updateUndoButtonState(); return; }
+
+        switch (last.type) {
+            case 'shape-add': {
+                if (last.shapeId && this.state.shapes.has(last.shapeId)) {
+                    this.state.shapes.delete(last.shapeId);
+                    if (this.state.selectedShapeId === last.shapeId) {
+                        this.state.selectedShapeId = null;
+                    }
+                    this.updateCountsAndHandles();
+                }
+                break;
+            }
+            case 'stroke-add': {
+                if (last.stroke) {
+                    const idx = this.state.freehand.strokes.lastIndexOf(last.stroke);
+                    if (idx >= 0) {
+                        this.state.freehand.strokes.splice(idx, 1);
+                        this.updateCountsAndHandles();
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        this.updateUndoButtonState();
     }
 
     // ---- 書き出し/消去 ----
@@ -880,21 +1006,30 @@ class DigitalArtApp {
         link.click();
     }
 
-    clearAll() {
-        if (confirm('すべての図形と手描きを削除しますか？')) {
-            this.state.shapes.clear();
-            this.state.selectedShapeId = null;
-            this.state.freehand.strokes = [];
-            this.state.freehand.current = null;
-            this.addShapeCounter = 0;
-            this.updateCountsAndHandles();
+    clearAll(confirmMessage = 'すべての図形と手描きを削除しますか？') {
+        const shouldClear = (typeof window !== 'undefined' && typeof window.confirm === 'function')
+            ? window.confirm(confirmMessage)
+            : true;
+        if (shouldClear) {
+            this.performClearAll();
         }
+    }
+
+    performClearAll() {
+        this.state.shapes.clear();
+        this.state.selectedShapeId = null;
+        this.state.freehand.strokes = [];
+        this.state.freehand.current = null;
+        this.addShapeCounter = 0;
+        this.history = [];
+        this.updateCountsAndHandles();
     }
 
     clearStrokes() {
         if (confirm('すべての手描きストロークを削除しますか？')) {
             this.state.freehand.strokes = [];
             this.state.freehand.current = null;
+            this.history = this.history.filter(action => action.type !== 'stroke-add');
             this.updateCountsAndHandles();
         }
     }
@@ -1026,6 +1161,12 @@ class DigitalArtApp {
     render() {
         const w = this.canvas.width, h = this.canvas.height;
         this.ctx.clearRect(0,0,w,h);
+
+        if (this.presentationHidden) {
+            this.ctx.fillStyle = '#000000';
+            this.ctx.fillRect(0, 0, w, h);
+            return;
+        }
 
         const theme = this.themes[this.state.visual.preset];
         this.backgroundEffects.drawBackground(this.ctx, this.state.visual.backgroundMode, theme?.settings || {});
