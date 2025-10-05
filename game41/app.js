@@ -51,9 +51,9 @@ class DigitSpanApp {
                 allowLeadingZero: true,
                 maxRepeatRun: 2,
                 beep: true,
-                digitIntervalMs: 900,
-                preDelayMs: 600,
-                postDelayMs: 600
+                digitIntervalMs: 300,
+                preDelayMs: 300,
+                postDelayMs: 300
             },
             tts: {
                 enabled: true,
