@@ -648,6 +648,26 @@ select.form-control {
   user-select: none;
 }
 
+/* フローティングアクションボタン共通スタイル */
+.fab {
+  border-radius: var(--radius-full);
+  padding: 0;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--duration-normal) var(--ease-standard);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
 /* メイン再生ボタン（左下大きい） */
 .main-play-button {
   position: fixed;
@@ -655,25 +675,14 @@ select.form-control {
   left: var(--space-24);
   width: 80px;
   height: 80px;
-  border-radius: var(--radius-full);
   font-size: 32px;
-  padding: 0;
-  box-shadow: var(--shadow-lg);
-  transition: all var(--duration-normal) var(--ease-standard);
   z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 3px solid rgba(255, 255, 255, 0.2);
 }
 
 .main-play-button:hover {
   transform: scale(1.1);
   box-shadow: 0 0 30px rgba(31, 184, 205, 0.5);
-}
-
-.main-play-button:active {
-  transform: scale(0.95);
 }
 
 /* 図形追加ボタン（右下） */
@@ -690,24 +699,8 @@ select.form-control {
 .shape-btn {
   width: 60px;
   height: 60px;
-  border-radius: var(--radius-full);
   font-size: 24px;
-  padding: 0;
-  box-shadow: var(--shadow-lg);
-  transition: all var(--duration-normal) var(--ease-standard);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.shape-btn:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-xl);
-}
-
-.shape-btn:active {
-  transform: scale(0.95);
 }
 
 /* メニュートグルボタン */
@@ -718,16 +711,7 @@ select.form-control {
   z-index: 1000;
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-full);
   font-size: var(--font-size-lg);
-  padding: 0;
-  box-shadow: var(--shadow-lg);
-  transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.menu-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-xl);
 }
 
 /* プロメニュー */
