@@ -841,6 +841,10 @@ body {
   color: var(--color-primary);
 }
 
+.home-primary-action {
+  margin-bottom: var(--space-32);
+}
+
 .settings-btn {
   min-width: 80px;
   font-size: var(--font-size-sm);
