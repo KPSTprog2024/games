@@ -756,11 +756,19 @@ select.form-control {
   user-select: none;
 }
 
-/* メイン再生ボタン（左下大きい） */
-.main-play-button {
+/* メイン再生ボタン（左下大きい）と補助操作 */
+.main-controls {
   position: fixed;
   bottom: var(--space-24);
   left: var(--space-24);
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  z-index: 500;
+}
+
+.main-play-button {
+  position: relative;
   width: 80px;
   height: 80px;
   border-radius: var(--radius-full);
@@ -768,7 +776,6 @@ select.form-control {
   padding: 0;
   box-shadow: var(--shadow-lg);
   transition: all var(--duration-normal) var(--ease-standard);
-  z-index: 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -781,6 +788,35 @@ select.form-control {
 }
 
 .main-play-button:active {
+  transform: scale(0.95);
+}
+
+.main-utility-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.main-control-button {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  font-size: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.main-control-button:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.main-control-button:active {
   transform: scale(0.95);
 }
 
@@ -1052,11 +1088,56 @@ input[type="range"]::-moz-range-thumb {
   gap: var(--space-16);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
-  margin-left: 110px; /* メイン再生ボタンの右側に配置 */
+  margin-left: calc(80px + var(--space-12) + 48px);
 }
 
 .status-item {
   white-space: nowrap;
+}
+
+.presentation-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95));
+  color: var(--color-white);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  z-index: 800;
+  cursor: pointer;
+  user-select: none;
+  padding: var(--space-32);
+}
+
+.presentation-overlay:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 6px;
+}
+
+.app-container.presentation-hidden .main-controls,
+.app-container.presentation-hidden .shape-controls,
+.app-container.presentation-hidden .menu-toggle,
+.app-container.presentation-hidden .status-info {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.app-container.presentation-hidden #proMenu {
+  display: none !important;
+}
+
+.app-container.presentation-hidden #menuOverlay {
+  display: none !important;
+}
+
+.app-container.presentation-hidden .main-canvas {
+  opacity: 0;
 }
 
 /* レスポンシブデザイン */
@@ -1082,12 +1163,26 @@ input[type="range"]::-moz-range-thumb {
     height: 44px;
   }
   
+  .main-controls {
+    bottom: var(--space-20);
+    left: var(--space-20);
+    gap: var(--space-10);
+  }
+
   .main-play-button {
     width: 70px;
     height: 70px;
     font-size: 28px;
-    bottom: var(--space-20);
-    left: var(--space-20);
+  }
+
+  .main-utility-buttons {
+    gap: var(--space-10);
+  }
+
+  .main-control-button {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
   }
   
   .shape-btn {
@@ -1112,7 +1207,7 @@ input[type="range"]::-moz-range-thumb {
   .status-info {
     bottom: var(--space-12);
     left: var(--space-12);
-    margin-left: 90px;
+    margin-left: calc(70px + var(--space-10) + 44px);
     flex-direction: column;
     gap: var(--space-4);
   }
@@ -1135,12 +1230,26 @@ input[type="range"]::-moz-range-thumb {
     font-size: var(--font-size-base);
   }
   
+  .main-controls {
+    bottom: var(--space-16);
+    left: var(--space-16);
+    gap: var(--space-8);
+  }
+
   .main-play-button {
     width: 60px;
     height: 60px;
     font-size: 24px;
-    bottom: var(--space-16);
-    left: var(--space-16);
+  }
+
+  .main-utility-buttons {
+    gap: var(--space-8);
+  }
+
+  .main-control-button {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
   
   .shape-btn {
@@ -1150,7 +1259,7 @@ input[type="range"]::-moz-range-thumb {
   }
   
   .status-info {
-    margin-left: 80px;
+    margin-left: calc(60px + var(--space-8) + 40px);
     font-size: var(--font-size-xs);
   }
 }
