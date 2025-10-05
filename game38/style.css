@@ -823,7 +823,7 @@ select.form-control {
   background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   border-radius: var(--radius-sm);
   transition: width var(--duration-fast) var(--ease-standard);
-  width: 100%;
+  width: 0%;
 }
 
 .phase-display {

@@ -774,7 +774,7 @@ class DigitalArtApp {
                 progressBar.style.width = `${progress * 100}%`;
             }
         };
-        
+
         this.animationManager.onPhaseChange = (phase, progress) => {
             const phaseDisplay = document.getElementById('animationPhase');
             const timeDisplay = document.getElementById('timeDisplay');
@@ -824,6 +824,9 @@ class DigitalArtApp {
                 timeDisplay.textContent = '時間: 0.0 / 3.5s';
             }
         };
+
+        // Ensure the UI reflects the initial animation state on load.
+        this.animationManager.triggerCallbacks();
     }
     
     setupCanvas() {
