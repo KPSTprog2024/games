@@ -544,6 +544,23 @@ class DigitalArtApp {
 
         document.getElementById('undoAction').addEventListener('click', () => this.undoLastAction());
         document.getElementById('toggleVisibility').addEventListener('click', () => this.togglePresentationMode());
+
+        const quickClearAllButton = document.getElementById('quickClearAll');
+        if (quickClearAllButton) {
+            const triggerQuickClear = () => this.clearAll('消してよいですか？');
+            quickClearAllButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                triggerQuickClear();
+            });
+            quickClearAllButton.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    triggerQuickClear();
+                }
+            });
+        }
         if (this.presentationOverlay) {
             this.presentationOverlay.addEventListener('click', () => this.deactivatePresentationHide(true));
             this.presentationOverlay.addEventListener('keydown', (e) => {
@@ -637,11 +654,6 @@ class DigitalArtApp {
         const clearAllButton = document.getElementById('clearAll');
         if (clearAllButton) {
             clearAllButton.addEventListener('click', () => this.clearAll());
-        }
-
-        const quickClearAllButton = document.getElementById('quickClearAll');
-        if (quickClearAllButton) {
-            quickClearAllButton.addEventListener('click', () => this.clearAll('消してよいですか？'));
         }
 
         this.updateDeleteButtonState();
@@ -995,7 +1007,10 @@ class DigitalArtApp {
     }
 
     clearAll(confirmMessage = 'すべての図形と手描きを削除しますか？') {
-        if (confirm(confirmMessage)) {
+        const shouldClear = (typeof window !== 'undefined' && typeof window.confirm === 'function')
+            ? window.confirm(confirmMessage)
+            : true;
+        if (shouldClear) {
             this.performClearAll();
         }
     }
