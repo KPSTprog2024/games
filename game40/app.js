@@ -634,7 +634,15 @@ class DigitalArtApp {
         const del = document.getElementById('deleteSelected');
         del.addEventListener('click', ()=> { if (!del.disabled) this.deleteSelectedShape(); });
         document.getElementById('exportPNG').addEventListener('click', this.exportPNG.bind(this));
-        document.getElementById('clearAll').addEventListener('click', this.clearAll.bind(this));
+        const clearAllButton = document.getElementById('clearAll');
+        if (clearAllButton) {
+            clearAllButton.addEventListener('click', () => this.clearAll());
+        }
+
+        const quickClearAllButton = document.getElementById('quickClearAll');
+        if (quickClearAllButton) {
+            quickClearAllButton.addEventListener('click', () => this.clearAll('消してよいですか？'));
+        }
 
         this.updateDeleteButtonState();
     }
@@ -986,16 +994,20 @@ class DigitalArtApp {
         link.click();
     }
 
-    clearAll() {
-        if (confirm('すべての図形と手描きを削除しますか？')) {
-            this.state.shapes.clear();
-            this.state.selectedShapeId = null;
-            this.state.freehand.strokes = [];
-            this.state.freehand.current = null;
-            this.addShapeCounter = 0;
-            this.history = [];
-            this.updateCountsAndHandles();
+    clearAll(confirmMessage = 'すべての図形と手描きを削除しますか？') {
+        if (confirm(confirmMessage)) {
+            this.performClearAll();
         }
+    }
+
+    performClearAll() {
+        this.state.shapes.clear();
+        this.state.selectedShapeId = null;
+        this.state.freehand.strokes = [];
+        this.state.freehand.current = null;
+        this.addShapeCounter = 0;
+        this.history = [];
+        this.updateCountsAndHandles();
     }
 
     clearStrokes() {
