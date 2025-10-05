@@ -27,6 +27,7 @@ class DigitSpanApp {
         this.speechSynth = window.speechSynthesis;
         this.voices = [];
         this.currentUtterance = null;
+        this.audioContext = null;
 
         this.init();
     }
@@ -421,36 +422,26 @@ class DigitSpanApp {
     // 数字列提示
     async presentSequence() {
         console.log('プレゼンテーション開始:', this.state.currentSequence);
-        
+
         const countdownEl = document.getElementById('countdown-display');
         const sequenceEl = document.getElementById('digit-sequence');
         const repeatBtn = document.getElementById('repeat-btn');
-        
+
         try {
             // カウントダウン
             for (let i = 3; i > 0; i--) {
                 countdownEl.textContent = i;
                 await this.wait(1000);
             }
-            
-            countdownEl.style.display = 'none';
-            
-            // ビープ音（実際の実装では音声ファイルまたはWeb Audio APIを使用）
-            if (this.settings.delivery.beep) {
-                try {
-                    // 簡易ビープ音の代替
-                    await this.speak('ピ', { rate: 2, pitch: 2, volume: 0.3 });
-                } catch (e) {
-                    console.log('ビープ音再生失敗');
-                }
-            }
 
-            await this.wait(this.settings.delivery.preDelayMs);
+            countdownEl.style.display = 'none';
+
+            await this.playBeepTone();
 
             // 数字提示
             for (let i = 0; i < this.state.currentSequence.length; i++) {
                 const digit = this.state.currentSequence[i];
-                
+
                 // 視覚提示
                 if (this.settings.ui.visualPresentation) {
                     sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
@@ -491,6 +482,77 @@ class DigitSpanApp {
             // エラー時も入力画面に進む
             this.proceedToInput();
         }
+    }
+
+    // ビープ音の再生
+    playBeepTone() {
+        const { beep, preDelayMs } = this.settings.delivery;
+        const delay = Math.max(0, preDelayMs);
+
+        if (!beep) {
+            return this.wait(delay);
+        }
+
+        if (!this.state.audioEnabled) {
+            return this.wait(delay);
+        }
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            return this.wait(delay);
+        }
+
+        try {
+            if (!this.audioContext) {
+                this.audioContext = new AudioContextClass();
+            }
+        } catch (error) {
+            console.warn('AudioContextの初期化に失敗:', error);
+            return this.wait(delay);
+        }
+
+        const context = this.audioContext;
+        const ensureContextReady = context.state === 'suspended'
+            ? context.resume().catch((error) => {
+                console.warn('AudioContextの再開に失敗:', error);
+            })
+            : Promise.resolve();
+
+        return ensureContextReady
+            .then(() => {
+                const durationSeconds = Math.max(0.05, Math.min(delay > 0 ? delay / 1000 : 0.1, 0.25));
+
+                return new Promise((resolve) => {
+                    try {
+                        const oscillator = context.createOscillator();
+                        const gain = context.createGain();
+
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(880, context.currentTime);
+
+                        gain.gain.setValueAtTime(0.0001, context.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.2, context.currentTime + 0.01);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + durationSeconds);
+
+                        oscillator.connect(gain);
+                        gain.connect(context.destination);
+
+                        oscillator.onended = resolve;
+                        oscillator.start();
+                        oscillator.stop(context.currentTime + durationSeconds);
+
+                        // 念のためのフォールバック
+                        setTimeout(resolve, durationSeconds * 1000 + 50);
+                    } catch (error) {
+                        console.warn('ビープ音生成に失敗:', error);
+                        resolve();
+                    }
+                });
+            })
+            .catch(() => {
+                return undefined;
+            })
+            .then(() => this.wait(delay));
     }
 
     // 入力画面に進む
