@@ -151,12 +151,13 @@
 
                 <div class="setting-group">
                     <h3>表示設定</h3>
-                    <div class="checkbox-setting">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="visual-presentation-check">
-                            <span class="checkmark"></span>
-                            数字を画面に表示
-                        </label>
+                    <div class="range-setting">
+                        <label class="form-label" for="presentation-mode-select">出題方法</label>
+                        <select id="presentation-mode-select" class="form-control">
+                            <option value="audio">音声読み上げ</option>
+                            <option value="visual-step">数字を1桁ずつ表示</option>
+                            <option value="visual-full">数字を全桁まとめて表示</option>
+                        </select>
                     </div>
                     <div class="checkbox-setting">
                         <label class="checkbox-label">
@@ -192,7 +193,7 @@
 
                 <div class="presentation-controls">
                     <button id="repeat-btn" class="btn btn--outline" style="display: none;">
-                        🔄 もう一度聞く
+                        🔄 もう一度再生
                     </button>
                 </div>
             </div>

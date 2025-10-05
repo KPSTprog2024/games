@@ -68,7 +68,7 @@ class DigitSpanApp {
                 haptic: true,
                 contrastTheme: "dark",
                 bigButtons: true,
-                visualPresentation: false
+                presentationMode: 'audio'
             },
             session: {
                 fixedTrials: 10
@@ -80,7 +80,32 @@ class DigitSpanApp {
     loadSettings() {
         try {
             const saved = localStorage.getItem('digitSpanSettings');
-            return saved ? { ...this.getDefaultSettings(), ...JSON.parse(saved) } : this.getDefaultSettings();
+            const defaults = this.getDefaultSettings();
+
+            if (!saved) {
+                return defaults;
+            }
+
+            const parsed = JSON.parse(saved);
+            const mergeSection = (key) => ({
+                ...defaults[key],
+                ...(parsed[key] || {})
+            });
+
+            const settings = {
+                ...defaults,
+                ...parsed,
+                delivery: mergeSection('delivery'),
+                tts: mergeSection('tts'),
+                ui: mergeSection('ui'),
+                session: mergeSection('session')
+            };
+
+            if (parsed.ui && parsed.ui.visualPresentation !== undefined && !parsed.ui.presentationMode) {
+                settings.ui.presentationMode = parsed.ui.visualPresentation ? 'visual-step' : 'audio';
+            }
+
+            return settings;
         } catch (e) {
             console.error('設定の読み込みに失敗:', e);
             return this.getDefaultSettings();
@@ -187,20 +212,42 @@ class DigitSpanApp {
         // チェックボックス
         const checkboxes = [
             { id: 'leading-zero-check', path: 'delivery.allowLeadingZero' },
-            { id: 'visual-presentation-check', path: 'ui.visualPresentation' },
             { id: 'beep-check', path: 'delivery.beep' }
         ];
 
         checkboxes.forEach(({ id, path }) => {
             const checkbox = document.getElementById(id);
             if (!checkbox) return;
-            
+
             checkbox.addEventListener('change', (e) => {
                 this.setNestedProperty(this.settings, path, e.target.checked);
                 this.saveSettings();
             });
 
             checkbox.checked = this.getNestedProperty(this.settings, path);
+        });
+
+        const selects = [
+            { id: 'presentation-mode-select', path: 'ui.presentationMode' }
+        ];
+
+        selects.forEach(({ id, path }) => {
+            const select = document.getElementById(id);
+            if (!select) return;
+
+            const currentValue = this.getNestedProperty(this.settings, path);
+            if (currentValue !== undefined) {
+                select.value = currentValue;
+            }
+
+            select.addEventListener('change', (e) => {
+                this.setNestedProperty(this.settings, path, e.target.value);
+                this.saveSettings();
+
+                if (this.state.screen === 'presentation') {
+                    this.resetPresentationScreen();
+                }
+            });
         });
     }
 
@@ -282,13 +329,29 @@ class DigitSpanApp {
         const countdownEl = document.getElementById('countdown-display');
         const sequenceEl = document.getElementById('digit-sequence');
         const repeatBtn = document.getElementById('repeat-btn');
-        
+
         countdownEl.style.display = 'flex';
         countdownEl.textContent = '3';
-        sequenceEl.innerHTML = '<div class="listening-message">よく聞いてください</div>';
+        sequenceEl.innerHTML = `<div class="listening-message">${this.getPresentationInstruction()}</div>`;
         repeatBtn.style.display = 'none';
-        
+
         this.state.presentationComplete = false;
+    }
+
+    getPresentationMode() {
+        return this.settings.ui.presentationMode || 'audio';
+    }
+
+    isAudioPlaybackActive() {
+        return this.getPresentationMode() === 'audio'
+            && this.settings.tts.enabled
+            && this.state.audioEnabled;
+    }
+
+    getPresentationInstruction() {
+        return this.isAudioPlaybackActive()
+            ? 'よく聞いてください'
+            : 'よく見てください';
     }
 
     // 入力画面リセット
@@ -426,8 +489,20 @@ class DigitSpanApp {
         const countdownEl = document.getElementById('countdown-display');
         const sequenceEl = document.getElementById('digit-sequence');
         const repeatBtn = document.getElementById('repeat-btn');
+        const mode = this.getPresentationMode();
+        const audioActive = this.isAudioPlaybackActive();
+        const digits = this.state.currentSequence;
+        const digitInterval = Math.max(0, this.settings.delivery.digitIntervalMs);
+        const visualDisplayDuration = Math.max(800, digitInterval);
+        const postDelay = Math.max(0, this.settings.delivery.postDelayMs);
+        const instruction = this.getPresentationInstruction();
 
         try {
+            repeatBtn.style.display = 'none';
+            countdownEl.style.display = 'flex';
+            sequenceEl.innerHTML = `<div class="listening-message">${instruction}</div>`;
+            this.state.presentationComplete = false;
+
             // カウントダウン
             for (let i = 3; i > 0; i--) {
                 countdownEl.textContent = i;
@@ -438,37 +513,45 @@ class DigitSpanApp {
 
             await this.playBeepTone();
 
-            // 数字提示
-            for (let i = 0; i < this.state.currentSequence.length; i++) {
-                const digit = this.state.currentSequence[i];
+            if (mode === 'visual-full') {
+                const digitsHtml = digits
+                    .map(digit => `<span class="digit-item digit-pulse">${digit}</span>`)
+                    .join('');
+                sequenceEl.innerHTML = digitsHtml;
+                await this.wait(visualDisplayDuration * Math.max(1, digits.length));
+                sequenceEl.innerHTML = '';
+                if (digitInterval > 0) {
+                    await this.wait(digitInterval);
+                }
+            } else {
+                for (let i = 0; i < digits.length; i++) {
+                    const digit = digits[i];
 
-                // 視覚提示
-                if (this.settings.ui.visualPresentation) {
-                    sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
-                } else {
-                    sequenceEl.innerHTML = `<div class="listening-message">よく聞いてください</div>`;
+                    if (audioActive) {
+                        sequenceEl.innerHTML = `<div class="listening-message">${instruction}</div>`;
+                        await this.speak(digit.toString());
+                        if (digitInterval > 0) {
+                            await this.wait(digitInterval);
+                        }
+                    } else {
+                        sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
+                        await this.wait(visualDisplayDuration);
+                        sequenceEl.innerHTML = '';
+                        if (digitInterval > 0) {
+                            await this.wait(digitInterval);
+                        }
+                    }
                 }
-                
-                // 音声提示
-                if (this.settings.tts.enabled && this.state.audioEnabled) {
-                    await this.speak(digit.toString());
-                } else {
-                    // 音声が無効の場合は視覚的に提示
-                    sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
-                    await this.wait(800);
-                }
-                
-                await this.wait(this.settings.delivery.digitIntervalMs);
             }
 
-            await this.wait(this.settings.delivery.postDelayMs);
-            
+            await this.wait(postDelay);
+
             // プレゼンテーション完了
             this.state.presentationComplete = true;
-            
+
             // リピートボタン表示
             repeatBtn.style.display = 'block';
-            
+
             // メッセージ更新
             sequenceEl.innerHTML = '<div class="listening-message">入力画面に進むには下のボタンを押してください</div>';
             
