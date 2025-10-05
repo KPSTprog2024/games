@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字記憶トレーニング</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+</head>
+<body>
+    <!-- ランディング画面 -->
+    <div id="landing-screen" class="screen active">
+        <div class="container">
+            <div class="landing-content">
+                <h1 class="app-title">数字記憶トレーニング</h1>
+                <p class="app-description">
+                    数字の順唱・逆唱で記憶力を鍛えましょう。<br>
+                    音声ガイドに従って、聞いた数字を順番通りまたは逆順で入力してください。
+                </p>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">🔊</span>
+                        <span>音声読み上げ機能</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎯</span>
+                        <span>適応的難易度調整</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span>詳細スコア記録</span>
+                    </div>
+                </div>
+                <button id="enable-audio-btn" class="btn btn--primary btn--lg btn--full-width">
+                    音声を有効化してはじめる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen">
+        <div class="container">
+            <div class="home-header">
+                <h1>数字記憶トレーニング</h1>
+                <button id="settings-btn" class="btn btn--outline settings-btn">
+                    ⚙️ 設定
+                </button>
+            </div>
+
+            <div class="mode-selection">
+                <h2>モード選択</h2>
+                <div class="mode-buttons">
+                    <div class="mode-group">
+                        <h3>記憶方向</h3>
+                        <div class="button-group">
+                            <button id="forward-btn" class="btn btn--secondary mode-btn active" data-mode="forward">
+                                順唱
+                                <span class="mode-desc">聞いた順番通り</span>
+                            </button>
+                            <button id="backward-btn" class="btn btn--secondary mode-btn" data-mode="backward">
+                                逆唱
+                                <span class="mode-desc">逆順で入力</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mode-group">
+                        <h3>難易度調整</h3>
+                        <div class="button-group">
+                            <button id="adaptive-btn" class="btn btn--secondary mode-btn active" data-adaptive="true">
+                                適応モード
+                                <span class="mode-desc">自動調整</span>
+                            </button>
+                            <button id="fixed-btn" class="btn btn--secondary mode-btn" data-adaptive="false">
+                                固定モード
+                                <span class="mode-desc">同じ桁数</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h3>最近の記録</h3>
+                <div id="history-list" class="history-list">
+                    <p class="no-history">まだ記録がありません</p>
+                </div>
+            </div>
+
+            <button id="start-btn" class="btn btn--primary btn--lg btn--full-width">
+                はじめる
+            </button>
+        </div>
+    </div>
+
+    <!-- 設定画面 -->
+    <div id="settings-screen" class="screen">
+        <div class="container">
+            <div class="screen-header">
+                <button id="settings-back-btn" class="btn btn--outline back-btn">← 戻る</button>
+                <h1>設定</h1>
+            </div>
+
+            <div class="settings-content">
+                <div class="setting-group">
+                    <h3>桁数範囲</h3>
+                    <div class="range-setting">
+                        <label class="form-label">最小桁数: <span id="min-digits-value">3</span></label>
+                        <input type="range" id="min-digits-slider" class="form-control range-slider" min="2" max="12" value="3">
+                    </div>
+                    <div class="range-setting">
+                        <label class="form-label">最大桁数: <span id="max-digits-value">8</span></label>
+                        <input type="range" id="max-digits-slider" class="form-control range-slider" min="2" max="12" value="8">
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>音声設定</h3>
+                    <div class="range-setting">
+                        <label class="form-label">読み上げ速度: <span id="rate-value">0.95</span></label>
+                        <input type="range" id="rate-slider" class="form-control range-slider" min="0.5" max="1.5" step="0.05" value="0.95">
+                    </div>
+                    <div class="range-setting">
+                        <label class="form-label">音量: <span id="volume-value">1.0</span></label>
+                        <input type="range" id="volume-slider" class="form-control range-slider" min="0" max="1" step="0.1" value="1.0">
+                    </div>
+                    <div class="range-setting">
+                        <label class="form-label">音の高さ: <span id="pitch-value">1.0</span></label>
+                        <input type="range" id="pitch-slider" class="form-control range-slider" min="0.5" max="2" step="0.1" value="1.0">
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>数字生成設定</h3>
+                    <div class="checkbox-setting">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="leading-zero-check" checked>
+                            <span class="checkmark"></span>
+                            先頭に0を許可
+                        </label>
+                    </div>
+                    <div class="range-setting">
+                        <label class="form-label">同一数字連続制限: <span id="repeat-limit-value">2</span></label>
+                        <input type="range" id="repeat-limit-slider" class="form-control range-slider" min="1" max="5" value="2">
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>表示設定</h3>
+                    <div class="checkbox-setting">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="visual-presentation-check">
+                            <span class="checkmark"></span>
+                            数字を画面に表示
+                        </label>
+                    </div>
+                    <div class="checkbox-setting">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="beep-check" checked>
+                            <span class="checkmark"></span>
+                            開始音を鳴らす
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 出題画面 -->
+    <div id="presentation-screen" class="screen">
+        <div class="container">
+            <div class="presentation-content">
+                <div class="progress-info">
+                    <div class="problem-counter">
+                        問題 <span id="current-problem">1</span> / <span id="total-problems">10</span>
+                    </div>
+                    <div class="digit-info">
+                        <span id="current-digits-display">4</span>桁
+                    </div>
+                </div>
+
+                <div class="countdown-display" id="countdown-display">3</div>
+
+                <div class="sequence-display" id="sequence-display">
+                    <div class="listening-message">よく聞いてください</div>
+                    <div class="digit-sequence" id="digit-sequence"></div>
+                </div>
+
+                <div class="presentation-controls">
+                    <button id="repeat-btn" class="btn btn--outline" style="display: none;">
+                        🔄 もう一度聞く
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 入力画面 -->
+    <div id="input-screen" class="screen">
+        <div class="container">
+            <div class="input-content">
+                <div class="input-info">
+                    <div class="mode-instruction" id="mode-instruction">
+                        聞いた順番通りに入力してください
+                    </div>
+                    <div class="input-progress" id="input-progress"></div>
+                </div>
+
+                <div class="input-display">
+                    <div class="current-input" id="current-input">-</div>
+                </div>
+
+                <div class="keypad">
+                    <div class="keypad-row">
+                        <button class="keypad-btn" data-digit="1">1</button>
+                        <button class="keypad-btn" data-digit="2">2</button>
+                        <button class="keypad-btn" data-digit="3">3</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button class="keypad-btn" data-digit="4">4</button>
+                        <button class="keypad-btn" data-digit="5">5</button>
+                        <button class="keypad-btn" data-digit="6">6</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button class="keypad-btn" data-digit="7">7</button>
+                        <button class="keypad-btn" data-digit="8">8</button>
+                        <button class="keypad-btn" data-digit="9">9</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button class="keypad-btn action-btn" id="clear-btn">クリア</button>
+                        <button class="keypad-btn" data-digit="0">0</button>
+                        <button class="keypad-btn action-btn" id="delete-btn">⌫</button>
+                    </div>
+                    <div class="keypad-row">
+                        <button class="keypad-btn submit-btn" id="submit-btn" disabled>確定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-screen" class="screen">
+        <div class="container">
+            <div class="result-content">
+                <div class="result-feedback" id="result-feedback">
+                    <div class="feedback-icon" id="feedback-icon">✓</div>
+                    <div class="feedback-text" id="feedback-text">正解！</div>
+                </div>
+
+                <div class="result-details">
+                    <div class="answer-comparison">
+                        <div class="answer-row">
+                            <span class="answer-label">出題:</span>
+                            <span class="answer-value" id="presented-sequence">1234</span>
+                        </div>
+                        <div class="answer-row">
+                            <span class="answer-label">あなたの答え:</span>
+                            <span class="answer-value" id="user-answer">1234</span>
+                        </div>
+                        <div class="answer-row">
+                            <span class="answer-label">正解:</span>
+                            <span class="answer-value" id="correct-answer">1234</span>
+                        </div>
+                    </div>
+
+                    <div class="session-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="correct-count">5</span>
+                            <span class="stat-label">正解数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="accuracy-rate">80%</span>
+                            <span class="stat-label">正答率</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="max-digits-reached">6</span>
+                            <span class="stat-label">最高桁数</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button id="continue-btn" class="btn btn--primary">次の問題</button>
+                    <button id="home-btn" class="btn btn--outline">ホームへ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
