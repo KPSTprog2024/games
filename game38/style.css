@@ -55,6 +55,7 @@
   --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
   --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
   --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+  --color-border-secondary: var(--color-border);
   --color-btn-primary-text: var(--color-cream-50);
   --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
   --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
@@ -72,6 +73,7 @@
   --status-border-opacity: 0.25;
   --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  --select-caret-icon: var(--select-caret-light);
 
   /* RGB versions for opacity control */
   --color-success-rgb: 33, 128, 141;
@@ -198,6 +200,7 @@
     --status-border-opacity: 0.25;
     --select-caret-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --select-caret-icon: var(--select-caret-dark);
 
     /* RGB versions for dark mode */
     --color-success-rgb: var(--color-teal-300-rgb);
@@ -350,7 +353,7 @@ pre code {
 
 .btn--outline {
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-secondary);
   color: var(--color-text);
 }
 
@@ -404,22 +407,11 @@ select.form-control {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-image: var(--select-caret-light);
+  background-image: var(--select-caret-icon);
   background-repeat: no-repeat;
   background-position: right var(--space-12) center;
   background-size: 16px;
   padding-right: var(--space-32);
-}
-
-/* Add a dark mode specific caret */
-@media (prefers-color-scheme: dark) {
-  select.form-control {
-    background-image: var(--select-caret-dark);
-  }
-
-  .btn--outline {
-    border: 1px solid var(--color-border-secondary);
-  }
 }
 
 .form-control:focus {
