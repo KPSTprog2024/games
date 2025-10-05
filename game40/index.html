@@ -11,10 +11,20 @@
         <!-- メインキャンバス -->
         <canvas id="mainCanvas" class="main-canvas"></canvas>
 
-        <!-- メイン再生ボタン（大きい） -->
-        <button id="mainPlayButton" class="main-play-button btn btn--primary" aria-label="アニメーション再生">
-            ▶️
-        </button>
+        <!-- メイン再生ボタン + 追加操作 -->
+        <div class="main-controls">
+            <button id="mainPlayButton" class="main-play-button btn btn--primary" aria-label="アニメーション再生">
+                ▶️
+            </button>
+            <div class="main-utility-buttons" aria-label="編集操作">
+                <button id="undoAction" class="main-control-button btn btn--secondary" aria-label="直前の操作を取り消す" title="戻る (Undo)" disabled>
+                    ↩️
+                </button>
+                <button id="toggleVisibility" class="main-control-button btn btn--secondary" aria-label="プレゼン用に一時的に表示を隠す" title="一時的に非表示">
+                    🙈
+                </button>
+            </div>
+        </div>
 
         <!-- 図形/手描き追加ボタン（右下） -->
         <div class="shape-controls">
@@ -192,6 +202,9 @@
 
         <!-- オーバーレイ -->
         <div id="menuOverlay" class="menu-overlay hidden"></div>
+        <div id="presentationOverlay" class="presentation-overlay hidden" role="button" aria-hidden="true" tabindex="-1">
+            画面をタップして再生 ▶️
+        </div>
 
         <!-- ステータス表示 -->
         <div id="statusInfo" class="status-info">
