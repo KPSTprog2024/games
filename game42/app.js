@@ -37,9 +37,9 @@ class PendulumWaveSimulation {
     this.lastTime = 0;
 
     // パラメータ（初期値）
-    this.N = 36;
+    this.N = 8;
     this.T_return = 6.0;
-    this.amplitude = 50; // px
+    this.amplitude = 100; // px
     this.speed = 1.0;
 
     // データ構造
