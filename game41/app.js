@@ -27,7 +27,6 @@ class DigitSpanApp {
         this.speechSynth = window.speechSynthesis;
         this.voices = [];
         this.currentUtterance = null;
-        this.audioContext = null;
 
         this.init();
     }
@@ -511,7 +510,7 @@ class DigitSpanApp {
 
             countdownEl.style.display = 'none';
 
-            await this.playBeepTone();
+            await this.announceStartCue();
 
             if (mode === 'visual-full') {
                 const digitsHtml = digits
@@ -567,75 +566,26 @@ class DigitSpanApp {
         }
     }
 
-    // ビープ音の再生
-    playBeepTone() {
+    // 開始合図の音声再生
+    async announceStartCue() {
         const { beep, preDelayMs } = this.settings.delivery;
         const delay = Math.max(0, preDelayMs);
 
         if (!beep) {
-            return this.wait(delay);
+            await this.wait(delay);
+            return;
         }
 
-        if (!this.state.audioEnabled) {
-            return this.wait(delay);
+        if (!this.state.audioEnabled || !this.settings.tts.enabled) {
+            await this.wait(delay);
+            return;
         }
 
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) {
-            return this.wait(delay);
+        await this.speak('いきます');
+
+        if (delay > 0) {
+            await this.wait(delay);
         }
-
-        try {
-            if (!this.audioContext) {
-                this.audioContext = new AudioContextClass();
-            }
-        } catch (error) {
-            console.warn('AudioContextの初期化に失敗:', error);
-            return this.wait(delay);
-        }
-
-        const context = this.audioContext;
-        const ensureContextReady = context.state === 'suspended'
-            ? context.resume().catch((error) => {
-                console.warn('AudioContextの再開に失敗:', error);
-            })
-            : Promise.resolve();
-
-        return ensureContextReady
-            .then(() => {
-                const durationSeconds = Math.max(0.05, Math.min(delay > 0 ? delay / 1000 : 0.1, 0.25));
-
-                return new Promise((resolve) => {
-                    try {
-                        const oscillator = context.createOscillator();
-                        const gain = context.createGain();
-
-                        oscillator.type = 'sine';
-                        oscillator.frequency.setValueAtTime(880, context.currentTime);
-
-                        gain.gain.setValueAtTime(0.0001, context.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.2, context.currentTime + 0.01);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + durationSeconds);
-
-                        oscillator.connect(gain);
-                        gain.connect(context.destination);
-
-                        oscillator.onended = resolve;
-                        oscillator.start();
-                        oscillator.stop(context.currentTime + durationSeconds);
-
-                        // 念のためのフォールバック
-                        setTimeout(resolve, durationSeconds * 1000 + 50);
-                    } catch (error) {
-                        console.warn('ビープ音生成に失敗:', error);
-                        resolve();
-                    }
-                });
-            })
-            .catch(() => {
-                return undefined;
-            })
-            .then(() => this.wait(delay));
     }
 
     // 入力画面に進む
