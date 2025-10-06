@@ -985,6 +985,13 @@ body {
   color: var(--color-primary);
 }
 
+.settings-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-20);
+  line-height: var(--line-height-normal);
+}
+
 .range-setting {
   margin-bottom: var(--space-20);
 }

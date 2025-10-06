@@ -232,28 +232,6 @@ class DigitSpanApp {
             checkbox.checked = this.getNestedProperty(this.settings, path);
         });
 
-        const selects = [
-            { id: 'presentation-mode-select', path: 'ui.presentationMode' }
-        ];
-
-        selects.forEach(({ id, path }) => {
-            const select = document.getElementById(id);
-            if (!select) return;
-
-            const currentValue = this.getNestedProperty(this.settings, path);
-            if (currentValue !== undefined) {
-                select.value = currentValue;
-            }
-
-            select.addEventListener('change', (e) => {
-                this.setNestedProperty(this.settings, path, e.target.value);
-                this.saveSettings();
-
-                if (this.state.screen === 'presentation') {
-                    this.resetPresentationScreen();
-                }
-            });
-        });
     }
 
     // キーパッドの設定
@@ -354,6 +332,10 @@ class DigitSpanApp {
     }
 
     getPresentationInstruction() {
+        const mode = this.getPresentationMode();
+        if (mode === 'visual-step' || mode === 'visual-full') {
+            return 'よく見てください';
+        }
         return this.isAudioPlaybackActive()
             ? 'よく聞いてください'
             : 'よく見てください';
@@ -370,6 +352,8 @@ class DigitSpanApp {
     // モード選択
     selectMode(button) {
         const parent = button.closest('.button-group');
+        if (!parent) return;
+
         parent.querySelectorAll('.mode-btn').forEach(btn => {
             btn.classList.remove('active');
         });
@@ -383,7 +367,17 @@ class DigitSpanApp {
             this.state.adaptive = button.dataset.adaptive === 'true';
             this.settings.delivery.adaptive = this.state.adaptive;
         }
+        if (button.dataset.presentation) {
+            this.settings.ui.presentationMode = button.dataset.presentation;
+        }
+
         this.saveSettings();
+
+        if (button.dataset.presentation && this.state.screen === 'presentation') {
+            this.resetPresentationScreen();
+        }
+
+        this.updateModeButtons();
     }
 
     // モードボタンの更新
@@ -395,8 +389,14 @@ class DigitSpanApp {
 
         // 難易度調整ボタン
         document.querySelectorAll('[data-adaptive]').forEach(btn => {
-            btn.classList.toggle('active', 
+            btn.classList.toggle('active',
                 (btn.dataset.adaptive === 'true') === this.settings.delivery.adaptive);
+        });
+
+        // 出題方法ボタン
+        const presentationMode = this.getPresentationMode();
+        document.querySelectorAll('[data-presentation]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.presentation === presentationMode);
         });
 
         this.state.mode = this.settings.mode;

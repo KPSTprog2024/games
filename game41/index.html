@@ -85,6 +85,23 @@
                             </button>
                         </div>
                     </div>
+                    <div class="mode-group">
+                        <h3>出題方法</h3>
+                        <div class="button-group">
+                            <button class="btn btn--secondary mode-btn" data-presentation="audio">
+                                音声読み上げ
+                                <span class="mode-desc">音声で提示</span>
+                            </button>
+                            <button class="btn btn--secondary mode-btn" data-presentation="visual-step">
+                                数字を1桁ずつ表示
+                                <span class="mode-desc">順番に表示</span>
+                            </button>
+                            <button class="btn btn--secondary mode-btn" data-presentation="visual-full">
+                                数字を全桁まとめて表示
+                                <span class="mode-desc">まとめて表示</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -155,14 +172,7 @@
 
                 <div class="setting-group">
                     <h3>表示設定</h3>
-                    <div class="range-setting">
-                        <label class="form-label" for="presentation-mode-select">出題方法</label>
-                        <select id="presentation-mode-select" class="form-control">
-                            <option value="audio">音声読み上げ</option>
-                            <option value="visual-step">数字を1桁ずつ表示</option>
-                            <option value="visual-full">数字を全桁まとめて表示</option>
-                        </select>
-                    </div>
+                    <p class="settings-note">出題方法はホーム画面で変更できます。</p>
                     <div class="checkbox-setting">
                         <label class="checkbox-label">
                             <input type="checkbox" id="beep-check" checked>
@@ -191,8 +201,9 @@
                 <div class="countdown-display" id="countdown-display">3</div>
 
                 <div class="sequence-display" id="sequence-display">
-                    <div class="listening-message">よく聞いてください</div>
-                    <div class="digit-sequence" id="digit-sequence"></div>
+                    <div class="digit-sequence" id="digit-sequence">
+                        <div class="listening-message">よく聞いてください</div>
+                    </div>
                 </div>
 
                 <div class="presentation-controls">
