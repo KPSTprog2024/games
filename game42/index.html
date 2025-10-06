@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ペンデュラムウェーブシミュレーション</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="control-panel">
+            <div class="controls-group">
+                <button id="playPauseBtn" class="btn btn--primary" aria-label="再生・一時停止">
+                    <span id="playPauseText">一時停止</span>
+                </button>
+                <button id="resetBtn" class="btn btn--secondary" aria-label="リセット">リセット</button>
+            </div>
+            
+            <div class="controls-group">
+                <div class="control-item">
+                    <label for="pendulumCount" class="form-label">振り子数: <span id="pendulumCountValue">36</span></label>
+                    <input type="range" id="pendulumCount" class="form-control" min="12" max="72" value="36" step="1">
+                </div>
+                
+                <div class="control-item">
+                    <label for="returnTime" class="form-label">再同期時間: <span id="returnTimeValue">6.0</span>s</label>
+                    <input type="range" id="returnTime" class="form-control" min="0" max="20" value="6" step="0.5">
+                </div>
+                
+                <div class="control-item">
+                    <label for="amplitude" class="form-label">振幅: <span id="amplitudeValue">50</span></label>
+                    <input type="range" id="amplitude" class="form-control" min="10" max="100" value="50" step="5">
+                </div>
+                
+                <div class="control-item">
+                    <label for="speed" class="form-label">速度: <span id="speedValue">1.0</span>x</label>
+                    <input type="range" id="speed" class="form-control" min="0.25" max="2.0" value="1.0" step="0.25">
+                </div>
+            </div>
+            
+            <div class="controls-group presets">
+                <span class="preset-label">プリセット:</span>
+                <button class="btn btn--outline preset-btn" data-preset="calm">Calm</button>
+                <button class="btn btn--outline preset-btn" data-preset="classic">Classic</button>
+                <button class="btn btn--outline preset-btn" data-preset="dense">Dense</button>
+                <button class="btn btn--outline preset-btn" data-preset="async">Async</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="simulationCanvas" tabindex="0" aria-label="ペンデュラムウェーブシミュレーション"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <div class="region-labels">
+                <span class="region-label pendulum-label">ペンデュラム</span>
+                <span class="region-label strip-label">集約振幅</span>
+                <span class="region-label wave-label">流れる波形</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
