@@ -525,9 +525,6 @@ class DigitSpanApp {
                 sequenceEl.innerHTML = digitsHtml;
                 await this.wait(visualDisplayDuration * Math.max(1, digits.length));
                 sequenceEl.innerHTML = '';
-                if (digitInterval > 0) {
-                    await this.wait(digitInterval);
-                }
             } else {
                 for (let i = 0; i < digits.length; i++) {
                     const digit = digits[i];
@@ -535,14 +532,14 @@ class DigitSpanApp {
                     if (audioActive) {
                         sequenceEl.innerHTML = `<div class="listening-message">${instruction}</div>`;
                         await this.speak(digit.toString());
-                        if (digitInterval > 0) {
+                        if (i < digits.length - 1 && digitInterval > 0) {
                             await this.wait(digitInterval);
                         }
                     } else {
                         sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
                         await this.wait(visualDisplayDuration);
                         sequenceEl.innerHTML = '';
-                        if (digitInterval > 0) {
+                        if (i < digits.length - 1 && digitInterval > 0) {
                             await this.wait(digitInterval);
                         }
                     }
