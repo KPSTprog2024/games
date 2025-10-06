@@ -51,7 +51,7 @@ class DigitSpanApp {
                 allowLeadingZero: true,
                 maxRepeatRun: 2,
                 beep: true,
-                digitIntervalMs: 100,
+                digitIntervalMs: 50,
                 preDelayMs: 300,
                 postDelayMs: 300
             },
@@ -186,26 +186,32 @@ class DigitSpanApp {
             { id: 'rate-slider', path: 'tts.rate', display: 'rate-value' },
             { id: 'volume-slider', path: 'tts.volume', display: 'volume-value' },
             { id: 'pitch-slider', path: 'tts.pitch', display: 'pitch-value' },
-            { id: 'repeat-limit-slider', path: 'delivery.maxRepeatRun', display: 'repeat-limit-value' }
+            { id: 'repeat-limit-slider', path: 'delivery.maxRepeatRun', display: 'repeat-limit-value' },
+            {
+                id: 'digit-interval-slider',
+                path: 'delivery.digitIntervalMs',
+                display: 'digit-interval-value',
+                formatter: (value) => `${Math.round(value)}ms`
+            }
         ];
 
-        controls.forEach(({ id, path, display }) => {
+        controls.forEach(({ id, path, display, formatter }) => {
             const slider = document.getElementById(id);
             const valueDisplay = document.getElementById(display);
-            
+
             if (!slider || !valueDisplay) return;
-            
+
             slider.addEventListener('input', (e) => {
                 const value = parseFloat(e.target.value);
                 this.setNestedProperty(this.settings, path, value);
-                valueDisplay.textContent = value;
+                valueDisplay.textContent = formatter ? formatter(value) : value;
                 this.saveSettings();
             });
 
             // 初期値設定
             const currentValue = this.getNestedProperty(this.settings, path);
             slider.value = currentValue;
-            valueDisplay.textContent = currentValue;
+            valueDisplay.textContent = formatter ? formatter(currentValue) : currentValue;
         });
 
         // チェックボックス
@@ -519,9 +525,6 @@ class DigitSpanApp {
                 sequenceEl.innerHTML = digitsHtml;
                 await this.wait(visualDisplayDuration * Math.max(1, digits.length));
                 sequenceEl.innerHTML = '';
-                if (digitInterval > 0) {
-                    await this.wait(digitInterval);
-                }
             } else {
                 for (let i = 0; i < digits.length; i++) {
                     const digit = digits[i];
@@ -529,14 +532,14 @@ class DigitSpanApp {
                     if (audioActive) {
                         sequenceEl.innerHTML = `<div class="listening-message">${instruction}</div>`;
                         await this.speak(digit.toString());
-                        if (digitInterval > 0) {
+                        if (i < digits.length - 1 && digitInterval > 0) {
                             await this.wait(digitInterval);
                         }
                     } else {
                         sequenceEl.innerHTML = `<span class="digit-item digit-pulse">${digit}</span>`;
                         await this.wait(visualDisplayDuration);
                         sequenceEl.innerHTML = '';
-                        if (digitInterval > 0) {
+                        if (i < digits.length - 1 && digitInterval > 0) {
                             await this.wait(digitInterval);
                         }
                     }
