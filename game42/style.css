@@ -809,6 +809,14 @@ select.form-control {
     min-width: 96px;
 }
 
+.control-item--select {
+    min-width: 140px;
+}
+
+.control-item--select .form-control {
+    min-width: 140px;
+}
+
 .control-item .form-label {
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
@@ -852,18 +860,8 @@ select.form-control {
     outline-offset: 2px;
 }
 
-.presets {
-    margin-left: auto;
-}
-
 .preset-select {
     min-width: 140px;
-}
-
-.presets .form-label {
-    margin-bottom: 0;
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
 }
 
 .preset-label {
@@ -886,21 +884,7 @@ select.form-control {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-}
-
-.canvas-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    padding: var(--space-8) var(--space-16);
-    background: rgba(245, 245, 245, 0.04);
-    border-bottom: 1px solid rgba(245, 245, 245, 0.08);
-}
-
-.phase-preset-label {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: rgba(245, 245, 245, 0.8);
+    min-height: 0;
 }
 
 .phase-preset-select {
@@ -912,6 +896,7 @@ select.form-control {
 .canvas-stage {
     flex: 1;
     position: relative;
+    min-height: 0;
 }
 
 #simulationCanvas {
@@ -928,6 +913,7 @@ select.form-control {
     padding: var(--space-10) var(--space-16);
     background: rgba(245, 245, 245, 0.04);
     border-top: 1px solid rgba(245, 245, 245, 0.08);
+    flex-shrink: 0;
 }
 
 .period-slider {
@@ -975,14 +961,8 @@ select.form-control {
         width: 88px;
     }
 
-    .presets {
-        margin-left: 0;
-    }
-
-    .canvas-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-8);
+    .control-item--select {
+        min-width: 120px;
     }
 
     .phase-preset-select {
