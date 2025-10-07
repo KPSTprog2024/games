@@ -119,13 +119,18 @@ class PendulumWaveSimulation {
 
   setupEventListeners() {
     const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseText = document.getElementById('playPauseText');
+    const playPauseIcon = playPauseBtn?.querySelector('.btn-icon');
 
     playPauseBtn.addEventListener('click', () => {
       const wasPlaying = this.isPlaying;
       this.isPlaying = !this.isPlaying;
-      playPauseText.textContent = this.isPlaying ? '一時停止' : '再生';
-      playPauseBtn.className = this.isPlaying ? 'btn btn--primary' : 'btn btn--primary paused';
+      playPauseBtn.classList.toggle('paused', !this.isPlaying);
+      const label = this.isPlaying ? '一時停止' : '再生';
+      playPauseBtn.setAttribute('aria-label', label);
+      playPauseBtn.setAttribute('title', label);
+      if (playPauseIcon) {
+        playPauseIcon.textContent = '⏸';
+      }
       if (!wasPlaying && this.isPlaying && this.phasePresetDirty) {
         this.time = 0;
         this.initBuffers();
@@ -209,12 +214,16 @@ class PendulumWaveSimulation {
     );
 
     // プリセット
-    document.querySelectorAll('.preset-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const p = this.presets[btn.dataset.preset];
-        this.applyPreset(p);
+    const presetSelect = document.getElementById('presetSelect');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', (event) => {
+        const value = event.target.value;
+        if (value === 'custom') {
+          return;
+        }
+        this.applyPreset(value);
       });
-    });
+    }
 
     const phasePresetSelect = document.getElementById('phasePreset');
     if (phasePresetSelect) {
@@ -228,10 +237,20 @@ class PendulumWaveSimulation {
   setupSlider(sliderId, valueId, onInput, formatter = (v) => v) {
     const el = document.getElementById(sliderId);
     const label = document.getElementById(valueId);
+    if (!el || !label) return;
     el.addEventListener('input', () => {
       label.textContent = formatter(el.value);
       onInput(el.value);
+      this.markPresetCustom();
     });
+  }
+
+  markPresetCustom() {
+    const presetSelect = document.getElementById('presetSelect');
+    if (!presetSelect) return;
+    if (presetSelect.value !== 'custom') {
+      presetSelect.value = 'custom';
+    }
   }
 
   clampPeriodValue(value) {
@@ -397,7 +416,15 @@ class PendulumWaveSimulation {
     }
   }
 
-  applyPreset(preset) {
+  applyPreset(presetKey) {
+    const preset = this.presets[presetKey];
+    if (!preset) return;
+
+    const presetSelect = document.getElementById('presetSelect');
+    if (presetSelect) {
+      presetSelect.value = presetKey;
+    }
+
     this.N = preset.N;
     this.T_return = preset.T_return;
     this.amplitude = preset.amplitude;
