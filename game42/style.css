@@ -366,6 +366,18 @@ a:hover {
   color: var(--color-primary-hover);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 code,
 pre {
   font-family: var(--font-family-mono);
@@ -405,6 +417,19 @@ pre code {
   border: none;
   text-decoration: none;
   position: relative;
+}
+
+.btn--icon {
+  padding: var(--space-4);
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-icon {
+  font-size: var(--font-size-lg);
+  line-height: 1;
 }
 
 .btn:focus-visible {
@@ -749,7 +774,7 @@ select.form-control {
 .control-panel {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-16);
     padding: var(--space-12) var(--space-16);
     background: var(--color-surface);
@@ -762,13 +787,26 @@ select.form-control {
     display: flex;
     align-items: center;
     gap: var(--space-12);
+    flex-wrap: wrap;
+}
+
+.controls-group--primary {
+    flex: 1 1 auto;
+    min-width: 260px;
+    align-items: flex-end;
+    gap: var(--space-10);
+}
+
+.controls-group--primary .control-item,
+.controls-group--primary .btn--icon {
+    flex: 0 0 auto;
 }
 
 .control-item {
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
-    min-width: 120px;
+    min-width: 96px;
 }
 
 .control-item .form-label {
@@ -779,7 +817,7 @@ select.form-control {
 }
 
 .control-item input[type="range"] {
-    width: 100px;
+    width: 96px;
     height: 4px;
     background: var(--color-secondary);
     border-radius: var(--radius-full);
@@ -816,6 +854,16 @@ select.form-control {
 
 .presets {
     margin-left: auto;
+}
+
+.preset-select {
+    min-width: 140px;
+}
+
+.presets .form-label {
+    margin-bottom: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
 }
 
 .preset-label {
@@ -875,85 +923,60 @@ select.form-control {
 
 .period-controls {
     display: flex;
-    gap: var(--space-16);
+    flex-wrap: wrap;
+    gap: var(--space-12);
     padding: var(--space-10) var(--space-16);
     background: rgba(245, 245, 245, 0.04);
     border-top: 1px solid rgba(245, 245, 245, 0.08);
 }
 
 .period-slider {
-    flex: 1;
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: 96px;
+    max-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
 }
 
 .period-slider .form-label {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: var(--font-size-xs);
 }
 
 .period-slider span {
     font-variant-numeric: tabular-nums;
 }
 
-.info-panel {
-    padding: var(--space-8) var(--space-16);
-    background: var(--color-surface);
-    border-top: 1px solid var(--color-border);
-}
-
-.region-labels {
-    display: flex;
-    align-items: center;
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-}
-
-.region-label {
-    font-weight: var(--font-weight-medium);
-    padding: var(--space-4) var(--space-8);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg-1);
-}
-
-.pendulum-label {
-    width: 42%;
-    text-align: center;
-    background: var(--color-bg-2);
-}
-
-.strip-label {
-    width: 8%;
-    text-align: center;
-    background: var(--color-bg-3);
-}
-
-.wave-label {
-    width: 50%;
-    text-align: center;
-    background: var(--color-bg-4);
+.period-slider input[type="range"] {
+    width: 96px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .control-panel {
-        flex-direction: column;
-        align-items: stretch;
+        gap: var(--space-12);
+    }
+
+    .controls-group--primary {
+        align-items: center;
         gap: var(--space-8);
-    }
-    
-    .controls-group {
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
-    
-    .presets {
-        margin-left: 0;
-        justify-content: center;
+        min-width: 0;
     }
 
     .control-item {
-        min-width: 100px;
+        min-width: 88px;
+    }
+
+    .control-item input[type="range"],
+    .period-slider input[type="range"] {
+        width: 88px;
+    }
+
+    .presets {
+        margin-left: 0;
     }
 
     .canvas-header {
@@ -967,17 +990,7 @@ select.form-control {
     }
 
     .period-controls {
-        flex-direction: column;
-        gap: var(--space-12);
-    }
-
-    .region-labels {
-        flex-direction: column;
-        gap: var(--space-4);
-    }
-    
-    .region-label {
-        width: 100% !important;
+        justify-content: flex-start;
     }
 }
 

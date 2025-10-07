@@ -9,41 +9,51 @@
 <body>
     <div class="app-container">
         <div class="control-panel">
-            <div class="controls-group">
-                <button id="playPauseBtn" class="btn btn--primary" aria-label="再生・一時停止">
-                    <span id="playPauseText">一時停止</span>
+            <div class="controls-group controls-group--primary">
+                <button id="playPauseBtn" class="btn btn--primary btn--icon" aria-label="一時停止" title="一時停止">
+                    <span class="btn-icon" aria-hidden="true">⏸</span>
+                    <span class="sr-only">一時停止</span>
                 </button>
-                <button id="resetBtn" class="btn btn--secondary" aria-label="リセット">リセット</button>
-            </div>
-            
-            <div class="controls-group">
+                <button id="resetBtn" class="btn btn--secondary btn--icon" aria-label="リセット" title="リセット">
+                    <span class="btn-icon" aria-hidden="true">🪄</span>
+                    <span class="sr-only">リセット</span>
+                </button>
+
                 <div class="control-item">
                     <label for="pendulumCount" class="form-label">振り子数: <span id="pendulumCountValue">8</span></label>
                     <input type="range" id="pendulumCount" class="form-control" min="1" max="72" value="8" step="1">
                 </div>
-                
+
                 <div class="control-item">
-                    <label for="returnTime" class="form-label">再同期時間: <span id="returnTimeValue">6.0</span></label>
+                    <label for="returnTime" class="form-label">再同期時間: <span id="returnTimeValue">6.0s</span></label>
                     <input type="range" id="returnTime" class="form-control" min="0" max="20" value="6" step="0.5">
                 </div>
-                
+
                 <div class="control-item">
                     <label for="amplitude" class="form-label">振幅: <span id="amplitudeValue">100</span></label>
                     <input type="range" id="amplitude" class="form-control" min="10" max="300" value="100" step="5">
                 </div>
-                
+
                 <div class="control-item">
                     <label for="speed" class="form-label">速度: <span id="speedValue">1.0</span>x</label>
                     <input type="range" id="speed" class="form-control" min="0.25" max="2.0" value="1.0" step="0.25">
                 </div>
+
+                <div class="control-item">
+                    <label for="waveSpeed" class="form-label">波形速度: <span id="waveSpeedValue">1.00</span>x</label>
+                    <input type="range" id="waveSpeed" class="form-control" min="0.25" max="3.0" value="1.0" step="0.25">
+                </div>
             </div>
-            
+
             <div class="controls-group presets">
-                <span class="preset-label">プリセット:</span>
-                <button class="btn btn--outline preset-btn" data-preset="calm">Calm</button>
-                <button class="btn btn--outline preset-btn" data-preset="classic">Classic</button>
-                <button class="btn btn--outline preset-btn" data-preset="dense">Dense</button>
-                <button class="btn btn--outline preset-btn" data-preset="async">Async</button>
+                <label for="presetSelect" class="form-label">プリセット</label>
+                <select id="presetSelect" class="form-control preset-select" aria-label="プリセット選択">
+                    <option value="custom" selected>カスタム</option>
+                    <option value="calm">Calm</option>
+                    <option value="classic">Classic</option>
+                    <option value="dense">Dense</option>
+                    <option value="async">Async</option>
+                </select>
             </div>
         </div>
         
@@ -77,13 +87,6 @@
             </div>
         </div>
         
-        <div class="info-panel">
-            <div class="region-labels">
-                <span class="region-label pendulum-label">ペンデュラム</span>
-                <span class="region-label strip-label">集約振幅</span>
-                <span class="region-label wave-label">流れる波形</span>
-            </div>
-        </div>
     </div>
     
     <script src="app.js"></script>
