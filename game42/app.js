@@ -363,21 +363,39 @@ class PendulumWaveSimulation {
   }
 
   getSmoothPeriod(position) {
-    const left = this.periodPoints.left;
-    const center = this.periodPoints.center;
-    const right = this.periodPoints.right;
+    const anchors = [
+      { pos: 0, value: this.periodPoints.left },
+      { pos: 0.5, value: this.periodPoints.center },
+      { pos: 1, value: this.periodPoints.right },
+    ];
 
+    // 2点のみの時は単純線形で十分
     if (this.N <= 2) {
-      return this.lerp(left, right, position);
+      return this.lerp(anchors[0].value, anchors[2].value, position);
     }
 
-    if (position <= 0.5) {
-      const t = position / 0.5;
-      return this.lerp(left, center, t);
+    const epsilon = 1e-4;
+    const power = 2.5;
+
+    let numerator = 0;
+    let denominator = 0;
+
+    for (const anchor of anchors) {
+      const distance = Math.abs(position - anchor.pos);
+      if (distance < epsilon) {
+        return anchor.value;
+      }
+      const weight = 1 / Math.pow(distance + epsilon, power);
+      numerator += anchor.value * weight;
+      denominator += weight;
     }
 
-    const t = (position - 0.5) / 0.5;
-    return this.lerp(center, right, t);
+    if (denominator === 0) {
+      return anchors[1].value;
+    }
+
+    return numerator / denominator;
+
   }
 
   getInterpolatedPeriod(index) {
