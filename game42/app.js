@@ -50,6 +50,7 @@ class PendulumWaveSimulation {
 
     this.buffers = {
       max_wave_samples: 150,
+      sample_rate: 60,
     };
 
     // 物理定数
@@ -65,6 +66,8 @@ class PendulumWaveSimulation {
     this.T_return = 6.0;
     this.amplitude = 100; // px
     this.speed = 1.0;
+    this.waveFlowSpeed = 1.0;
+    this.waveFlowAccumulator = 0;
     this.periodSliderLimits = { min: 0.5, max: 12, step: 0.1 };
     this.periodPoints = { left: 6.0, center: 5.2, right: 4.4 };
     this.phasePreset = 'uniform';
@@ -119,13 +122,18 @@ class PendulumWaveSimulation {
 
   setupEventListeners() {
     const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseText = document.getElementById('playPauseText');
+    const playPauseIcon = playPauseBtn?.querySelector('.btn-icon');
 
     playPauseBtn.addEventListener('click', () => {
       const wasPlaying = this.isPlaying;
       this.isPlaying = !this.isPlaying;
-      playPauseText.textContent = this.isPlaying ? '一時停止' : '再生';
-      playPauseBtn.className = this.isPlaying ? 'btn btn--primary' : 'btn btn--primary paused';
+      playPauseBtn.classList.toggle('paused', !this.isPlaying);
+      const label = this.isPlaying ? '一時停止' : '再生';
+      playPauseBtn.setAttribute('aria-label', label);
+      playPauseBtn.setAttribute('title', label);
+      if (playPauseIcon) {
+        playPauseIcon.textContent = '⏸';
+      }
       if (!wasPlaying && this.isPlaying && this.phasePresetDirty) {
         this.time = 0;
         this.initBuffers();
@@ -175,7 +183,17 @@ class PendulumWaveSimulation {
       (v) => {
         this.speed = parseFloat(v);
       },
-      (v) => `${v}x`
+      (v) => this.formatRateValue(v)
+    );
+
+    this.setupSlider(
+      'waveSpeed',
+      'waveSpeedValue',
+      (v) => {
+        this.waveFlowSpeed = parseFloat(v);
+        this.waveFlowAccumulator = 0;
+      },
+      (v) => this.formatRateValue(v)
     );
 
     this.setupSlider(
@@ -209,12 +227,16 @@ class PendulumWaveSimulation {
     );
 
     // プリセット
-    document.querySelectorAll('.preset-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const p = this.presets[btn.dataset.preset];
-        this.applyPreset(p);
+    const presetSelect = document.getElementById('presetSelect');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', (event) => {
+        const value = event.target.value;
+        if (value === 'custom') {
+          return;
+        }
+        this.applyPreset(value);
       });
-    });
+    }
 
     const phasePresetSelect = document.getElementById('phasePreset');
     if (phasePresetSelect) {
@@ -228,10 +250,20 @@ class PendulumWaveSimulation {
   setupSlider(sliderId, valueId, onInput, formatter = (v) => v) {
     const el = document.getElementById(sliderId);
     const label = document.getElementById(valueId);
+    if (!el || !label) return;
     el.addEventListener('input', () => {
       label.textContent = formatter(el.value);
       onInput(el.value);
+      this.markPresetCustom();
     });
+  }
+
+  markPresetCustom() {
+    const presetSelect = document.getElementById('presetSelect');
+    if (!presetSelect) return;
+    if (presetSelect.value !== 'custom') {
+      presetSelect.value = 'custom';
+    }
   }
 
   clampPeriodValue(value) {
@@ -245,6 +277,14 @@ class PendulumWaveSimulation {
 
   formatPeriod(value) {
     return `${this.clampPeriodValue(value).toFixed(2)}s`;
+  }
+
+  formatRateValue(value) {
+    const numeric = parseFloat(value);
+    if (!Number.isFinite(numeric)) {
+      return '0.00';
+    }
+    return numeric.toFixed(2);
   }
 
   syncPeriodSliderUI() {
@@ -312,18 +352,30 @@ class PendulumWaveSimulation {
     return a + (b - a) * t;
   }
 
+  getSmoothPeriod(position) {
+    const left = this.periodPoints.left;
+    const center = this.periodPoints.center;
+    const right = this.periodPoints.right;
+
+    if (this.N <= 2) {
+      return this.lerp(left, right, position);
+    }
+
+    const c = left;
+    const b = 4 * (center - left) - (right - left);
+    const a = right - left - b;
+    return a * position * position + b * position + c;
+  }
+
   getInterpolatedPeriod(index) {
     if (this.N <= 1) {
       return this.clampPeriodValue(this.periodPoints.left);
     }
 
-    const position = index / (this.N - 1);
-    if (position <= 0.5) {
-      const ratio = position / 0.5;
-      return this.clampPeriodValue(this.lerp(this.periodPoints.left, this.periodPoints.center, ratio));
-    }
-    const ratio = (position - 0.5) / 0.5;
-    return this.clampPeriodValue(this.lerp(this.periodPoints.center, this.periodPoints.right, ratio));
+    const denominator = Math.max(1, this.N - 1);
+    const position = index / denominator;
+    const smoothPeriod = this.getSmoothPeriod(position);
+    return this.clampPeriodValue(smoothPeriod);
   }
 
   generatePhaseValues(preset = this.activePhasePreset) {
@@ -397,7 +449,15 @@ class PendulumWaveSimulation {
     }
   }
 
-  applyPreset(preset) {
+  applyPreset(presetKey) {
+    const preset = this.presets[presetKey];
+    if (!preset) return;
+
+    const presetSelect = document.getElementById('presetSelect');
+    if (presetSelect) {
+      presetSelect.value = presetKey;
+    }
+
     this.N = preset.N;
     this.T_return = preset.T_return;
     this.amplitude = preset.amplitude;
@@ -411,7 +471,13 @@ class PendulumWaveSimulation {
     document.getElementById('amplitude').value = this.amplitude;
     document.getElementById('amplitudeValue').textContent = this.amplitude;
     document.getElementById('speed').value = this.speed;
-    document.getElementById('speedValue').textContent = `${this.speed}x`;
+    document.getElementById('speedValue').textContent = this.formatRateValue(this.speed);
+    const waveSpeedSlider = document.getElementById('waveSpeed');
+    const waveSpeedLabel = document.getElementById('waveSpeedValue');
+    if (waveSpeedSlider && waveSpeedLabel) {
+      waveSpeedSlider.value = this.waveFlowSpeed;
+      waveSpeedLabel.textContent = this.formatRateValue(this.waveFlowSpeed);
+    }
 
     if (preset.periodPoints) {
       this.setPeriodPoints(preset.periodPoints, { syncUI: true });
@@ -459,6 +525,7 @@ class PendulumWaveSimulation {
     this.waveBuffers = new Array(this.N)
       .fill(null)
       .map(() => []);
+    this.waveFlowAccumulator = 0;
   }
 
   startAnimation() {
@@ -468,8 +535,9 @@ class PendulumWaveSimulation {
       this.lastTime = t;
 
       if (this.isPlaying) {
-        this.time += dt * this.speed;
-        this.updateWaveforms();
+        const simDt = dt * this.speed;
+        this.time += simDt;
+        this.updateWaveforms(simDt);
       }
 
       this.draw();
@@ -507,16 +575,52 @@ class PendulumWaveSimulation {
   }
 
   // 波形データを左から右に流す（最新が左、古いほど右へ）
-  updateWaveforms() {
+  updateWaveforms(simDt) {
+    if (!Number.isFinite(simDt) || simDt <= 0) {
+      return;
+    }
+
+    if (this.pendulums.length === 0) {
+      return;
+    }
+
     const baseY = this.pendulumY;
+    const sampleRate = this.buffers.sample_rate || 60;
+    const flowSpeed = Math.max(0.05, this.waveFlowSpeed || 0);
+    const effectiveRate = sampleRate * flowSpeed;
+
+    if (!Number.isFinite(effectiveRate) || effectiveRate <= 0) {
+      return;
+    }
+
+    this.waveFlowAccumulator += simDt * effectiveRate;
+
+    const samplesToEmit = Math.floor(this.waveFlowAccumulator);
+    if (samplesToEmit <= 0) {
+      return;
+    }
+
+    this.waveFlowAccumulator -= samplesToEmit;
+
+    const sampleSpacing = 1 / effectiveRate;
+    const sampleTimes = [];
+    for (let remaining = samplesToEmit; remaining > 0; remaining--) {
+      sampleTimes.push(this.time - (remaining - 1) * sampleSpacing);
+    }
+
     for (let i = 0; i < this.N; i++) {
       const p = this.pendulums[i];
-      const currentY = baseY + this.amplitude * Math.cos(p.omega * this.time + p.phi);
+      if (!p) continue;
       if (!this.waveBuffers[i]) this.waveBuffers[i] = [];
-      // 先頭に追加 → 左端が最新
-      this.waveBuffers[i].unshift(currentY);
-      if (this.waveBuffers[i].length > this.buffers.max_wave_samples) {
-        this.waveBuffers[i].pop();
+      const buffer = this.waveBuffers[i];
+
+      for (const sampleTime of sampleTimes) {
+        const currentY = baseY + this.amplitude * Math.cos(p.omega * sampleTime + p.phi);
+        buffer.unshift(currentY);
+      }
+
+      while (buffer.length > this.buffers.max_wave_samples) {
+        buffer.pop();
       }
     }
   }
