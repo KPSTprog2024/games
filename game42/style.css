@@ -903,41 +903,8 @@ select.form-control {
     width: 100%;
     height: 100%;
     display: block;
-    cursor: crosshair;
-}
-
-.period-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-12);
-    padding: var(--space-10) var(--space-16);
-    background: rgba(245, 245, 245, 0.04);
-    border-top: 1px solid rgba(245, 245, 245, 0.08);
-    flex-shrink: 0;
-}
-
-.period-slider {
-    flex: 0 0 auto;
-    min-width: 96px;
-    max-width: 120px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.period-slider .form-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: var(--font-size-xs);
-}
-
-.period-slider span {
-    font-variant-numeric: tabular-nums;
-}
-
-.period-slider input[type="range"] {
-    width: 96px;
+    cursor: default;
+    user-select: none;
 }
 
 /* Responsive adjustments */
@@ -956,8 +923,7 @@ select.form-control {
         min-width: 88px;
     }
 
-    .control-item input[type="range"],
-    .period-slider input[type="range"] {
+    .control-item input[type="range"] {
         width: 88px;
     }
 
@@ -969,9 +935,6 @@ select.form-control {
         width: 100%;
     }
 
-    .period-controls {
-        justify-content: flex-start;
-    }
 }
 
 /* Dark mode enhancements */
