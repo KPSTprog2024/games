@@ -67,6 +67,7 @@ class PendulumWaveSimulation {
     this.amplitude = 100; // px
     this.speed = 1.0;
     this.waveFlowSpeed = 1.0;
+    this.waveFlowAccumulator = 0;
     this.periodSliderLimits = { min: 0.5, max: 12, step: 0.1 };
     this.periodPoints = { left: 6.0, center: 5.2, right: 4.4 };
     this.phasePreset = 'uniform';
@@ -183,7 +184,17 @@ class PendulumWaveSimulation {
       (v) => {
         this.speed = parseFloat(v);
       },
-      (v) => `${v}x`
+      (v) => this.formatRateValue(v)
+    );
+
+    this.setupSlider(
+      'waveSpeed',
+      'waveSpeedValue',
+      (v) => {
+        this.waveFlowSpeed = parseFloat(v);
+        this.waveFlowAccumulator = 0;
+      },
+      (v) => this.formatRateValue(v)
     );
 
     this.setupSlider(
@@ -276,6 +287,14 @@ class PendulumWaveSimulation {
 
   formatPeriod(value) {
     return `${this.clampPeriodValue(value).toFixed(2)}s`;
+  }
+
+  formatRateValue(value) {
+    const numeric = parseFloat(value);
+    if (!Number.isFinite(numeric)) {
+      return '0.00';
+    }
+    return numeric.toFixed(2);
   }
 
   syncPeriodSliderUI() {
@@ -462,7 +481,13 @@ class PendulumWaveSimulation {
     document.getElementById('amplitude').value = this.amplitude;
     document.getElementById('amplitudeValue').textContent = this.amplitude;
     document.getElementById('speed').value = this.speed;
-    document.getElementById('speedValue').textContent = `${this.speed}x`;
+    document.getElementById('speedValue').textContent = this.formatRateValue(this.speed);
+    const waveSpeedSlider = document.getElementById('waveSpeed');
+    const waveSpeedLabel = document.getElementById('waveSpeedValue');
+    if (waveSpeedSlider && waveSpeedLabel) {
+      waveSpeedSlider.value = this.waveFlowSpeed;
+      waveSpeedLabel.textContent = this.formatRateValue(this.waveFlowSpeed);
+    }
 
     if (preset.periodPoints) {
       this.setPeriodPoints(preset.periodPoints, { syncUI: true });
@@ -510,7 +535,7 @@ class PendulumWaveSimulation {
     this.waveBuffers = new Array(this.N)
       .fill(null)
       .map(() => []);
-    this.waveSampleTimer = 0;
+    this.waveFlowAccumulator = 0;
   }
 
   startAnimation() {
@@ -571,28 +596,41 @@ class PendulumWaveSimulation {
 
     const baseY = this.pendulumY;
     const sampleRate = this.buffers.sample_rate || 60;
-    const baseInterval = sampleRate > 0 ? 1 / sampleRate : 1 / 60;
     const flowSpeed = Math.max(0.05, this.waveFlowSpeed || 0);
-    const targetInterval = baseInterval / flowSpeed;
+    const effectiveRate = sampleRate * flowSpeed;
 
-    if (!Number.isFinite(targetInterval) || targetInterval <= 0) {
+    if (!Number.isFinite(effectiveRate) || effectiveRate <= 0) {
       return;
     }
 
-    this.waveSampleTimer += simDt;
+    this.waveFlowAccumulator += simDt * effectiveRate;
 
-    while (this.waveSampleTimer >= targetInterval) {
-      this.waveSampleTimer -= targetInterval;
-      const sampleTime = this.time - this.waveSampleTimer;
+    const samplesToEmit = Math.floor(this.waveFlowAccumulator);
+    if (samplesToEmit <= 0) {
+      return;
+    }
 
-      for (let i = 0; i < this.N; i++) {
-        const p = this.pendulums[i];
+    this.waveFlowAccumulator -= samplesToEmit;
+
+    const sampleSpacing = 1 / effectiveRate;
+    const sampleTimes = [];
+    for (let remaining = samplesToEmit; remaining > 0; remaining--) {
+      sampleTimes.push(this.time - (remaining - 1) * sampleSpacing);
+    }
+
+    for (let i = 0; i < this.N; i++) {
+      const p = this.pendulums[i];
+      if (!p) continue;
+      if (!this.waveBuffers[i]) this.waveBuffers[i] = [];
+      const buffer = this.waveBuffers[i];
+
+      for (const sampleTime of sampleTimes) {
         const currentY = baseY + this.amplitude * Math.cos(p.omega * sampleTime + p.phi);
-        if (!this.waveBuffers[i]) this.waveBuffers[i] = [];
-        this.waveBuffers[i].unshift(currentY);
-        if (this.waveBuffers[i].length > this.buffers.max_wave_samples) {
-          this.waveBuffers[i].pop();
-        }
+        buffer.unshift(currentY);
+      }
+
+      while (buffer.length > this.buffers.max_wave_samples) {
+        buffer.pop();
       }
     }
   }
