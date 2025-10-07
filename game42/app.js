@@ -395,6 +395,7 @@ class PendulumWaveSimulation {
     }
 
     return numerator / denominator;
+
   }
 
   getInterpolatedPeriod(index) {
