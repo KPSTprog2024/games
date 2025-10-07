@@ -62,6 +62,7 @@ body {
   height: min(90vh, 90vw, 900px, calc(100% - 2 * var(--canvas-padding)));
   max-width: min(90vh, 90vw, 900px, calc(100% - 2 * var(--canvas-padding)));
   max-height: min(90vh, 90vw, 900px, calc(100% - 2 * var(--canvas-padding)));
+
   display: block;
   background: #05060a;
   margin: 0 auto;
