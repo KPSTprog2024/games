@@ -74,6 +74,7 @@ class PendulumWaveSimulation {
     this.activePhasePreset = 'uniform';
     this.phaseValues = [];
     this.phasePresetDirty = false;
+    this.waveSampleTimer = 0;
 
     // データ構造
     this.pendulums = []; // {x, omega, phi, period}
@@ -194,6 +195,15 @@ class PendulumWaveSimulation {
         this.waveFlowAccumulator = 0;
       },
       (v) => this.formatRateValue(v)
+    );
+
+    this.setupSlider(
+      'waveSpeed',
+      'waveSpeedValue',
+      (v) => {
+        this.waveFlowSpeed = parseFloat(v);
+      },
+      (v) => `${parseFloat(v).toFixed(2)}x`
     );
 
     this.setupSlider(
