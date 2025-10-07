@@ -1,7 +1,8 @@
 const TWO_PI = Math.PI * 2;
 const CIRCUMFERENCE = 2 * Math.PI * 52;
 const SNAPSHOT_KEY = 'game34_snapshots_v1';
-const BASE_PLAYBACK_SPEED = 420;
+const BASE_PLAYBACK_SPEED = 160;
+const MIN_PLAYBACK_SPEED = 0.01;
 
 const DEFAULT_STATE = {
   mode: 'inner',
@@ -350,13 +351,15 @@ function setStartButtonState(mode) {
 }
 
 function updatePlaybackSpeedControl() {
+  const value = clamp(Number(state.playbackSpeed ?? 1), MIN_PLAYBACK_SPEED, Number(playbackSpeedRange?.max ?? 3));
   if (playbackSpeedRange) {
-    playbackSpeedRange.value = String(state.playbackSpeed ?? 1);
+    playbackSpeedRange.value = String(value);
   }
   if (speedValueEl) {
-    const value = Number(state.playbackSpeed ?? 1);
-    speedValueEl.textContent = `${value.toFixed(1)}x`;
+    const decimals = value < 1 ? 2 : 1;
+    speedValueEl.textContent = `${value.toFixed(decimals)}x`;
   }
+  state.playbackSpeed = value;
 }
 
 function prepareCanvasBackground() {
@@ -741,7 +744,8 @@ function startDrawing(geometry) {
 
     const deltaSeconds = Math.max(0, (timestamp - drawTask.lastTime) / 1000);
     drawTask.lastTime = timestamp;
-    const speed = Math.max(0.05, Number(state.playbackSpeed ?? 1)) * BASE_PLAYBACK_SPEED;
+    const playbackScale = Math.max(MIN_PLAYBACK_SPEED, Number(state.playbackSpeed ?? 1));
+    const speed = playbackScale * BASE_PLAYBACK_SPEED;
     drawTask.progressLength = Math.min(drawTask.progressLength + deltaSeconds * speed, drawTask.totalLength);
 
     while (drawTask.currentIndex < drawTask.totalPoints && cumulative[drawTask.currentIndex] <= drawTask.progressLength) {
