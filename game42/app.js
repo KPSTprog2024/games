@@ -426,13 +426,17 @@ class PendulumWaveSimulation {
     }
   }
 
-  clampPeriodValue(value) {
+  clampPeriodValue(value, options = {}) {
+    const { round = true } = options;
     const { min, max, step } = this.periodSliderLimits;
     if (Number.isNaN(value)) return min;
     const clamped = Math.min(max, Math.max(min, value));
+    if (!round) {
+      return clamped;
+    }
     const normalizedStep = step > 0 ? step : 0.1;
     const rounded = Math.round(clamped / normalizedStep) * normalizedStep;
-    return parseFloat(rounded.toFixed(2));
+    return parseFloat(rounded.toFixed(4));
   }
 
   formatRateValue(value) {
@@ -525,16 +529,16 @@ class PendulumWaveSimulation {
 
   getInterpolatedPeriod(index) {
     if (this.N <= 1) {
-      return this.clampPeriodValue(this.periodPoints.left);
+      return this.clampPeriodValue(this.periodPoints.left, { round: false });
     }
 
     const denominator = Math.max(1, this.N - 1);
     const position = index / denominator;
     const smoothPeriod = this.getSmoothPeriod(position);
-    const basePeriod = this.clampPeriodValue(smoothPeriod);
+    const basePeriod = this.clampPeriodValue(smoothPeriod, { round: false });
     const epsilon = 1e-4;
     const centeredIndex = index - (this.N - 1) / 2;
-    return this.clampPeriodValue(basePeriod + centeredIndex * epsilon);
+    return this.clampPeriodValue(basePeriod + centeredIndex * epsilon, { round: false });
   }
 
   generatePhaseValues(preset = this.activePhasePreset) {
