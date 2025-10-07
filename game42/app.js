@@ -5,10 +5,34 @@ class PendulumWaveSimulation {
 
     // 定義データ（提供JSONに準拠）
     this.presets = {
-      calm: { N: 12, T_return: 8.0, amplitude: 30, speed: 0.5 },
-      classic: { N: 36, T_return: 6.0, amplitude: 50, speed: 1.0 },
-      dense: { N: 72, T_return: 4.0, amplitude: 60, speed: 1.5 },
-      async: { N: 36, T_return: 0, amplitude: 45, speed: 1.2 },
+      calm: {
+        N: 12,
+        T_return: 8.0,
+        amplitude: 30,
+        speed: 0.5,
+        periodPoints: { left: 9.0, center: 8.2, right: 7.4 },
+      },
+      classic: {
+        N: 36,
+        T_return: 6.0,
+        amplitude: 50,
+        speed: 1.0,
+        periodPoints: { left: 6.0, center: 5.0, right: 4.0 },
+      },
+      dense: {
+        N: 72,
+        T_return: 4.0,
+        amplitude: 60,
+        speed: 1.5,
+        periodPoints: { left: 4.5, center: 3.6, right: 2.8 },
+      },
+      async: {
+        N: 36,
+        T_return: 0,
+        amplitude: 45,
+        speed: 1.2,
+        periodPoints: { left: 5.5, center: 3.0, right: 4.8 },
+      },
     };
 
     this.layout = {
@@ -41,6 +65,12 @@ class PendulumWaveSimulation {
     this.T_return = 6.0;
     this.amplitude = 100; // px
     this.speed = 1.0;
+    this.periodSliderLimits = { min: 0.5, max: 12, step: 0.1 };
+    this.periodPoints = { left: 6.0, center: 5.2, right: 4.4 };
+    this.phasePreset = 'uniform';
+    this.activePhasePreset = 'uniform';
+    this.phaseValues = [];
+    this.phasePresetDirty = false;
 
     // データ構造
     this.pendulums = []; // {x, omega, phi, period}
@@ -53,7 +83,10 @@ class PendulumWaveSimulation {
 
     this.setupCanvas();
     this.setupEventListeners();
+    document.getElementById('returnTimeValue').textContent = `${this.T_return.toFixed(1)}s`;
+    this.updatePeriodPointsFromReturnTime({ syncUI: true });
     this.calculatePendulums();
+    this.applyPhasePreset({ force: true });
     this.initBuffers();
     this.startAnimation();
   }
@@ -89,9 +122,15 @@ class PendulumWaveSimulation {
     const playPauseText = document.getElementById('playPauseText');
 
     playPauseBtn.addEventListener('click', () => {
+      const wasPlaying = this.isPlaying;
       this.isPlaying = !this.isPlaying;
       playPauseText.textContent = this.isPlaying ? '一時停止' : '再生';
       playPauseBtn.className = this.isPlaying ? 'btn btn--primary' : 'btn btn--primary paused';
+      if (!wasPlaying && this.isPlaying && this.phasePresetDirty) {
+        this.time = 0;
+        this.initBuffers();
+        this.applyPhasePreset({ force: true });
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -104,12 +143,14 @@ class PendulumWaveSimulation {
     document.getElementById('resetBtn').addEventListener('click', () => {
       this.time = 0;
       this.initBuffers();
+      this.applyPhasePreset({ force: true });
     });
 
     // スライダー
     this.setupSlider('pendulumCount', 'pendulumCountValue', (v) => {
       this.N = parseInt(v, 10);
       this.calculatePendulums();
+      this.applyPhasePreset({ force: true, preset: this.activePhasePreset, preserveDirty: true });
       this.initBuffers();
     });
 
@@ -118,9 +159,10 @@ class PendulumWaveSimulation {
       'returnTimeValue',
       (v) => {
         this.T_return = parseFloat(v);
+        this.updatePeriodPointsFromReturnTime({ syncUI: true });
         this.calculatePendulums();
       },
-      (v) => `${v}s`
+      (v) => `${parseFloat(v).toFixed(1)}s`
     );
 
     this.setupSlider('amplitude', 'amplitudeValue', (v) => {
@@ -136,6 +178,36 @@ class PendulumWaveSimulation {
       (v) => `${v}x`
     );
 
+    this.setupSlider(
+      'periodLeft',
+      'periodLeftValue',
+      (v) => {
+        this.periodPoints.left = this.clampPeriodValue(parseFloat(v));
+        this.calculatePendulums();
+      },
+      (v) => `${parseFloat(v).toFixed(2)}s`
+    );
+
+    this.setupSlider(
+      'periodCenter',
+      'periodCenterValue',
+      (v) => {
+        this.periodPoints.center = this.clampPeriodValue(parseFloat(v));
+        this.calculatePendulums();
+      },
+      (v) => `${parseFloat(v).toFixed(2)}s`
+    );
+
+    this.setupSlider(
+      'periodRight',
+      'periodRightValue',
+      (v) => {
+        this.periodPoints.right = this.clampPeriodValue(parseFloat(v));
+        this.calculatePendulums();
+      },
+      (v) => `${parseFloat(v).toFixed(2)}s`
+    );
+
     // プリセット
     document.querySelectorAll('.preset-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -143,6 +215,14 @@ class PendulumWaveSimulation {
         this.applyPreset(p);
       });
     });
+
+    const phasePresetSelect = document.getElementById('phasePreset');
+    if (phasePresetSelect) {
+      phasePresetSelect.addEventListener('change', (event) => {
+        this.phasePreset = event.target.value;
+        this.phasePresetDirty = true;
+      });
+    }
   }
 
   setupSlider(sliderId, valueId, onInput, formatter = (v) => v) {
@@ -152,6 +232,169 @@ class PendulumWaveSimulation {
       label.textContent = formatter(el.value);
       onInput(el.value);
     });
+  }
+
+  clampPeriodValue(value) {
+    const { min, max, step } = this.periodSliderLimits;
+    if (Number.isNaN(value)) return min;
+    const clamped = Math.min(max, Math.max(min, value));
+    const normalizedStep = step > 0 ? step : 0.1;
+    const rounded = Math.round(clamped / normalizedStep) * normalizedStep;
+    return parseFloat(rounded.toFixed(2));
+  }
+
+  formatPeriod(value) {
+    return `${this.clampPeriodValue(value).toFixed(2)}s`;
+  }
+
+  syncPeriodSliderUI() {
+    const mapping = [
+      ['periodLeft', 'periodLeftValue', this.periodPoints.left],
+      ['periodCenter', 'periodCenterValue', this.periodPoints.center],
+      ['periodRight', 'periodRightValue', this.periodPoints.right],
+    ];
+
+    mapping.forEach(([sliderId, labelId, rawValue]) => {
+      const slider = document.getElementById(sliderId);
+      const label = document.getElementById(labelId);
+      if (!slider || !label) return;
+      const value = this.clampPeriodValue(rawValue);
+      slider.value = value.toFixed(2);
+      label.textContent = this.formatPeriod(value);
+    });
+  }
+
+  setPeriodPoints(points, { syncUI = false } = {}) {
+    this.periodPoints.left = this.clampPeriodValue(points.left ?? this.periodPoints.left);
+    this.periodPoints.center = this.clampPeriodValue(points.center ?? this.periodPoints.center);
+    this.periodPoints.right = this.clampPeriodValue(points.right ?? this.periodPoints.right);
+
+    if (syncUI) {
+      this.syncPeriodSliderUI();
+    }
+  }
+
+  updatePeriodPointsFromReturnTime({ syncUI = false } = {}) {
+    const count = Math.max(1, this.N);
+    const getPeriod = (index) => {
+      if (this.T_return > 0) {
+        const m0 = 20;
+        const m = m0 + index;
+        return (this.T_return / m) * m0;
+      }
+      const T_min = 1.0;
+      const deltaT = 0.1;
+      return T_min + index * deltaT;
+    };
+
+    const lastIndex = Math.max(0, count - 1);
+    const left = getPeriod(0);
+    const right = getPeriod(lastIndex);
+
+    let center;
+    if (count <= 2) {
+      center = (left + right) / 2;
+    } else {
+      const mid = (count - 1) / 2;
+      const lower = Math.floor(mid);
+      const upper = Math.ceil(mid);
+      if (lower === upper) {
+        center = getPeriod(lower);
+      } else {
+        center = (getPeriod(lower) + getPeriod(upper)) / 2;
+      }
+    }
+
+    this.setPeriodPoints({ left, center, right }, { syncUI });
+  }
+
+  lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  getInterpolatedPeriod(index) {
+    if (this.N <= 1) {
+      return this.clampPeriodValue(this.periodPoints.left);
+    }
+
+    const position = index / (this.N - 1);
+    if (position <= 0.5) {
+      const ratio = position / 0.5;
+      return this.clampPeriodValue(this.lerp(this.periodPoints.left, this.periodPoints.center, ratio));
+    }
+    const ratio = (position - 0.5) / 0.5;
+    return this.clampPeriodValue(this.lerp(this.periodPoints.center, this.periodPoints.right, ratio));
+  }
+
+  generatePhaseValues(preset = this.activePhasePreset) {
+    const phases = [];
+    const total = this.N;
+    switch (preset) {
+      case 'linear': {
+        const step = total > 1 ? (Math.PI * 2) / (total - 1) : 0;
+        for (let i = 0; i < total; i++) {
+          phases.push(i * step);
+        }
+        break;
+      }
+      case 'center-fan': {
+        const mid = (total - 1) / 2;
+        const maxPhase = Math.PI;
+        for (let i = 0; i < total; i++) {
+          if (total === 1) {
+            phases.push(0);
+            continue;
+          }
+          const distance = Math.abs(i - mid);
+          const norm = mid === 0 ? 0 : distance / mid;
+          const direction = i < mid ? -1 : 1;
+          phases.push(direction * norm * maxPhase);
+        }
+        break;
+      }
+      case 'alternating': {
+        for (let i = 0; i < total; i++) {
+          phases.push(i % 2 === 0 ? 0 : Math.PI);
+        }
+        break;
+      }
+      case 'random': {
+        for (let i = 0; i < total; i++) {
+          phases.push(Math.random() * Math.PI * 2);
+        }
+        break;
+      }
+      case 'uniform':
+      default: {
+        for (let i = 0; i < total; i++) {
+          phases.push(0);
+        }
+        break;
+      }
+    }
+    return phases;
+  }
+
+  syncPendulumPhases() {
+    for (let i = 0; i < this.N; i++) {
+      if (!this.pendulums[i]) continue;
+      this.pendulums[i].phi = this.phaseValues[i] ?? 0;
+    }
+  }
+
+  applyPhasePreset({ force = false, preset = null, preserveDirty = false } = {}) {
+    if (!force && !this.phasePresetDirty) {
+      return;
+    }
+
+    const targetPreset = preset || (this.phasePresetDirty ? this.phasePreset : this.activePhasePreset);
+    this.phaseValues = this.generatePhaseValues(targetPreset);
+    this.activePhasePreset = targetPreset;
+    this.syncPendulumPhases();
+
+    if (!preserveDirty) {
+      this.phasePresetDirty = false;
+    }
   }
 
   applyPreset(preset) {
@@ -164,13 +407,20 @@ class PendulumWaveSimulation {
     document.getElementById('pendulumCount').value = this.N;
     document.getElementById('pendulumCountValue').textContent = this.N;
     document.getElementById('returnTime').value = this.T_return;
-    document.getElementById('returnTimeValue').textContent = `${this.T_return}s`;
+    document.getElementById('returnTimeValue').textContent = `${this.T_return.toFixed(1)}s`;
     document.getElementById('amplitude').value = this.amplitude;
     document.getElementById('amplitudeValue').textContent = this.amplitude;
     document.getElementById('speed').value = this.speed;
     document.getElementById('speedValue').textContent = `${this.speed}x`;
 
+    if (preset.periodPoints) {
+      this.setPeriodPoints(preset.periodPoints, { syncUI: true });
+    } else {
+      this.updatePeriodPointsFromReturnTime({ syncUI: true });
+    }
+
     this.calculatePendulums();
+    this.applyPhasePreset({ force: true, preset: this.activePhasePreset, preserveDirty: true });
     this.time = 0;
     this.initBuffers();
   }
@@ -184,19 +434,23 @@ class PendulumWaveSimulation {
 
     for (let i = 0; i < this.N; i++) {
       const x = margin + i * spacing;
-      let period;
-      if (this.T_return > 0) {
-        const m0 = 20;
-        const m = m0 + i; // m_i = 20 + i
-        period = (this.T_return / m) * m0; // 再同期時刻に揃うよう基準化
-      } else {
-        const T_min = 1.0;
-        const deltaT = 0.1;
-        period = T_min + i * deltaT;
-      }
-      const omega = (2 * Math.PI) / period;
-      const phi = 0;
+      const period = this.getInterpolatedPeriod(i);
+      const omega = (2 * Math.PI) / Math.max(0.001, period);
+      const phi = this.phaseValues[i] ?? 0;
       this.pendulums.push({ x, omega, phi, period });
+    }
+
+    if (this.pendulums.length === 0) {
+      this.phaseValues = [];
+      return;
+    }
+
+    if (this.phaseValues.length !== this.N) {
+      const wasDirty = this.phasePresetDirty;
+      this.applyPhasePreset({ force: true, preset: this.activePhasePreset, preserveDirty: true });
+      this.phasePresetDirty = wasDirty;
+    } else {
+      this.syncPendulumPhases();
     }
   }
 
