@@ -343,18 +343,30 @@ class PendulumWaveSimulation {
     return a + (b - a) * t;
   }
 
+  getSmoothPeriod(position) {
+    const left = this.periodPoints.left;
+    const center = this.periodPoints.center;
+    const right = this.periodPoints.right;
+
+    if (this.N <= 2) {
+      return this.lerp(left, right, position);
+    }
+
+    const c = left;
+    const b = 4 * (center - left) - (right - left);
+    const a = right - left - b;
+    return a * position * position + b * position + c;
+  }
+
   getInterpolatedPeriod(index) {
     if (this.N <= 1) {
       return this.clampPeriodValue(this.periodPoints.left);
     }
 
-    const position = index / (this.N - 1);
-    if (position <= 0.5) {
-      const ratio = position / 0.5;
-      return this.clampPeriodValue(this.lerp(this.periodPoints.left, this.periodPoints.center, ratio));
-    }
-    const ratio = (position - 0.5) / 0.5;
-    return this.clampPeriodValue(this.lerp(this.periodPoints.center, this.periodPoints.right, ratio));
+    const denominator = Math.max(1, this.N - 1);
+    const position = index / denominator;
+    const smoothPeriod = this.getSmoothPeriod(position);
+    return this.clampPeriodValue(smoothPeriod);
   }
 
   generatePhaseValues(preset = this.activePhasePreset) {
