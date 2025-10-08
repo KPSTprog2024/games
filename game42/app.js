@@ -41,6 +41,13 @@ class PendulumWaveSimulation {
       wave_width: 0.5,
     };
 
+    this.regionConstraints = {
+      minPendulum: 0.2,
+      minStrip: 0.05,
+      minWave: 0.2,
+    };
+    this.regionResizeThreshold = 12;
+
     this.visual = {
       dot_radius: 3,
       line_width: 2,
@@ -85,14 +92,193 @@ class PendulumWaveSimulation {
     this.stripRegionWidth = this.layout.strip_width;
     this.waveRegionWidth = this.layout.wave_width;
 
+    this.dragState = {
+      active: false,
+      boundary: null,
+      pointerId: null,
+      startClientX: 0,
+      initial: null,
+    };
+    this.hoveredBoundary = null;
+
     this.setupCanvas();
     this.setupEventListeners();
+    this.setupRegionResizing();
     document.getElementById('returnTimeValue').textContent = `${this.T_return.toFixed(1)}s`;
-    this.updatePeriodPointsFromReturnTime({ syncUI: true });
+    this.updatePeriodPointsFromReturnTime();
     this.calculatePendulums();
     this.applyPhasePreset({ force: true });
     this.initBuffers();
     this.startAnimation();
+  }
+
+  updateLayoutMetrics() {
+    if (!Number.isFinite(this.canvasWidth) || !Number.isFinite(this.canvasHeight)) {
+      return;
+    }
+
+    const sum = this.pendulumRegionWidth + this.stripRegionWidth + this.waveRegionWidth;
+    if (sum > 0 && Math.abs(sum - 1) > 1e-6) {
+      this.pendulumRegionWidth /= sum;
+      this.stripRegionWidth /= sum;
+      this.waveRegionWidth /= sum;
+    }
+
+    this.stripX = this.canvasWidth * this.pendulumRegionWidth;
+    this.stripWidth = this.canvasWidth * this.stripRegionWidth;
+    this.waveX = this.stripX + this.stripWidth;
+
+    this.calculatePendulums();
+  }
+
+  setupRegionResizing() {
+    if (!this.canvas) return;
+
+    const pointerDown = (event) => {
+      if (event.button !== undefined && event.button !== 0) {
+        return;
+      }
+
+      const rect = this.canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const boundary = this.getBoundaryAtPosition(x);
+      if (!boundary) {
+        return;
+      }
+
+      event.preventDefault();
+
+      this.dragState.active = true;
+      this.dragState.boundary = boundary;
+      this.dragState.pointerId = event.pointerId ?? null;
+      this.dragState.startClientX = event.clientX;
+      this.dragState.initial = {
+        pendulum: this.pendulumRegionWidth,
+        strip: this.stripRegionWidth,
+        wave: this.waveRegionWidth,
+      };
+      this.hoveredBoundary = boundary;
+
+      if (typeof this.canvas.setPointerCapture === 'function' && this.dragState.pointerId !== null) {
+        this.canvas.setPointerCapture(this.dragState.pointerId);
+      }
+
+      this.canvas.style.cursor = 'col-resize';
+    };
+
+    const pointerMove = (event) => {
+      if (this.dragState.active) {
+        event.preventDefault();
+        const deltaPixels = event.clientX - this.dragState.startClientX;
+        const normalizedDelta = deltaPixels / Math.max(1, this.canvasWidth);
+        this.updateRegionWidthsForDrag(normalizedDelta);
+        this.hoveredBoundary = this.dragState.boundary;
+        this.canvas.style.cursor = 'col-resize';
+        return;
+      }
+
+      this.updateCursorForPosition(event.clientX);
+    };
+
+    const endDrag = () => {
+      if (!this.dragState.active) {
+        return;
+      }
+
+      if (typeof this.canvas.releasePointerCapture === 'function' && this.dragState.pointerId !== null) {
+        try {
+          this.canvas.releasePointerCapture(this.dragState.pointerId);
+        } catch (e) {
+          // ignore release errors
+        }
+      }
+
+      this.dragState.active = false;
+      this.dragState.boundary = null;
+      this.dragState.pointerId = null;
+      this.dragState.initial = null;
+      this.hoveredBoundary = null;
+      this.canvas.style.cursor = '';
+    };
+
+    this.canvas.addEventListener('pointerdown', pointerDown);
+    this.canvas.addEventListener('pointermove', pointerMove);
+    this.canvas.addEventListener('pointerleave', () => {
+      if (!this.dragState.active) {
+        this.hoveredBoundary = null;
+        this.canvas.style.cursor = '';
+      }
+    });
+
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+  }
+
+  updateCursorForPosition(clientX) {
+    if (!this.canvas) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const boundary = this.getBoundaryAtPosition(x);
+    this.hoveredBoundary = boundary;
+    this.canvas.style.cursor = boundary ? 'col-resize' : '';
+  }
+
+  getBoundaryAtPosition(x) {
+    if (!Number.isFinite(x)) return null;
+    const boundaries = [
+      { key: 'pendulumStrip', position: this.stripX },
+      { key: 'stripWave', position: this.waveX },
+    ];
+
+    for (const boundary of boundaries) {
+      if (Math.abs(x - boundary.position) <= this.regionResizeThreshold) {
+        return boundary.key;
+      }
+    }
+
+    return null;
+  }
+
+  clampLayoutRatio(value, min, max) {
+    if (!Number.isFinite(value)) return min;
+    if (!Number.isFinite(min)) min = 0;
+    if (!Number.isFinite(max)) max = 1;
+    if (min > max) return min;
+    return Math.min(max, Math.max(min, value));
+  }
+
+  updateRegionWidthsForDrag(delta) {
+    if (!this.dragState.active || !this.dragState.initial) {
+      return;
+    }
+
+    const { boundary, initial } = this.dragState;
+
+    if (boundary === 'pendulumStrip') {
+      const minDelta = this.regionConstraints.minPendulum - initial.pendulum;
+      const maxDelta = initial.strip - this.regionConstraints.minStrip;
+      const clampedDelta = this.clampLayoutRatio(delta, minDelta, maxDelta);
+      const newPendulum = initial.pendulum + clampedDelta;
+      const newStrip = initial.strip - clampedDelta;
+      this.setRegionWidths(newPendulum, newStrip, initial.wave);
+      return;
+    }
+
+    if (boundary === 'stripWave') {
+      const minDelta = this.regionConstraints.minStrip - initial.strip;
+      const maxDelta = initial.wave - this.regionConstraints.minWave;
+      const clampedDelta = this.clampLayoutRatio(delta, minDelta, maxDelta);
+      const newStrip = initial.strip + clampedDelta;
+      const newWave = initial.wave - clampedDelta;
+      this.setRegionWidths(initial.pendulum, newStrip, newWave);
+    }
+  }
+
+  setRegionWidths(pendulum, strip, wave) {
+    this.pendulumRegionWidth = pendulum;
+    this.stripRegionWidth = strip;
+    this.waveRegionWidth = wave;
+    this.updateLayoutMetrics();
   }
 
   setupCanvas() {
@@ -104,15 +290,9 @@ class PendulumWaveSimulation {
       this.canvas.height = this.canvasHeight;
 
       // 領域の境界X座標
-      this.stripX = this.canvasWidth * this.pendulumRegionWidth; // 左→中央の境界
-      this.stripWidth = this.canvasWidth * this.stripRegionWidth; // 中央の幅
-      this.waveX = this.stripX + this.stripWidth; // 中央→右の境界
-
-      // ペンデュラム中心Y
       this.pendulumY = this.canvasHeight * 0.5;
 
-      // レイアウトに合わせてX座標を再計算
-      this.calculatePendulums();
+      this.updateLayoutMetrics();
       // バッファはサンプル数固定のためクリアのみ
       this.initBuffers();
     };
@@ -168,7 +348,7 @@ class PendulumWaveSimulation {
       'returnTimeValue',
       (v) => {
         this.T_return = parseFloat(v);
-        this.updatePeriodPointsFromReturnTime({ syncUI: true });
+        this.updatePeriodPointsFromReturnTime();
         this.calculatePendulums();
       },
       (v) => `${parseFloat(v).toFixed(1)}s`
@@ -204,36 +384,6 @@ class PendulumWaveSimulation {
         this.waveFlowSpeed = parseFloat(v);
       },
       (v) => `${parseFloat(v).toFixed(2)}x`
-    );
-
-    this.setupSlider(
-      'periodLeft',
-      'periodLeftValue',
-      (v) => {
-        this.periodPoints.left = this.clampPeriodValue(parseFloat(v));
-        this.calculatePendulums();
-      },
-      (v) => `${parseFloat(v).toFixed(2)}s`
-    );
-
-    this.setupSlider(
-      'periodCenter',
-      'periodCenterValue',
-      (v) => {
-        this.periodPoints.center = this.clampPeriodValue(parseFloat(v));
-        this.calculatePendulums();
-      },
-      (v) => `${parseFloat(v).toFixed(2)}s`
-    );
-
-    this.setupSlider(
-      'periodRight',
-      'periodRightValue',
-      (v) => {
-        this.periodPoints.right = this.clampPeriodValue(parseFloat(v));
-        this.calculatePendulums();
-      },
-      (v) => `${parseFloat(v).toFixed(2)}s`
     );
 
     // プリセット
@@ -276,17 +426,17 @@ class PendulumWaveSimulation {
     }
   }
 
-  clampPeriodValue(value) {
+  clampPeriodValue(value, options = {}) {
+    const { round = true } = options;
     const { min, max, step } = this.periodSliderLimits;
     if (Number.isNaN(value)) return min;
     const clamped = Math.min(max, Math.max(min, value));
+    if (!round) {
+      return clamped;
+    }
     const normalizedStep = step > 0 ? step : 0.1;
     const rounded = Math.round(clamped / normalizedStep) * normalizedStep;
-    return parseFloat(rounded.toFixed(2));
-  }
-
-  formatPeriod(value) {
-    return `${this.clampPeriodValue(value).toFixed(2)}s`;
+    return parseFloat(rounded.toFixed(4));
   }
 
   formatRateValue(value) {
@@ -297,34 +447,13 @@ class PendulumWaveSimulation {
     return numeric.toFixed(2);
   }
 
-  syncPeriodSliderUI() {
-    const mapping = [
-      ['periodLeft', 'periodLeftValue', this.periodPoints.left],
-      ['periodCenter', 'periodCenterValue', this.periodPoints.center],
-      ['periodRight', 'periodRightValue', this.periodPoints.right],
-    ];
-
-    mapping.forEach(([sliderId, labelId, rawValue]) => {
-      const slider = document.getElementById(sliderId);
-      const label = document.getElementById(labelId);
-      if (!slider || !label) return;
-      const value = this.clampPeriodValue(rawValue);
-      slider.value = value.toFixed(2);
-      label.textContent = this.formatPeriod(value);
-    });
-  }
-
-  setPeriodPoints(points, { syncUI = false } = {}) {
+  setPeriodPoints(points = {}) {
     this.periodPoints.left = this.clampPeriodValue(points.left ?? this.periodPoints.left);
     this.periodPoints.center = this.clampPeriodValue(points.center ?? this.periodPoints.center);
     this.periodPoints.right = this.clampPeriodValue(points.right ?? this.periodPoints.right);
-
-    if (syncUI) {
-      this.syncPeriodSliderUI();
-    }
   }
 
-  updatePeriodPointsFromReturnTime({ syncUI = false } = {}) {
+  updatePeriodPointsFromReturnTime() {
     const count = Math.max(1, this.N);
     const getPeriod = (index) => {
       if (this.T_return > 0) {
@@ -355,7 +484,7 @@ class PendulumWaveSimulation {
       }
     }
 
-    this.setPeriodPoints({ left, center, right }, { syncUI });
+    this.setPeriodPoints({ left, center, right });
   }
 
   lerp(a, b, t) {
@@ -400,16 +529,22 @@ class PendulumWaveSimulation {
 
   getInterpolatedPeriod(index) {
     if (this.N <= 1) {
-      return this.clampPeriodValue(this.periodPoints.left);
+      return this.clampPeriodValue(this.periodPoints.left, { round: false });
     }
 
     const denominator = Math.max(1, this.N - 1);
     const position = index / denominator;
     const smoothPeriod = this.getSmoothPeriod(position);
-    const basePeriod = this.clampPeriodValue(smoothPeriod);
-    const epsilon = 1e-4;
+    const basePeriod = this.clampPeriodValue(smoothPeriod, { round: false });
+    const range = Math.abs(this.periodPoints.right - this.periodPoints.left);
+    const minSpacing = Math.max(range / Math.max(1, this.N * 50), 0.0002);
+    const descending = this.periodPoints.left >= this.periodPoints.right;
     const centeredIndex = index - (this.N - 1) / 2;
-    return this.clampPeriodValue(basePeriod + centeredIndex * epsilon);
+    // `slopeBias` nudges each pendulum away from its neighbours so that
+    // symmetric pairs do not collapse to identical periods while keeping the
+    // overall interpolation close to the anchor-driven curve.
+    const slopeBias = centeredIndex * minSpacing * (descending ? -1 : 1);
+    return this.clampPeriodValue(basePeriod + slopeBias, { round: false });
   }
 
   generatePhaseValues(preset = this.activePhasePreset) {
@@ -514,9 +649,9 @@ class PendulumWaveSimulation {
     }
 
     if (preset.periodPoints) {
-      this.setPeriodPoints(preset.periodPoints, { syncUI: true });
+      this.setPeriodPoints(preset.periodPoints);
     } else {
-      this.updatePeriodPointsFromReturnTime({ syncUI: true });
+      this.updatePeriodPointsFromReturnTime();
     }
 
     this.calculatePendulums();
@@ -724,20 +859,18 @@ class PendulumWaveSimulation {
   }
 
   drawRegionSeparators() {
-    this.ctx.strokeStyle = 'rgba(245,245,245,0.3)';
-    this.ctx.lineWidth = 2;
+    const highlightKey = this.dragState.active ? this.dragState.boundary : this.hoveredBoundary;
+    const drawLine = (x, isHighlighted) => {
+      this.ctx.strokeStyle = isHighlighted ? 'rgba(245,245,245,0.6)' : 'rgba(245,245,245,0.3)';
+      this.ctx.lineWidth = isHighlighted ? 3 : 2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x, this.canvasHeight);
+      this.ctx.stroke();
+    };
 
-    // ペンデュラム領域と中央領域の境界
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.stripX, 0);
-    this.ctx.lineTo(this.stripX, this.canvasHeight);
-    this.ctx.stroke();
-
-    // 中央領域と右領域の境界
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.waveX, 0);
-    this.ctx.lineTo(this.waveX, this.canvasHeight);
-    this.ctx.stroke();
+    drawLine(this.stripX, highlightKey === 'pendulumStrip');
+    drawLine(this.waveX, highlightKey === 'stripWave');
   }
 
   clear() {
