@@ -56,9 +56,11 @@ class CheckerboardApp {
         // 2マス周期の計算
         this.scrollPeriod = this.cellSize * 2; // 市松模様の2マス分の距離
         
+        this.pattern = null;
+
         this.init();
     }
-    
+
     init() {
         this.setupCanvas();
         this.createControls();
@@ -71,9 +73,35 @@ class CheckerboardApp {
         this.canvas.height = this.canvasSize;
         this.canvas.style.width = this.canvasSize + 'px';
         this.canvas.style.height = this.canvasSize + 'px';
-        
+
         // アンチエイリアスを無効にしてピクセルパーフェクトな描画を確保
         this.ctx.imageSmoothingEnabled = false;
+
+        this.createCheckerboardPattern();
+    }
+
+    createCheckerboardPattern() {
+        const patternCanvas = document.createElement('canvas');
+        patternCanvas.width = this.scrollPeriod;
+        patternCanvas.height = this.scrollPeriod;
+
+        const patternCtx = patternCanvas.getContext('2d');
+        patternCtx.imageSmoothingEnabled = false;
+
+        for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 2; col++) {
+                const color = this.getCheckerboardColor(col, row);
+                patternCtx.fillStyle = color;
+                patternCtx.fillRect(
+                    col * this.cellSize,
+                    row * this.cellSize,
+                    this.cellSize,
+                    this.cellSize
+                );
+            }
+        }
+
+        this.pattern = this.ctx.createPattern(patternCanvas, 'repeat');
     }
     
     createControls() {
@@ -144,6 +172,27 @@ class CheckerboardApp {
     
     setDirection(setIndex, direction) {
         this.setDirections[setIndex] = direction;
+
+        const offset = this.setOffsets[setIndex];
+
+        if (!offset) {
+            return;
+        }
+
+        switch (direction) {
+            case 'right':
+            case 'left':
+                offset.y = 0;
+                break;
+            case 'down':
+            case 'up':
+                offset.x = 0;
+                break;
+            case 'none':
+                offset.x = 0;
+                offset.y = 0;
+                break;
+        }
     }
     
     updateControlButtons(setIndex) {
@@ -160,8 +209,11 @@ class CheckerboardApp {
     
     applyPreset(presetIndex) {
         const preset = this.presets[presetIndex];
-        this.setDirections = [...preset.pattern];
-        
+
+        preset.pattern.forEach((direction, index) => {
+            this.setDirection(index, direction);
+        });
+
         // Update all control buttons
         for (let i = 0; i < 16; i++) {
             this.updateControlButtons(i);
@@ -170,6 +222,10 @@ class CheckerboardApp {
     
     stopAll() {
         this.setDirections.fill('none');
+        this.setOffsets.forEach(offset => {
+            offset.x = 0;
+            offset.y = 0;
+        });
         for (let i = 0; i < 16; i++) {
             this.updateControlButtons(i);
         }
@@ -183,78 +239,53 @@ class CheckerboardApp {
         const setIndex = setRow * this.config.setsCount + setCol;
         const direction = this.setDirections[setIndex];
         const offset = this.setOffsets[setIndex];
-        
+
         const setPixelSize = this.cellSize * this.config.setSize;
         const startX = setCol * setPixelSize;
         const startY = setRow * setPixelSize;
-        
+
         // セット領域をクリップ
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.rect(startX, startY, setPixelSize, setPixelSize);
         this.ctx.clip();
-        
-        // 2マス周期でのオフセット計算
-        let drawOffsetX = 0;
-        let drawOffsetY = 0;
-        
+
+        let translateX = 0;
+        let translateY = 0;
+
         switch (direction) {
             case 'right':
-                drawOffsetX = -offset.x;
+                translateX = -offset.x;
                 break;
             case 'left':
-                drawOffsetX = offset.x;
+                translateX = offset.x;
                 break;
             case 'down':
-                drawOffsetY = -offset.y;
+                translateY = -offset.y;
                 break;
             case 'up':
-                drawOffsetY = offset.y;
+                translateY = offset.y;
                 break;
         }
-        
-        // 拡張エリアを描画（シームレスなループのため）
-        const extendSize = Math.ceil(this.scrollPeriod / this.cellSize) + this.config.setSize;
-        
-        for (let row = -extendSize; row < extendSize; row++) {
-            for (let col = -extendSize; col < extendSize; col++) {
-                // 描画位置を計算（ピクセルパーフェクトにするため整数化）
-                const drawX = Math.round(startX + col * this.cellSize + drawOffsetX);
-                const drawY = Math.round(startY + row * this.cellSize + drawOffsetY);
-                
-                // グローバル座標での市松計算（オフセットを考慮）
-                let globalCol = setCol * this.config.setSize + col;
-                let globalRow = setRow * this.config.setSize + row;
-                
-                // 2マス周期のオフセット補正
-                const cellOffsetX = Math.floor(offset.x / this.cellSize);
-                const cellOffsetY = Math.floor(offset.y / this.cellSize);
-                
-                switch (direction) {
-                    case 'right':
-                        globalCol += cellOffsetX;
-                        break;
-                    case 'left':
-                        globalCol -= cellOffsetX;
-                        break;
-                    case 'down':
-                        globalRow += cellOffsetY;
-                        break;
-                    case 'up':
-                        globalRow -= cellOffsetY;
-                        break;
-                }
-                
-                const color = this.getCheckerboardColor(globalCol, globalRow);
-                
-                // セル描画
-                this.ctx.fillStyle = color;
-                this.ctx.fillRect(drawX, drawY, this.cellSize, this.cellSize);
-            }
+
+        this.ctx.save();
+        this.ctx.translate(translateX, translateY);
+
+        if (this.pattern) {
+            const baseOffsetX = startX % this.scrollPeriod;
+            const baseOffsetY = startY % this.scrollPeriod;
+            const fillX = startX - translateX - baseOffsetX - this.scrollPeriod;
+            const fillY = startY - translateY - baseOffsetY - this.scrollPeriod;
+            const fillWidth = setPixelSize + this.scrollPeriod * 3;
+            const fillHeight = setPixelSize + this.scrollPeriod * 3;
+
+            this.ctx.fillStyle = this.pattern;
+            this.ctx.fillRect(fillX, fillY, fillWidth, fillHeight);
         }
-        
+
         this.ctx.restore();
-        
+        this.ctx.restore();
+
         // セット境界線を描画
         this.ctx.strokeStyle = '#888888';
         this.ctx.lineWidth = 1;
@@ -265,31 +296,24 @@ class CheckerboardApp {
     updateScroll(setIndex, direction) {
         const speed = this.animationSpeed;
         const period = this.scrollPeriod; // 2 * this.cellSize
-        
+        const offset = this.setOffsets[setIndex];
+
         switch(direction) {
             case 'right':
-                this.setOffsets[setIndex].x += speed;
-                if (this.setOffsets[setIndex].x >= period) {
-                    this.setOffsets[setIndex].x = 0; // 2マス進んだらリセット
-                }
+                offset.x = (offset.x + speed) % period;
+                offset.y = 0;
                 break;
             case 'left':
-                this.setOffsets[setIndex].x += speed;
-                if (this.setOffsets[setIndex].x >= period) {
-                    this.setOffsets[setIndex].x = 0; // 2マス進んだらリセット
-                }
+                offset.x = (offset.x + speed) % period;
+                offset.y = 0;
                 break;
             case 'down':
-                this.setOffsets[setIndex].y += speed;
-                if (this.setOffsets[setIndex].y >= period) {
-                    this.setOffsets[setIndex].y = 0; // 2マス進んだらリセット
-                }
+                offset.y = (offset.y + speed) % period;
+                offset.x = 0;
                 break;
             case 'up':
-                this.setOffsets[setIndex].y += speed;
-                if (this.setOffsets[setIndex].y >= period) {
-                    this.setOffsets[setIndex].y = 0; // 2マス進んだらリセット
-                }
+                offset.y = (offset.y + speed) % period;
+                offset.x = 0;
                 break;
         }
     }
