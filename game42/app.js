@@ -536,9 +536,15 @@ class PendulumWaveSimulation {
     const position = index / denominator;
     const smoothPeriod = this.getSmoothPeriod(position);
     const basePeriod = this.clampPeriodValue(smoothPeriod, { round: false });
-    const epsilon = 1e-4;
+    const range = Math.abs(this.periodPoints.right - this.periodPoints.left);
+    const minSpacing = Math.max(range / Math.max(1, this.N * 50), 0.0002);
+    const descending = this.periodPoints.left >= this.periodPoints.right;
     const centeredIndex = index - (this.N - 1) / 2;
-    return this.clampPeriodValue(basePeriod + centeredIndex * epsilon, { round: false });
+    // `slopeBias` nudges each pendulum away from its neighbours so that
+    // symmetric pairs do not collapse to identical periods while keeping the
+    // overall interpolation close to the anchor-driven curve.
+    const slopeBias = centeredIndex * minSpacing * (descending ? -1 : 1);
+    return this.clampPeriodValue(basePeriod + slopeBias, { round: false });
   }
 
   generatePhaseValues(preset = this.activePhasePreset) {
