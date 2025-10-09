@@ -290,7 +290,8 @@ class ShapeTrainerApp {
         
         // 動物表示
         document.getElementById('current-animal').textContent = currentProblem.animalEmoji;
-        
+        this.playQuestionSwipe();
+
         // UI リセット
         this.resetUI();
 
@@ -298,6 +299,21 @@ class ShapeTrainerApp {
         if (currentProblem.isBlank) {
             this.startBlankTimer();
         }
+    }
+
+    playQuestionSwipe() {
+        const card = document.querySelector('.question-card');
+        if (!card) return;
+
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            card.classList.remove('question-card--swipe-in');
+            return;
+        }
+
+        card.classList.remove('question-card--swipe-in');
+        // Reflow to restart animation
+        void card.offsetWidth;
+        card.classList.add('question-card--swipe-in');
     }
 
     // UI リセット

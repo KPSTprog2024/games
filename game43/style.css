@@ -1005,7 +1005,7 @@ body {
   top: var(--space-16);
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  margin-bottom: var(--space-20);
+  margin-bottom: 0;
   z-index: 10;
   box-shadow: var(--shadow-lg);
   border: 2px solid var(--color-primary);
@@ -1029,12 +1029,30 @@ body {
   font-size: 1.2rem;
 }
 
+#game-screen .container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-24);
+}
+
+#game-screen .container > * {
+  width: 100%;
+}
+
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-24);
+  gap: var(--space-16);
   padding: 0 var(--space-16);
+}
+
+.progress,
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .progress {
@@ -1055,25 +1073,71 @@ body {
   font-weight: var(--font-weight-medium);
 }
 
+@media (max-width: 600px) {
+  #game-screen .container {
+    gap: var(--space-20);
+  }
+
+  .game-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .progress,
+  .timer {
+    width: 100%;
+  }
+
+  .question-card {
+    min-height: 140px;
+  }
+}
+
 /* 問題エリア */
 .question-area {
-  margin-bottom: var(--space-32);
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-24);
 }
 
 .animal-display {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
-  padding: var(--space-32);
+  padding: var(--space-24);
   box-shadow: var(--shadow-lg);
-  margin: 0 auto;
-  max-width: 400px;
   border: 2px solid var(--color-primary);
+}
+
+.question-card {
+  width: min(320px, 100%);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  position: relative;
+  overflow: hidden;
+}
+
+.question-card--swipe-in {
+  animation: questionSwipe var(--duration-normal) var(--ease-standard);
+}
+
+@keyframes questionSwipe {
+  0% {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .current-animal {
   font-size: 6rem;
   display: block;
-  margin-bottom: var(--space-16);
+  margin: 0;
   animation: animalPulse 2s ease-in-out infinite alternate;
 }
 
@@ -1082,18 +1146,14 @@ body {
   100% { transform: scale(1.05); }
 }
 
-.question-text {
-  font-size: 1.2rem;
-  color: var(--color-text);
-  margin: 0 0 var(--space-8) 0;
-  font-weight: var(--font-weight-medium);
-}
+@media (max-width: 480px) {
+  .question-card {
+    min-height: 120px;
+  }
 
-.hint-text {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-  font-style: italic;
+  .current-animal {
+    font-size: 4.5rem;
+  }
 }
 
 /* 回答エリア */
