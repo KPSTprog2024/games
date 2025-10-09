@@ -179,19 +179,29 @@ class CheckerboardApp {
             return;
         }
 
-        switch (direction) {
-            case 'right':
-            case 'left':
-                offset.y = 0;
-                break;
-            case 'down':
-            case 'up':
-                offset.x = 0;
-                break;
-            case 'none':
-                offset.x = 0;
-                offset.y = 0;
-                break;
+        if (direction === 'none') {
+            offset.x = 0;
+            offset.y = 0;
+            return;
+        }
+
+        const isHorizontal = direction === 'right' || direction === 'left';
+        const activeAxis = isHorizontal ? 'x' : 'y';
+        const inactiveAxis = isHorizontal ? 'y' : 'x';
+
+        // reset the axis that is not used for the new direction
+        offset[inactiveAxis] = 0;
+
+        // Find another set moving in the same direction to synchronize offsets
+        const syncIndex = this.setDirections.findIndex((dir, idx) => idx !== setIndex && dir === direction);
+
+        if (syncIndex !== -1) {
+            const sourceOffset = this.setOffsets[syncIndex];
+            offset.x = sourceOffset.x;
+            offset.y = sourceOffset.y;
+        } else {
+            // keep the current offset on the active axis within the scroll period range
+            offset[activeAxis] = offset[activeAxis] % this.scrollPeriod;
         }
     }
     
