@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>図形指示トレーニング</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- スタート画面 -->
+        <div id="start-screen" class="screen active">
+            <div class="container">
+                <h1 class="app-title">図形指示トレーニング</h1>
+                <p class="app-subtitle">動物と記号の対応を覚えてトレーニングしよう！</p>
+                
+                <div class="difficulty-section">
+                    <h2>難易度を選んでください</h2>
+                    <div class="difficulty-grid">
+                        <button class="difficulty-btn" data-level="1">
+                            <div class="difficulty-name">やさしい</div>
+                            <div class="difficulty-info">動物2個</div>
+                        </button>
+                        <button class="difficulty-btn" data-level="2">
+                            <div class="difficulty-name">ふつう</div>
+                            <div class="difficulty-info">動物3個</div>
+                        </button>
+                        <button class="difficulty-btn" data-level="3">
+                            <div class="difficulty-name">むずかしい</div>
+                            <div class="difficulty-info">動物4個</div>
+                        </button>
+                        <button class="difficulty-btn" data-level="4">
+                            <div class="difficulty-name">とてもむずかしい</div>
+                            <div class="difficulty-info">動物5個</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="correspondence-preview" class="correspondence-preview hidden">
+                    <h3>今回の対応</h3>
+                    <table id="preview-table" class="correspondence-table">
+                        <tr id="preview-animals"></tr>
+                        <tr id="preview-symbols"></tr>
+                    </table>
+                </div>
+
+                <div class="start-actions">
+                    <button id="start-game-btn" class="btn btn--primary btn--large hidden">
+                        <span>🚀</span>
+                        20問スタート！
+                    </button>
+                    <button id="show-records-btn" class="btn btn--secondary">
+                        <span>📊</span>
+                        記録を見る
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <div class="container">
+                <!-- 対応表（常時表示） -->
+                <div class="game-correspondence">
+                    <table id="game-table" class="correspondence-table game-table">
+                        <tr id="game-animals"></tr>
+                        <tr id="game-symbols"></tr>
+                    </table>
+                </div>
+
+                <div class="game-header">
+                    <div class="progress">
+                        <span id="question-number">1</span>/20
+                    </div>
+                    <div id="game-timer" class="timer">0:00</div>
+                </div>
+
+                <div class="question-area">
+                    <div class="animal-display">
+                        <div id="current-animal" class="current-animal">🐬</div>
+                        <p class="question-text">この動物に合うボタンを押してね！</p>
+                        <p class="hint-text">（何もしない場合はそのまま待ってね！）</p>
+                    </div>
+                </div>
+
+                <div class="answer-area">
+                    <div class="answer-buttons">
+                        <button id="circle-btn" class="answer-btn circle-btn" data-answer="○">○</button>
+                        <button id="triangle-btn" class="answer-btn triangle-btn" data-answer="△">△</button>
+                        <button id="cross-btn" class="answer-btn cross-btn" data-answer="×">×</button>
+                    </div>
+                    <div id="blank-timer" class="blank-timer hidden">
+                        <div class="blank-message">何もしない問題です</div>
+                        <div id="blank-countdown" class="blank-countdown">3</div>
+                    </div>
+                </div>
+
+                <div id="feedback" class="feedback"></div>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="results-screen" class="screen">
+            <div class="container">
+                <h2 class="results-title">🎉 お疲れさまでした！</h2>
+                
+                <div class="results-summary">
+                    <div class="score-circle">
+                        <div id="score-percentage" class="score-number">0%</div>
+                        <div class="score-label">正答率</div>
+                    </div>
+                    
+                    <div class="results-stats">
+                        <div class="stat">
+                            <div class="stat-label">総時間</div>
+                            <div id="total-time" class="stat-value">0:00</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">平均時間</div>
+                            <div id="avg-time" class="stat-value">0.0秒</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">正解数</div>
+                            <div id="correct-count" class="stat-value">0/20</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-detail">
+                    <h3>問題別結果</h3>
+                    <div id="problem-results" class="problem-grid"></div>
+                </div>
+
+                <div class="results-actions">
+                    <button id="retry-btn" class="btn btn--secondary">もう一度</button>
+                    <button id="view-records-btn" class="btn btn--outline">記録を見る</button>
+                    <button id="back-to-start-btn" class="btn btn--primary">メニューに戻る</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 記録画面 -->
+        <div id="records-screen" class="screen">
+            <div class="container">
+                <h2 class="records-title">📊 過去の記録</h2>
+                
+                <div id="records-list" class="records-list"></div>
+
+                <div class="records-actions">
+                    <button id="clear-records-btn" class="btn btn--secondary">記録をクリア</button>
+                    <button id="back-from-records-btn" class="btn btn--primary">戻る</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
