@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>市松模様無限スクロール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>市松模様無限スクロール</h1>
+        </header>
+        
+        <main class="main">
+            <div class="canvas-container">
+                <canvas id="checkerboardCanvas" width="360" height="360"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="presets">
+                    <h3>プリセット</h3>
+                    <div class="preset-buttons">
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="0">全停止</button>
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="1">右流れ</button>
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="2">渦巻き</button>
+                        <button class="btn btn--secondary btn--sm preset-btn" data-preset="3">波模様</button>
+                    </div>
+                </div>
+                
+                <div class="set-controls">
+                    <h3>セット制御</h3>
+                    <div class="control-grid">
+                        <!-- セット制御ボタンはJavaScriptで生成 -->
+                    </div>
+                </div>
+                
+                <div class="global-controls">
+                    <button id="stopAllBtn" class="btn btn--primary btn--full-width">全セット停止</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
