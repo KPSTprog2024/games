@@ -58,6 +58,14 @@ class CheckerboardApp {
         
         this.pattern = null;
 
+        this.pointerState = {
+            active: false,
+            pointerId: null,
+            startX: 0,
+            startY: 0,
+            setIndex: null
+        };
+
         this.init();
     }
 
@@ -168,6 +176,148 @@ class CheckerboardApp {
         document.getElementById('stopAllBtn').addEventListener('click', () => {
             this.stopAll();
         });
+
+        this.bindCanvasInteractions();
+    }
+
+    bindCanvasInteractions() {
+        this.canvas.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        this.canvas.addEventListener('pointerup', (event) => this.handlePointerUp(event));
+        this.canvas.addEventListener('pointercancel', () => this.resetPointerState());
+        this.canvas.addEventListener('pointerleave', () => this.resetPointerState());
+    }
+
+    resetPointerState() {
+        if (!this.pointerState.active) {
+            return;
+        }
+
+        if (this.pointerState.pointerId !== null) {
+            try {
+                this.canvas.releasePointerCapture(this.pointerState.pointerId);
+            } catch (e) {
+                // Ignore if releasePointerCapture throws because it was not captured
+            }
+        }
+
+        this.pointerState = {
+            active: false,
+            pointerId: null,
+            startX: 0,
+            startY: 0,
+            setIndex: null
+        };
+    }
+
+    getCanvasCoordinates(event) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+
+        return {
+            x: (event.clientX - rect.left) * scaleX,
+            y: (event.clientY - rect.top) * scaleY
+        };
+    }
+
+    getSetIndexFromCoordinates(x, y) {
+        const setPixelSize = this.cellSize * this.config.setSize;
+        const col = Math.floor(x / setPixelSize);
+        const row = Math.floor(y / setPixelSize);
+
+        if (row < 0 || row >= this.config.setsCount || col < 0 || col >= this.config.setsCount) {
+            return null;
+        }
+
+        return row * this.config.setsCount + col;
+    }
+
+    handlePointerDown(event) {
+        if (event.cancelable) {
+            event.preventDefault();
+        }
+
+        const coords = this.getCanvasCoordinates(event);
+        const setIndex = this.getSetIndexFromCoordinates(coords.x, coords.y);
+
+        if (setIndex === null) {
+            this.resetPointerState();
+            return;
+        }
+
+        this.pointerState = {
+            active: true,
+            pointerId: event.pointerId,
+            startX: coords.x,
+            startY: coords.y,
+            setIndex
+        };
+
+        if (this.canvas.setPointerCapture) {
+            this.canvas.setPointerCapture(event.pointerId);
+        }
+    }
+
+    handlePointerUp(event) {
+        if (!this.pointerState.active) {
+            return;
+        }
+
+        if (event.cancelable) {
+            event.preventDefault();
+        }
+
+        const {startX, startY, setIndex} = this.pointerState;
+        const coords = this.getCanvasCoordinates(event);
+        const deltaX = coords.x - startX;
+        const deltaY = coords.y - startY;
+
+        const threshold = 10; // pixels
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+
+        const setPixelSize = this.cellSize * this.config.setSize;
+        const setStartCol = setIndex % this.config.setsCount;
+        const setStartRow = Math.floor(setIndex / this.config.setsCount);
+        const setStartX = setStartCol * setPixelSize;
+        const setStartY = setStartRow * setPixelSize;
+        const centerX = setStartX + setPixelSize / 2;
+        const centerY = setStartY + setPixelSize / 2;
+        const centerZoneSize = setPixelSize / 3;
+
+        const isTap = absDeltaX < threshold && absDeltaY < threshold;
+        const isInsideCenter =
+            startX >= centerX - centerZoneSize / 2 &&
+            startX <= centerX + centerZoneSize / 2 &&
+            startY >= centerY - centerZoneSize / 2 &&
+            startY <= centerY + centerZoneSize / 2;
+
+        if (isTap && isInsideCenter) {
+            this.setDirection(setIndex, 'none');
+            this.updateControlButtons(setIndex);
+            this.resetPointerState();
+            return;
+        }
+
+        if (absDeltaX < threshold && absDeltaY < threshold) {
+            this.resetPointerState();
+            return;
+        }
+
+        let direction = null;
+
+        if (absDeltaX > absDeltaY) {
+            direction = deltaX > 0 ? 'right' : 'left';
+        } else {
+            direction = deltaY > 0 ? 'down' : 'up';
+        }
+
+        if (direction) {
+            this.setDirection(setIndex, direction);
+            this.updateControlButtons(setIndex);
+        }
+
+        this.resetPointerState();
     }
     
     setDirection(setIndex, direction) {
