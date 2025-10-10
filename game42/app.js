@@ -77,6 +77,7 @@ class PendulumWaveSimulation {
     this.waveFlowAccumulator = 0;
     this.periodSliderLimits = { min: 0.5, max: 12, step: 0.1 };
     this.periodPoints = { left: 6.0, center: 5.2, right: 4.4 };
+    this.periodProfile = [];
     this.phasePreset = 'uniform';
     this.activePhasePreset = 'uniform';
     this.phaseValues = [];
@@ -338,6 +339,9 @@ class PendulumWaveSimulation {
     // スライダー
     this.setupSlider('pendulumCount', 'pendulumCountValue', (v) => {
       this.N = parseInt(v, 10);
+      if (this.T_return > 0) {
+        this.updatePeriodPointsFromReturnTime();
+      }
       this.calculatePendulums();
       this.applyPhasePreset({ force: true, preset: this.activePhasePreset, preserveDirty: true });
       this.initBuffers();
@@ -547,6 +551,21 @@ class PendulumWaveSimulation {
     return this.clampPeriodValue(basePeriod + slopeBias, { round: false });
   }
 
+  getReturnTimePeriod(index) {
+    const baseOrder = 20;
+    const order = baseOrder + index;
+    const normalizedOrder = Math.max(1e-3, order);
+    const period = (this.T_return * baseOrder) / normalizedOrder;
+    return this.clampPeriodValue(period, { round: false });
+  }
+
+  getPendulumPeriod(index) {
+    if (this.T_return > 0) {
+      return this.getReturnTimePeriod(index);
+    }
+    return this.getInterpolatedPeriod(index);
+  }
+
   generatePhaseValues(preset = this.activePhasePreset) {
     const phases = [];
     const total = this.N;
@@ -648,10 +667,10 @@ class PendulumWaveSimulation {
       waveSpeedLabel.textContent = this.formatRateValue(this.waveFlowSpeed);
     }
 
-    if (preset.periodPoints) {
-      this.setPeriodPoints(preset.periodPoints);
-    } else {
+    if (preset.T_return > 0) {
       this.updatePeriodPointsFromReturnTime();
+    } else if (preset.periodPoints) {
+      this.setPeriodPoints(preset.periodPoints);
     }
 
     this.calculatePendulums();
@@ -667,11 +686,14 @@ class PendulumWaveSimulation {
     const usable = Math.max(0, leftWidth - margin * 2);
     const spacing = this.N > 1 ? usable / (this.N - 1) : 0;
 
+    this.periodProfile = new Array(this.N).fill(0);
+
     for (let i = 0; i < this.N; i++) {
       const x = margin + i * spacing;
-      const period = this.getInterpolatedPeriod(i);
+      const period = this.getPendulumPeriod(i);
       const omega = (2 * Math.PI) / Math.max(0.001, period);
       const phi = this.phaseValues[i] ?? 0;
+      this.periodProfile[i] = period;
       this.pendulums.push({ x, omega, phi, period });
     }
 
@@ -794,6 +816,43 @@ class PendulumWaveSimulation {
     }
   }
 
+  drawSmoothWave(buffer, startX, step) {
+    const length = buffer.length;
+    if (length < 2) {
+      return;
+    }
+
+    const points = new Array(length);
+    for (let i = 0; i < length; i++) {
+      points[i] = { x: startX + i * step, y: buffer[i] };
+    }
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(points[0].x, points[0].y);
+
+    if (length === 2) {
+      this.ctx.lineTo(points[1].x, points[1].y);
+      this.ctx.stroke();
+      return;
+    }
+
+    for (let i = 0; i < length - 1; i++) {
+      const p0 = points[i - 1] ?? points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] ?? p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+    }
+
+    this.ctx.stroke();
+  }
+
   // 右エリア：左→右へ流れる波形
   drawWaveforms() {
     const waveStartX = this.waveX;
@@ -819,14 +878,9 @@ class PendulumWaveSimulation {
 
       this.ctx.strokeStyle = this.getColor(i);
       this.ctx.lineWidth = this.visual.line_width;
-      this.ctx.beginPath();
-      for (let idx = 0; idx < buffer.length; idx++) {
-        const x = waveStartX + idx * step;
-        const y = buffer[idx]; // すでにキャンバス座標系のY
-        if (idx === 0) this.ctx.moveTo(x, y);
-        else this.ctx.lineTo(x, y);
-      }
-      this.ctx.stroke();
+      this.ctx.lineJoin = 'round';
+      this.ctx.lineCap = 'round';
+      this.drawSmoothWave(buffer, waveStartX, step);
     }
   }
 
