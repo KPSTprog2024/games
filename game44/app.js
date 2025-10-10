@@ -46,23 +46,17 @@ class CheckerboardApp {
         // Animation state
         this.setDirections = Array(16).fill("none");
         this.setOffsets = Array(16).fill().map(() => ({x: 0, y: 0}));
-        this.animationSpeed = 60; // ピクセル/秒
+        this.animationSpeed = 0.5; // ピクセル/フレーム
         this.animationId = null;
-        this.lastTimestamp = null;
-        this.resizeRafId = null;
-
+        
         // Canvas dimensions
-        this.baseCellSize = 30;
-        this.cellSize = this.baseCellSize;
-        this.canvasSize = this.config.totalSize * this.baseCellSize;
-        this.devicePixelRatio = window.devicePixelRatio || 1;
+        this.cellSize = 30;
+        this.canvasSize = this.config.totalSize * this.cellSize;
         
         // 2マス周期の計算
         this.scrollPeriod = this.cellSize * 2; // 市松模様の2マス分の距離
-
+        
         this.pattern = null;
-
-        this.handleResize = this.handleResize.bind(this);
 
         this.init();
     }
@@ -71,22 +65,27 @@ class CheckerboardApp {
         this.setupCanvas();
         this.createControls();
         this.bindEvents();
-        window.addEventListener('resize', this.handleResize);
         this.startAnimation();
     }
-
+    
     setupCanvas() {
-        this.updateCanvasSize();
+        this.canvas.width = this.canvasSize;
+        this.canvas.height = this.canvasSize;
+        this.canvas.style.width = this.canvasSize + 'px';
+        this.canvas.style.height = this.canvasSize + 'px';
+
+        // アンチエイリアスを無効にしてピクセルパーフェクトな描画を確保
+        this.ctx.imageSmoothingEnabled = false;
+
+        this.createCheckerboardPattern();
     }
 
     createCheckerboardPattern() {
         const patternCanvas = document.createElement('canvas');
-        const patternSize = this.scrollPeriod * this.devicePixelRatio;
-        patternCanvas.width = patternSize;
-        patternCanvas.height = patternSize;
+        patternCanvas.width = this.scrollPeriod;
+        patternCanvas.height = this.scrollPeriod;
 
         const patternCtx = patternCanvas.getContext('2d');
-        patternCtx.setTransform(this.devicePixelRatio, 0, 0, this.devicePixelRatio, 0, 0);
         patternCtx.imageSmoothingEnabled = false;
 
         for (let row = 0; row < 2; row++) {
@@ -155,7 +154,7 @@ class CheckerboardApp {
         
         return setControl;
     }
-
+    
     bindEvents() {
         // Preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -170,67 +169,7 @@ class CheckerboardApp {
             this.stopAll();
         });
     }
-
-    handleResize() {
-        if (this.resizeRafId) {
-            cancelAnimationFrame(this.resizeRafId);
-        }
-
-        this.resizeRafId = requestAnimationFrame(() => {
-            this.resizeRafId = null;
-            this.updateCanvasSize();
-        });
-    }
-
-    updateCanvasSize() {
-        const previousCellSize = this.cellSize;
-        const container = this.canvas.parentElement;
-        const containerStyles = container ? window.getComputedStyle(container) : null;
-        const paddingX = containerStyles ?
-            parseFloat(containerStyles.paddingLeft || '0') + parseFloat(containerStyles.paddingRight || '0') :
-            0;
-        const containerWidth = container ? container.clientWidth - paddingX : this.canvasSize;
-        const maxCanvasSize = this.config.totalSize * this.baseCellSize;
-        const usableWidth = Math.max(1, Math.min(maxCanvasSize, containerWidth || maxCanvasSize));
-
-        let cellSize = Math.floor(usableWidth / this.config.totalSize);
-        if (cellSize < 1) {
-            cellSize = 1;
-        }
-
-        const newCanvasSize = cellSize * this.config.totalSize;
-        this.canvasSize = newCanvasSize;
-        this.cellSize = cellSize;
-        this.scrollPeriod = this.cellSize * 2;
-
-        this.devicePixelRatio = window.devicePixelRatio || 1;
-        const scaledSize = Math.max(1, Math.round(newCanvasSize * this.devicePixelRatio));
-        this.canvas.width = scaledSize;
-        this.canvas.height = scaledSize;
-        this.canvas.style.width = `${newCanvasSize}px`;
-        this.canvas.style.height = `${newCanvasSize}px`;
-
-        this.ctx.setTransform(this.devicePixelRatio, 0, 0, this.devicePixelRatio, 0, 0);
-        this.ctx.imageSmoothingEnabled = false;
-
-        const scaleFactor = previousCellSize ? this.cellSize / previousCellSize : 1;
-        this.setOffsets.forEach(offset => {
-            offset.x = this.wrapOffset(offset.x * scaleFactor);
-            offset.y = this.wrapOffset(offset.y * scaleFactor);
-        });
-
-        this.createCheckerboardPattern();
-        this.draw();
-    }
-
-    wrapOffset(value) {
-        const period = this.scrollPeriod;
-        if (!period) {
-            return 0;
-        }
-        return ((value % period) + period) % period;
-    }
-
+    
     setDirection(setIndex, direction) {
         this.setDirections[setIndex] = direction;
 
@@ -262,7 +201,7 @@ class CheckerboardApp {
             offset.y = sourceOffset.y;
         } else {
             // keep the current offset on the active axis within the scroll period range
-            offset[activeAxis] = this.wrapOffset(offset[activeAxis]);
+            offset[activeAxis] = offset[activeAxis] % this.scrollPeriod;
         }
     }
     
@@ -359,17 +298,13 @@ class CheckerboardApp {
 
         // セット境界線を描画
         this.ctx.strokeStyle = '#888888';
-        this.ctx.lineWidth = 1 / this.devicePixelRatio;
-        this.ctx.strokeRect(startX, startY, setPixelSize, setPixelSize);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(startX + 0.5, startY + 0.5, setPixelSize - 1, setPixelSize - 1);
     }
     
     // 2マス周期の正確な実装
-    updateScroll(setIndex, direction, deltaSeconds) {
-        if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
-            return;
-        }
-
-        const speed = this.animationSpeed * deltaSeconds;
+    updateScroll(setIndex, direction) {
+        const speed = this.animationSpeed;
         const period = this.scrollPeriod; // 2 * this.cellSize
         const offset = this.setOffsets[setIndex];
 
@@ -392,16 +327,16 @@ class CheckerboardApp {
                 break;
         }
     }
-
-    updateAnimation(deltaSeconds) {
+    
+    updateAnimation() {
         for (let i = 0; i < 16; i++) {
             const direction = this.setDirections[i];
             if (direction !== 'none') {
-                this.updateScroll(i, direction, deltaSeconds);
+                this.updateScroll(i, direction);
             }
         }
     }
-
+    
     draw() {
         // Clear canvas
         this.ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
@@ -414,25 +349,17 @@ class CheckerboardApp {
         }
     }
     
-    animate(timestamp) {
-        if (!this.lastTimestamp) {
-            this.lastTimestamp = timestamp;
-        }
-
-        const deltaSeconds = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1);
-        this.lastTimestamp = timestamp;
-
-        this.updateAnimation(deltaSeconds);
+    animate() {
+        this.updateAnimation();
         this.draw();
-        this.animationId = requestAnimationFrame((nextTimestamp) => this.animate(nextTimestamp));
+        this.animationId = requestAnimationFrame(() => this.animate());
     }
-
+    
     startAnimation() {
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
-        this.lastTimestamp = null;
-        this.animationId = requestAnimationFrame((timestamp) => this.animate(timestamp));
+        this.animate();
     }
     
     stopAnimation() {
