@@ -895,6 +895,48 @@ select.form-control {
   border: 1px solid var(--color-border);
 }
 
+.speed-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+.speed-control__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+}
+
+.speed-control__header label {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.speed-control__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-control__unit {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.speed-value {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.speed-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
 /* Mobile optimization for iPhone portrait */
 @media (max-width: 480px) {
   .main {

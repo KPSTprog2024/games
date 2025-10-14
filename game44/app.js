@@ -48,7 +48,10 @@ class CheckerboardApp {
         this.setOffsets = Array(16).fill().map(() => ({x: 0, y: 0}));
         this.animationSpeed = 0.5; // ピクセル/フレーム
         this.animationId = null;
-        
+        this.speedSlider = null;
+        this.speedValueDisplay = null;
+        this.stopAllBtn = null;
+
         // Canvas dimensions
         this.cellSize = 30;
         this.canvasSize = this.config.totalSize * this.cellSize;
@@ -72,10 +75,12 @@ class CheckerboardApp {
     init() {
         this.setupCanvas();
         this.createControls();
+        this.cacheDomElements();
+        this.initializeSpeedControl();
         this.bindEvents();
         this.startAnimation();
     }
-    
+
     setupCanvas() {
         this.canvas.width = this.canvasSize;
         this.canvas.height = this.canvasSize;
@@ -162,7 +167,37 @@ class CheckerboardApp {
         
         return setControl;
     }
-    
+
+    cacheDomElements() {
+        this.speedSlider = document.getElementById('speedRange');
+        this.speedValueDisplay = document.getElementById('speedValue');
+        this.stopAllBtn = document.getElementById('stopAllBtn');
+    }
+
+    initializeSpeedControl() {
+        if (!this.speedSlider) {
+            this.updateSpeedDisplay(this.animationSpeed);
+            return;
+        }
+
+        const initialSpeed = parseFloat(this.speedSlider.value);
+
+        if (Number.isNaN(initialSpeed)) {
+            this.speedSlider.value = this.animationSpeed;
+            this.updateSpeedDisplay(this.animationSpeed);
+            return;
+        }
+
+        this.animationSpeed = initialSpeed;
+        this.updateSpeedDisplay(initialSpeed);
+    }
+
+    updateSpeedDisplay(speed) {
+        if (this.speedValueDisplay) {
+            this.speedValueDisplay.textContent = speed.toFixed(2);
+        }
+    }
+
     bindEvents() {
         // Preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -171,11 +206,26 @@ class CheckerboardApp {
                 this.applyPreset(presetIndex);
             });
         });
-        
+
         // Stop all button
-        document.getElementById('stopAllBtn').addEventListener('click', () => {
-            this.stopAll();
-        });
+        if (this.stopAllBtn) {
+            this.stopAllBtn.addEventListener('click', () => {
+                this.stopAll();
+            });
+        }
+
+        if (this.speedSlider) {
+            this.speedSlider.addEventListener('input', (event) => {
+                const newSpeed = parseFloat(event.target.value);
+
+                if (Number.isNaN(newSpeed)) {
+                    return;
+                }
+
+                this.animationSpeed = newSpeed;
+                this.updateSpeedDisplay(newSpeed);
+            });
+        }
 
         this.bindCanvasInteractions();
     }
