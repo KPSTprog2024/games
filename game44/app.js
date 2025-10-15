@@ -232,6 +232,7 @@ class CheckerboardApp {
 
     bindCanvasInteractions() {
         this.canvas.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        this.canvas.addEventListener('pointermove', (event) => this.handlePointerMove(event));
         this.canvas.addEventListener('pointerup', (event) => this.handlePointerUp(event));
         this.canvas.addEventListener('pointercancel', () => this.resetPointerState());
         this.canvas.addEventListener('pointerleave', () => this.resetPointerState());
@@ -305,6 +306,16 @@ class CheckerboardApp {
 
         if (this.canvas.setPointerCapture) {
             this.canvas.setPointerCapture(event.pointerId);
+        }
+    }
+
+    handlePointerMove(event) {
+        if (!this.pointerState.active || this.pointerState.pointerId !== event.pointerId) {
+            return;
+        }
+
+        if (event.cancelable) {
+            event.preventDefault();
         }
     }
 
