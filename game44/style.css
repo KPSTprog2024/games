@@ -771,6 +771,8 @@ select.form-control {
   border: 2px solid var(--color-border);
   border-radius: var(--radius-base);
   box-shadow: var(--shadow-md);
+  -ms-touch-action: none;
+  touch-action: none;
 }
 
 .controls {
