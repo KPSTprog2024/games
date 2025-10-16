@@ -715,8 +715,31 @@ class PendulumWaveSimulation {
     // 各振り子用の波形バッファを初期化
     this.waveBuffers = new Array(this.N)
       .fill(null)
-      .map(() => []);
+      .map(() => this.createWaveBuffer());
     this.waveFlowAccumulator = 0;
+  }
+
+  createWaveBuffer() {
+    const capacity = this.buffers.max_wave_samples;
+    return {
+      samples: new Float32Array(capacity),
+      capacity,
+      length: 0,
+      offset: 0,
+    };
+  }
+
+  pushWaveSample(buffer, value) {
+    if (!buffer) {
+      return;
+    }
+
+    const { capacity } = buffer;
+    buffer.offset = (buffer.offset - 1 + capacity) % capacity;
+    buffer.samples[buffer.offset] = value;
+    if (buffer.length < capacity) {
+      buffer.length += 1;
+    }
   }
 
   startAnimation() {
@@ -802,29 +825,33 @@ class PendulumWaveSimulation {
     for (let i = 0; i < this.N; i++) {
       const p = this.pendulums[i];
       if (!p) continue;
-      if (!this.waveBuffers[i]) this.waveBuffers[i] = [];
+
+      if (!this.waveBuffers[i]) {
+        this.waveBuffers[i] = this.createWaveBuffer();
+      }
       const buffer = this.waveBuffers[i];
 
       for (const sampleTime of sampleTimes) {
         const currentY = baseY + this.amplitude * Math.cos(p.omega * sampleTime + p.phi);
-        buffer.unshift(currentY);
-      }
-
-      while (buffer.length > this.buffers.max_wave_samples) {
-        buffer.pop();
+        this.pushWaveSample(buffer, currentY);
       }
     }
   }
 
   drawSmoothWave(buffer, startX, step) {
-    const length = buffer.length;
+    if (!buffer) {
+      return;
+    }
+
+    const { samples, length, capacity, offset } = buffer;
     if (length < 2) {
       return;
     }
 
     const points = new Array(length);
     for (let i = 0; i < length; i++) {
-      points[i] = { x: startX + i * step, y: buffer[i] };
+      const sampleIndex = (offset + i) % capacity;
+      points[i] = { x: startX + i * step, y: samples[sampleIndex] };
     }
 
     this.ctx.beginPath();
@@ -873,8 +900,8 @@ class PendulumWaveSimulation {
 
     // 各振り子の個別波形
     for (let i = 0; i < this.N; i++) {
-      const buffer = this.waveBuffers[i] || [];
-      if (buffer.length === 0) continue;
+      const buffer = this.waveBuffers[i];
+      if (!buffer || buffer.length === 0) continue;
 
       this.ctx.strokeStyle = this.getColor(i);
       this.ctx.lineWidth = this.visual.line_width;
