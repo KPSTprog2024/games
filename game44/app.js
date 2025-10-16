@@ -476,16 +476,16 @@ class CheckerboardApp {
 
         switch (direction) {
             case 'right':
-                translateX = -offset.x;
-                break;
-            case 'left':
                 translateX = offset.x;
                 break;
+            case 'left':
+                translateX = -offset.x;
+                break;
             case 'down':
-                translateY = -offset.y;
+                translateY = offset.y;
                 break;
             case 'up':
-                translateY = offset.y;
+                translateY = -offset.y;
                 break;
         }
 
