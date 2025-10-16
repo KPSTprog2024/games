@@ -51,6 +51,13 @@ class CheckerboardApp {
         this.speedSlider = null;
         this.speedValueDisplay = null;
         this.stopAllBtn = null;
+        this.displayModeBtn = null;
+        this.displayOverlay = null;
+        this.displayGrid = null;
+        this.isDisplayMode = false;
+        this.mirrorCanvases = [];
+        this.handleWindowResize = this.handleWindowResize.bind(this);
+        this.handleDisplayKeyDown = this.handleDisplayKeyDown.bind(this);
 
         // Canvas dimensions
         this.cellSize = 30;
@@ -78,6 +85,7 @@ class CheckerboardApp {
         this.cacheDomElements();
         this.initializeSpeedControl();
         this.bindEvents();
+        this.initializeDisplayMode();
         this.startAnimation();
     }
 
@@ -172,6 +180,9 @@ class CheckerboardApp {
         this.speedSlider = document.getElementById('speedRange');
         this.speedValueDisplay = document.getElementById('speedValue');
         this.stopAllBtn = document.getElementById('stopAllBtn');
+        this.displayModeBtn = document.getElementById('displayModeBtn');
+        this.displayOverlay = document.getElementById('displayOverlay');
+        this.displayGrid = document.querySelector('.display-overlay__grid');
     }
 
     initializeSpeedControl() {
@@ -196,6 +207,133 @@ class CheckerboardApp {
         if (this.speedValueDisplay) {
             this.speedValueDisplay.textContent = speed.toFixed(2);
         }
+    }
+
+    initializeDisplayMode() {
+        if (!this.displayOverlay) {
+            return;
+        }
+
+        window.addEventListener('resize', this.handleWindowResize);
+    }
+
+    handleWindowResize() {
+        if (!this.isDisplayMode) {
+            return;
+        }
+
+        this.updateMirrorCanvases();
+        this.syncMirrorCanvases();
+    }
+
+    handleDisplayKeyDown(event) {
+        if (!this.isDisplayMode) {
+            return;
+        }
+
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            event.preventDefault();
+            this.exitDisplayMode();
+        }
+    }
+
+    enterDisplayMode() {
+        if (!this.displayOverlay || !this.displayGrid) {
+            return;
+        }
+
+        if (this.isDisplayMode) {
+            return;
+        }
+
+        this.isDisplayMode = true;
+        document.body.classList.add('display-mode');
+        this.displayOverlay.removeAttribute('hidden');
+
+        this.updateMirrorCanvases();
+        this.syncMirrorCanvases();
+    }
+
+    exitDisplayMode() {
+        if (!this.isDisplayMode) {
+            return;
+        }
+
+        this.isDisplayMode = false;
+        document.body.classList.remove('display-mode');
+
+        if (this.displayOverlay) {
+            this.displayOverlay.setAttribute('hidden', '');
+        }
+
+        this.clearMirrorCanvases();
+    }
+
+    updateMirrorCanvases() {
+        if (!this.displayGrid) {
+            return;
+        }
+
+        this.clearMirrorCanvases();
+
+        const canvasWidth = this.canvas.width;
+        const canvasHeight = this.canvas.height;
+
+        if (!canvasWidth || !canvasHeight) {
+            return;
+        }
+
+        let columns = Math.max(1, Math.ceil(window.innerWidth / canvasWidth) + 2);
+        let rows = Math.max(1, Math.ceil(window.innerHeight / canvasHeight) + 2);
+
+        if (columns % 2 === 0) {
+            columns += 1;
+        }
+
+        if (rows % 2 === 0) {
+            rows += 1;
+        }
+
+        this.displayGrid.style.gridTemplateColumns = `repeat(${columns}, ${canvasWidth}px)`;
+        this.displayGrid.style.gridAutoRows = `${canvasHeight}px`;
+
+        const totalCanvases = columns * rows;
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 0; i < totalCanvases; i++) {
+            const mirrorCanvas = document.createElement('canvas');
+            mirrorCanvas.width = canvasWidth;
+            mirrorCanvas.height = canvasHeight;
+            mirrorCanvas.className = 'mirror-canvas';
+            mirrorCanvas.style.width = `${canvasWidth}px`;
+            mirrorCanvas.style.height = `${canvasHeight}px`;
+
+            const mirrorCtx = mirrorCanvas.getContext('2d');
+            mirrorCtx.imageSmoothingEnabled = false;
+
+            this.mirrorCanvases.push({canvas: mirrorCanvas, ctx: mirrorCtx});
+            fragment.appendChild(mirrorCanvas);
+        }
+
+        this.displayGrid.appendChild(fragment);
+    }
+
+    clearMirrorCanvases() {
+        if (this.displayGrid) {
+            this.displayGrid.innerHTML = '';
+        }
+        this.mirrorCanvases = [];
+    }
+
+    syncMirrorCanvases() {
+        if (!this.isDisplayMode || this.mirrorCanvases.length === 0) {
+            return;
+        }
+
+        this.mirrorCanvases.forEach(({ctx, canvas}) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(this.canvas, 0, 0);
+        });
     }
 
     bindEvents() {
@@ -228,6 +366,22 @@ class CheckerboardApp {
         }
 
         this.bindCanvasInteractions();
+
+        if (this.displayModeBtn) {
+            this.displayModeBtn.addEventListener('click', () => {
+                this.enterDisplayMode();
+            });
+        }
+
+        if (this.displayOverlay) {
+            this.displayOverlay.addEventListener('pointerdown', () => {
+                if (this.isDisplayMode) {
+                    this.exitDisplayMode();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', this.handleDisplayKeyDown);
     }
 
     bindCanvasInteractions() {
@@ -557,6 +711,10 @@ class CheckerboardApp {
             for (let setCol = 0; setCol < this.config.setsCount; setCol++) {
                 this.drawSet(setRow, setCol);
             }
+        }
+
+        if (this.isDisplayMode) {
+            this.syncMirrorCanvases();
         }
     }
     

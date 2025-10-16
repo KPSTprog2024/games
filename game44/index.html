@@ -10,6 +10,9 @@
     <div class="container">
         <header class="header">
             <h1>市松模様無限スクロール</h1>
+            <button id="displayModeBtn" class="icon-button" type="button" aria-label="展示モード" title="展示モード">
+                <span aria-hidden="true">🖼️</span>
+            </button>
         </header>
         
         <main class="main">
@@ -50,6 +53,11 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="displayOverlay" class="display-overlay" hidden>
+        <div class="display-overlay__hint">タップまたはクリックで制御画面に戻ります</div>
+        <div class="display-overlay__grid" aria-hidden="true"></div>
     </div>
 
     <script src="app.js"></script>
