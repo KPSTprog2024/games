@@ -739,16 +739,52 @@ select.form-control {
 
 /* END PERPLEXITY DESIGN SYSTEM */
 .header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-12);
   padding: var(--space-16);
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-surface);
+  flex-wrap: wrap;
 }
 
 .header h1 {
   font-size: var(--font-size-2xl);
   margin: 0;
   color: var(--color-text);
+  flex: 1 1 auto;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-2xl);
+  cursor: pointer;
+  transition: background-color var(--duration-normal) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.icon-button:hover {
+  background-color: var(--color-secondary);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+  background-color: var(--color-secondary-active);
+}
+
+.icon-button span {
+  pointer-events: none;
 }
 
 .main {
@@ -865,6 +901,52 @@ select.form-control {
   border-color: var(--color-primary);
 }
 
+body.display-mode {
+  overflow: hidden;
+}
+
+body.display-mode .container {
+  display: none;
+}
+
+.display-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  z-index: 100;
+  cursor: pointer;
+}
+
+body.display-mode .display-overlay {
+  display: flex;
+  flex-direction: column;
+}
+
+.display-overlay__grid {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  gap: 0;
+}
+
+.display-overlay__hint {
+  padding: var(--space-12);
+  text-align: center;
+  font-size: var(--font-size-md);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.mirror-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
 .direction-btn--up {
   grid-column: 2;
   grid-row: 1;
@@ -948,7 +1030,13 @@ select.form-control {
   .canvas-container {
     padding: var(--space-8);
   }
-  
+
+  .icon-button {
+    width: 38px;
+    height: 38px;
+    font-size: var(--font-size-xl);
+  }
+
   #checkerboardCanvas {
     width: 100%;
     max-width: 320px;
