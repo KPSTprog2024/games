@@ -36,13 +36,11 @@ class ShapeTrainerApp {
 
         // 難易度設定
         this.difficulties = [
-            {"level": 1, "name": "やさしい", "animalCount": 2, "blankRate": 0.1},
-            {"level": 2, "name": "ふつう", "animalCount": 3, "blankRate": 0.15},
-            {"level": 3, "name": "むずかしい", "animalCount": 4, "blankRate": 0.2},
-            {"level": 4, "name": "とてもむずかしい", "animalCount": 5, "blankRate": 0.25}
+            {"level": 1, "name": "やさしい", "animalCount": 2, "blankRate": 0, "symbols": ["○", "△", "×"]},
+            {"level": 2, "name": "ふつう", "animalCount": 3, "blankRate": 0, "symbols": ["○", "△", "×"]},
+            {"level": 3, "name": "むずかしい", "animalCount": 4, "blankRate": 0, "symbols": ["○", "△", "×", "□"]},
+            {"level": 4, "name": "とてもむずかしい", "animalCount": 5, "blankRate": 0, "symbols": ["○", "△", "×", "□", "⭐︎"]}
         ];
-
-        this.symbols = ["○", "△", "×", "ブランク"];
 
         // ゲーム状態
         this.gameState = {
@@ -132,8 +130,8 @@ class ShapeTrainerApp {
     // 記号割り当て
     assignSymbols() {
         this.gameState.animalSymbolMap = {};
-        const availableSymbols = this.symbols.slice(0, this.selectedDifficulty.animalCount);
-        const shuffledSymbols = availableSymbols.sort(() => Math.random() - 0.5);
+        const symbolsForLevel = this.selectedDifficulty.symbols.slice(0, this.selectedDifficulty.animalCount);
+        const shuffledSymbols = symbolsForLevel.sort(() => Math.random() - 0.5);
 
         this.gameState.selectedAnimals.forEach((animal, index) => {
             this.gameState.animalSymbolMap[animal.id] = shuffledSymbols[index];
@@ -222,18 +220,30 @@ class ShapeTrainerApp {
     renderCorrespondenceTable(animalsRowId, symbolsRowId) {
         const animalsRow = document.getElementById(animalsRowId);
         const symbolsRow = document.getElementById(symbolsRowId);
-        
+
         animalsRow.innerHTML = '';
         symbolsRow.innerHTML = '';
 
-        this.gameState.selectedAnimals.forEach(animal => {
+        const symbolOrder = this.selectedDifficulty ? this.selectedDifficulty.symbols : [];
+        const sortedAnimals = [...this.gameState.selectedAnimals].sort((a, b) => {
+            const symbolA = this.gameState.animalSymbolMap[a.id];
+            const symbolB = this.gameState.animalSymbolMap[b.id];
+            const indexA = symbolOrder.indexOf(symbolA);
+            const indexB = symbolOrder.indexOf(symbolB);
+
+            const safeIndexA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+            const safeIndexB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+            return safeIndexA - safeIndexB;
+        });
+
+        sortedAnimals.forEach(animal => {
             const symbol = this.gameState.animalSymbolMap[animal.id];
-            
+
             const animalCell = document.createElement('td');
             animalCell.textContent = animal.emoji;
             animalCell.title = animal.name;
             animalsRow.appendChild(animalCell);
-            
+
             const symbolCell = document.createElement('td');
             symbolCell.textContent = symbol === 'ブランク' ? '何もしない' : symbol;
             symbolCell.title = symbol;
@@ -243,6 +253,20 @@ class ShapeTrainerApp {
 
     showStartButton() {
         document.getElementById('start-game-btn').classList.remove('hidden');
+    }
+
+    updateAnswerButtonsVisibility() {
+        if (!this.selectedDifficulty) return;
+
+        const availableSymbols = this.selectedDifficulty.symbols;
+        document.querySelectorAll('.answer-btn').forEach(btn => {
+            const symbol = btn.dataset.answer;
+            if (availableSymbols.includes(symbol)) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        });
     }
 
     // ゲーム開始
@@ -255,8 +279,9 @@ class ShapeTrainerApp {
         this.gameState.currentQuestionIndex = 0;
         this.gameState.gameStartTime = Date.now();
         this.isProcessingAnswer = false;
-        
+
         this.showScreen('game');
+        this.updateAnswerButtonsVisibility();
         this.renderCorrespondenceTable('game-animals', 'game-symbols');
         this.startGameTimer();
         this.showNextQuestion();
