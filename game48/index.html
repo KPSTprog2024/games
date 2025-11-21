@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>つみき数あてゲーム</title>
+    <style>
+        :root {
+            --color-bg-primary: #fcfcf9;
+            --color-bg-secondary: #fffffe;
+            --color-text-primary: #134252;
+            --color-text-secondary: #626c71;
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-primary-active: #1a6873;
+            --color-secondary: rgba(94, 82, 64, 0.12);
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-success: #21808d;
+            --color-error: #c0152f;
+            --color-white: #fff;
+            --color-black: #1f2121;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Orientation Guide */
+        .orientation-guide {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--color-bg-primary);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .orientation-guide.show {
+            display: flex;
+        }
+
+        .rotate-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: rotate 2s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+
+        .orientation-guide h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        /* Main Container */
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Screen Base */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Top Section (10-15%) */
+        .top-section {
+            height: 12%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            background: var(--color-bg-secondary);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .question-text {
+            font-size: clamp(16px, 2.5vw, 24px);
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        /* Middle Section (55-65%) */
+        .middle-section {
+            height: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Bottom Section (20-30%) */
+        .bottom-section {
+            height: 28%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 20px;
+            background: var(--color-bg-secondary);
+            border-top: 2px solid var(--color-border);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            font-size: clamp(14px, 2vw, 18px);
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 120px;
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .btn-large {
+            padding: 16px 32px;
+            font-size: clamp(16px, 2.5vw, 22px);
+            min-height: 60px;
+        }
+
+        /* Start Screen */
+        .logo {
+            font-size: clamp(28px, 5vw, 40px);
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: var(--color-primary);
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Mode Selection */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .mode-card {
+            background: var(--color-white);
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-card:active {
+            transform: scale(0.95);
+            background: var(--color-secondary);
+        }
+
+        .mode-card h3 {
+            font-size: clamp(14px, 2vw, 18px);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .mode-card p {
+            font-size: clamp(11px, 1.5vw, 14px);
+            color: var(--color-text-secondary);
+            text-align: center;
+        }
+
+        /* Difficulty Selection */
+        .difficulty-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            max-width: 250px;
+        }
+
+        /* Number Buttons */
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 15px;
+        }
+
+        .number-btn {
+            aspect-ratio: 1;
+            font-size: clamp(16px, 2.5vw, 22px);
+            font-weight: 700;
+            border: 2px solid var(--color-border);
+            background: var(--color-white);
+            color: var(--color-text-primary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 44px;
+        }
+
+        .number-btn.selected {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-color: var(--color-primary);
+        }
+
+        .number-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Comparison Buttons */
+        .comparison-buttons {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .comparison-btn {
+            flex: 1;
+            min-height: 70px;
+            font-size: clamp(16px, 2.5vw, 24px);
+        }
+
+        /* 3D Canvas */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-split {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-half {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Result Screen */
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-text {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 8px 16px;
+            font-size: 14px;
+            min-width: auto;
+            background: var(--color-secondary);
+            color: var(--color-text-primary);
+        }
+
+        /* Progress Info */
+        .progress-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: var(--color-text-secondary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Orientation Guide -->
+    <div class="orientation-guide" id="orientationGuide">
+        <div class="rotate-icon">📱→🔄</div>
+        <h2>よこむきに してね！</h2>
+        <p>デバイスを よこに まわしてください</p>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <!-- Start Screen -->
+        <div class="screen active" id="startScreen">
+            <div class="middle-section" style="height: 100%;">
+                <div style="text-align: center;">
+                    <div class="logo">🧱 つみき数あて</div>
+                    <div class="menu-buttons">
+                        <button class="btn btn-primary btn-large" onclick="startRandom()">ランダムであそぶ</button>
+                        <button class="btn btn-primary btn-large" onclick="showModeSelect()">モードをえらぶ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode Selection Screen -->
+        <div class="screen" id="modeSelectScreen">
+            <button class="back-btn btn" onclick="showStart()">← もどる</button>
+            <div class="top-section">
+                <h2 class="question-text">モードを えらんでね</h2>
+            </div>
+            <div class="middle-section">
+                <div class="mode-grid">
+                    <div class="mode-card" onclick="selectMode('A1')">
+                        <h3>みえるぶんだけ かぞえる</h3>
+                        <p>かんたん カウント</p>
+                    </div>
+                    <div class="mode-card" onclick="selectMode('A2')">
+                        <h3>かくれてる ぶんも かぞえる</h3>
+                        <p>すいり カウント</p>
+                    </div>
+                    <div class="mode-card" onclick="selectMode('C1')">
+                        <h3>しろだけ かぞえる</h3>
+                        <p>いろ ルール</p>
+                    </div>
+                    <div class="mode-card" onclick="selectMode('C2')">
+                        <h3>くろだけ かぞえる</h3>
+                        <p>いろ ルール</p>
+                    </div>
+                    <div class="mode-card" onclick="selectMode('B1')">
+                        <h3>ひだり と みぎ どっち？</h3>
+                        <p>くらべる もんだい</p>
+                    </div>
+                    <div class="mode-card" onclick="selectMode('D3')">
+                        <h3>ずを みて つくる</h3>
+                        <p>ずけい すいり</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-section"></div>
+        </div>
+
+        <!-- Difficulty Selection Screen -->
+        <div class="screen" id="difficultyScreen">
+            <button class="back-btn btn" onclick="showModeSelect()">← もどる</button>
+            <div class="top-section">
+                <h2 class="question-text">むずかしさを えらんでね</h2>
+            </div>
+            <div class="middle-section">
+                <div class="difficulty-buttons">
+                    <button class="btn btn-primary btn-large difficulty-btn" onclick="startGame(1)">Lv.1<br>やさしい</button>
+                    <button class="btn btn-primary btn-large difficulty-btn" onclick="startGame(2)">Lv.2<br>ふつう</button>
+                    <button class="btn btn-primary btn-large difficulty-btn" onclick="startGame(3)">Lv.3<br>むずかしい</button>
+                </div>
+            </div>
+            <div class="bottom-section"></div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="screen" id="questionScreen">
+            <button class="back-btn btn" onclick="showStart()">← やめる</button>
+            <div class="progress-info" id="progressInfo">1 / 5</div>
+            <div class="top-section">
+                <h2 class="question-text" id="questionText">つみきは ぜんぶで なんこ かな？</h2>
+            </div>
+            <div class="middle-section" id="questionMiddle">
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="mainCanvas"></canvas>
+                </div>
+            </div>
+            <div class="bottom-section" id="questionBottom">
+                <div class="number-grid" id="numberGrid"></div>
+                <button class="btn btn-primary btn-large" onclick="submitAnswer()">こたえを きめる</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="screen" id="resultScreen">
+            <div class="middle-section" style="height: 100%;">
+                <div style="text-align: center;">
+                    <div class="result-icon" id="resultIcon">🎉</div>
+                    <div class="result-text" id="resultText">せいかい！</div>
+                    <div class="result-buttons">
+                        <button class="btn btn-primary btn-large" onclick="nextQuestion()">つぎへ</button>
+                        <button class="btn btn-secondary btn-large" onclick="showStart()">ホームへ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let currentMode = null;
+        let currentDifficulty = 1;
+        let currentQuestion = 0;
+        let totalQuestions = 5;
+        let score = 0;
+        let selectedAnswer = null;
+        let correctAnswer = 0;
+        let currentBlocks = [];
+        let isRandomMode = false;
+
+        // Check orientation
+        function checkOrientation() {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            const guide = document.getElementById('orientationGuide');
+            const app = document.getElementById('appContainer');
+            
+            if (isPortrait) {
+                guide.classList.add('show');
+                app.style.display = 'none';
+            } else {
+                guide.classList.remove('show');
+                app.style.display = 'flex';
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        checkOrientation();
+
+        // Screen Management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showStart() {
+            showScreen('startScreen');
+            currentMode = null;
+            currentQuestion = 0;
+            score = 0;
+        }
+
+        function showModeSelect() {
+            isRandomMode = false;
+            showScreen('modeSelectScreen');
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            showScreen('difficultyScreen');
+        }
+
+        function startRandom() {
+            isRandomMode = true;
+            currentDifficulty = Math.floor(Math.random() * 3) + 1;
+            const modes = ['A1', 'A2', 'C1', 'C2', 'B1', 'D3'];
+            currentMode = modes[Math.floor(Math.random() * modes.length)];
+            startGame(currentDifficulty);
+        }
+
+        function startGame(difficulty) {
+            currentDifficulty = difficulty;
+            currentQuestion = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            currentQuestion++;
+            selectedAnswer = null;
+            
+            if (isRandomMode) {
+                const modes = ['A1', 'A2', 'C1', 'C2', 'B1', 'D3'];
+                currentMode = modes[Math.floor(Math.random() * modes.length)];
+                currentDifficulty = Math.floor(Math.random() * 3) + 1;
+            }
+            
+            document.getElementById('progressInfo').textContent = `${currentQuestion} / ${totalQuestions}`;
+            
+            // Generate question based on mode
+            generateQuestion();
+            
+            // Setup UI based on mode
+            setupQuestionUI();
+            
+            showScreen('questionScreen');
+        }
+
+        function generateQuestion() {
+            currentBlocks = [];
+            const range = getDifficultyRange();
+            
+            if (currentMode === 'A1') {
+                // Visible only
+                generateVisibleBlocks(range.min, range.max, false);
+                correctAnswer = currentBlocks.length;
+            } else if (currentMode === 'A2') {
+                // With hidden blocks
+                generateVisibleBlocks(range.min, range.max, true);
+                correctAnswer = currentBlocks.length;
+            } else if (currentMode === 'C1') {
+                // White only
+                generateColoredBlocks(range.minWhite, range.maxWhite, range.minBlack, range.maxBlack);
+                correctAnswer = currentBlocks.filter(b => b.color === 'white').length;
+            } else if (currentMode === 'C2') {
+                // Black only
+                generateColoredBlocks(range.minWhite, range.maxWhite, range.minBlack, range.maxBlack);
+                correctAnswer = currentBlocks.filter(b => b.color === 'black').length;
+            } else if (currentMode === 'B1') {
+                // Comparison
+                generateComparisonBlocks(range.min, range.max);
+            } else if (currentMode === 'D3') {
+                // Top and side view
+                generateFromViews(range.min, range.max);
+            }
+        }
+
+        function getDifficultyRange() {
+            const ranges = {
+                1: { min: 3, max: 5, minWhite: 2, maxWhite: 3, minBlack: 1, maxBlack: 2 },
+                2: { min: 6, max: 8, minWhite: 4, maxWhite: 6, minBlack: 2, maxBlack: 3 },
+                3: { min: 8, max: 10, minWhite: 6, maxWhite: 8, minBlack: 3, maxBlack: 5 }
+            };
+            return ranges[currentDifficulty];
+        }
+
+        function generateVisibleBlocks(min, max, includeHidden) {
+            const count = Math.floor(Math.random() * (max - min + 1)) + min;
+            const gridSize = 4;
+            
+            for (let i = 0; i < count; i++) {
+                const x = Math.floor(Math.random() * gridSize);
+                const z = Math.floor(Math.random() * gridSize);
+                const y = Math.floor(Math.random() * 2);
+                
+                const exists = currentBlocks.some(b => b.x === x && b.y === y && b.z === z);
+                if (!exists) {
+                    currentBlocks.push({
+                        x, y, z,
+                        color: 'white',
+                        visible: includeHidden ? (Math.random() > 0.3) : true
+                    });
+                }
+            }
+        }
+
+        function generateColoredBlocks(minWhite, maxWhite, minBlack, maxBlack) {
+            const whiteCount = Math.floor(Math.random() * (maxWhite - minWhite + 1)) + minWhite;
+            const blackCount = Math.floor(Math.random() * (maxBlack - minBlack + 1)) + minBlack;
+            const gridSize = 4;
+            
+            for (let i = 0; i < whiteCount + blackCount; i++) {
+                const x = Math.floor(Math.random() * gridSize);
+                const z = Math.floor(Math.random() * gridSize);
+                const y = Math.floor(Math.random() * 2);
+                
+                const exists = currentBlocks.some(b => b.x === x && b.y === y && b.z === z);
+                if (!exists) {
+                    currentBlocks.push({
+                        x, y, z,
+                        color: i < whiteCount ? 'white' : 'black',
+                        visible: true
+                    });
+                }
+            }
+        }
+
+        function generateComparisonBlocks(min, max) {
+            currentBlocks = [];
+            const leftCount = Math.floor(Math.random() * (max - min + 1)) + min;
+            const diff = Math.floor(Math.random() * 3) + 1;
+            const rightCount = Math.random() > 0.5 ? leftCount + diff : Math.max(min, leftCount - diff);
+            
+            // Left blocks
+            for (let i = 0; i < leftCount; i++) {
+                currentBlocks.push({
+                    x: Math.floor(Math.random() * 3),
+                    y: Math.floor(Math.random() * 2),
+                    z: Math.floor(Math.random() * 3),
+                    color: 'white',
+                    side: 'left'
+                });
+            }
+            
+            // Right blocks
+            for (let i = 0; i < rightCount; i++) {
+                currentBlocks.push({
+                    x: Math.floor(Math.random() * 3),
+                    y: Math.floor(Math.random() * 2),
+                    z: Math.floor(Math.random() * 3),
+                    color: 'white',
+                    side: 'right'
+                });
+            }
+            
+            correctAnswer = leftCount > rightCount ? 'left' : 'right';
+        }
+
+        function generateFromViews(min, max) {
+            const count = Math.floor(Math.random() * (max - min + 1)) + min;
+            const gridSize = 3;
+            
+            for (let i = 0; i < count; i++) {
+                const x = Math.floor(Math.random() * gridSize);
+                const z = Math.floor(Math.random() * gridSize);
+                const y = Math.floor(Math.random() * 2);
+                
+                const exists = currentBlocks.some(b => b.x === x && b.y === y && b.z === z);
+                if (!exists) {
+                    currentBlocks.push({ x, y, z, color: 'white' });
+                }
+            }
+            
+            correctAnswer = currentBlocks.length;
+        }
+
+        function setupQuestionUI() {
+            const questionText = document.getElementById('questionText');
+            const questionBottom = document.getElementById('questionBottom');
+            const questionMiddle = document.getElementById('questionMiddle');
+            
+            // Set question text
+            const texts = {
+                'A1': 'つみきは ぜんぶで なんこ かな？',
+                'A2': 'かくれてる つみきも いれて なんこ かな？',
+                'C1': 'しろい つみきは なんこ かな？',
+                'C2': 'くろい つみきは なんこ かな？',
+                'B1': 'つみきが おおいのは どっちかな？',
+                'D3': 'うえと よこから みたとき、つみきは なんこ かな？'
+            };
+            questionText.textContent = texts[currentMode];
+            
+            // Setup bottom section
+            if (currentMode === 'B1') {
+                questionBottom.innerHTML = `
+                    <div class="comparison-buttons">
+                        <button class="btn btn-primary comparison-btn" onclick="selectComparison('left')">ひだり が おおい</button>
+                        <button class="btn btn-primary comparison-btn" onclick="selectComparison('right')">みぎ が おおい</button>
+                    </div>
+                `;
+            } else {
+                const maxNum = currentDifficulty === 1 ? 8 : currentDifficulty === 2 ? 12 : 15;
+                let html = '<div class="number-grid">';
+                for (let i = 1; i <= maxNum; i++) {
+                    html += `<button class="number-btn" onclick="selectNumber(${i})">${i}</button>`;
+                }
+                html += '</div><button class="btn btn-primary btn-large" onclick="submitAnswer()">こたえを きめる</button>';
+                questionBottom.innerHTML = html;
+            }
+            
+            // Setup middle section
+            if (currentMode === 'B1') {
+                questionMiddle.innerHTML = `
+                    <div class="canvas-split">
+                        <div class="canvas-half"><canvas id="leftCanvas"></canvas></div>
+                        <div class="canvas-half"><canvas id="rightCanvas"></canvas></div>
+                    </div>
+                `;
+                drawComparisonBlocks();
+            } else if (currentMode === 'D3') {
+                questionMiddle.innerHTML = `
+                    <div class="canvas-split">
+                        <div class="canvas-half">
+                            <canvas id="topCanvas"></canvas>
+                            <div style="text-align:center;margin-top:10px;font-size:14px;">うえから</div>
+                        </div>
+                        <div class="canvas-half">
+                            <canvas id="sideCanvas"></canvas>
+                            <div style="text-align:center;margin-top:10px;font-size:14px;">よこから</div>
+                        </div>
+                    </div>
+                `;
+                drawTopAndSideViews();
+            } else {
+                questionMiddle.innerHTML = '<div class="canvas-container"><canvas id="mainCanvas"></canvas></div>';
+                drawBlocks();
+            }
+        }
+
+        function selectNumber(num) {
+            selectedAnswer = num;
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.textContent) === num) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function selectComparison(side) {
+            selectedAnswer = side;
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null) {
+                alert('こたえを えらんでね！');
+                return;
+            }
+            
+            const isCorrect = selectedAnswer === correctAnswer;
+            if (isCorrect) score++;
+            
+            showResult(isCorrect);
+        }
+
+        function showResult(isCorrect) {
+            const icon = document.getElementById('resultIcon');
+            const text = document.getElementById('resultText');
+            
+            if (isCorrect) {
+                icon.textContent = '🎉';
+                text.textContent = 'せいかい！';
+                text.style.color = 'var(--color-success)';
+            } else {
+                icon.textContent = '😢';
+                text.textContent = `ざんねん！こたえは ${correctAnswer} だよ`;
+                text.style.color = 'var(--color-error)';
+            }
+            
+            showScreen('resultScreen');
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < totalQuestions) {
+                loadQuestion();
+            } else {
+                alert(`ゲーム おわり！\n${score} / ${totalQuestions} せいかい！`);
+                showStart();
+            }
+        }
+
+        // Drawing functions
+        function drawBlocks() {
+            const canvas = document.getElementById('mainCanvas');
+            const ctx = canvas.getContext('2d');
+            const size = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.5);
+            canvas.width = size;
+            canvas.height = size;
+            
+            const blockSize = size / 8;
+            const offsetX = size / 2;
+            const offsetY = size / 2.5;
+            
+            ctx.clearRect(0, 0, size, size);
+            
+            // Sort blocks for proper rendering
+            const sorted = [...currentBlocks].sort((a, b) => {
+                return (b.z + b.y + b.x) - (a.z + a.y + a.x);
+            });
+            
+            sorted.forEach(block => {
+                if (block.visible === false) return;
+                
+                const isoX = (block.x - block.z) * blockSize * 0.866;
+                const isoY = (block.x + block.z) * blockSize * 0.5 - block.y * blockSize;
+                
+                drawIsometricCube(ctx, offsetX + isoX, offsetY + isoY, blockSize, block.color);
+            });
+        }
+
+        function drawComparisonBlocks() {
+            ['left', 'right'].forEach(side => {
+                const canvas = document.getElementById(`${side}Canvas`);
+                const ctx = canvas.getContext('2d');
+                const size = Math.min(window.innerWidth * 0.25, window.innerHeight * 0.5);
+                canvas.width = size;
+                canvas.height = size;
+                
+                const blockSize = size / 6;
+                const offsetX = size / 2;
+                const offsetY = size / 2.5;
+                
+                ctx.clearRect(0, 0, size, size);
+                
+                const blocks = currentBlocks.filter(b => b.side === side);
+                const sorted = [...blocks].sort((a, b) => {
+                    return (b.z + b.y + b.x) - (a.z + a.y + a.x);
+                });
+                
+                sorted.forEach(block => {
+                    const isoX = (block.x - block.z) * blockSize * 0.866;
+                    const isoY = (block.x + block.z) * blockSize * 0.5 - block.y * blockSize;
+                    drawIsometricCube(ctx, offsetX + isoX, offsetY + isoY, blockSize, block.color);
+                });
+            });
+        }
+
+        function drawTopAndSideViews() {
+            // Top view
+            const topCanvas = document.getElementById('topCanvas');
+            const topCtx = topCanvas.getContext('2d');
+            const size = Math.min(window.innerWidth * 0.25, window.innerHeight * 0.5);
+            topCanvas.width = size;
+            topCanvas.height = size;
+            
+            const gridSize = 3;
+            const cellSize = size / (gridSize + 1);
+            const offsetX = cellSize / 2;
+            const offsetY = cellSize / 2;
+            
+            topCtx.clearRect(0, 0, size, size);
+            
+            // Draw grid
+            for (let x = 0; x < gridSize; x++) {
+                for (let z = 0; z < gridSize; z++) {
+                    const hasBlock = currentBlocks.some(b => b.x === x && b.z === z);
+                    topCtx.fillStyle = hasBlock ? '#21808d' : '#f5f5f5';
+                    topCtx.fillRect(offsetX + x * cellSize, offsetY + z * cellSize, cellSize - 2, cellSize - 2);
+                    topCtx.strokeStyle = '#626c71';
+                    topCtx.strokeRect(offsetX + x * cellSize, offsetY + z * cellSize, cellSize - 2, cellSize - 2);
+                }
+            }
+            
+            // Side view
+            const sideCanvas = document.getElementById('sideCanvas');
+            const sideCtx = sideCanvas.getContext('2d');
+            sideCanvas.width = size;
+            sideCanvas.height = size;
+            
+            sideCtx.clearRect(0, 0, size, size);
+            
+            const maxY = Math.max(...currentBlocks.map(b => b.y), 0) + 1;
+            const cellHeight = size / (maxY + 2);
+            
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < maxY + 1; y++) {
+                    const hasBlock = currentBlocks.some(b => b.x === x && b.y === y);
+                    sideCtx.fillStyle = hasBlock ? '#21808d' : '#f5f5f5';
+                    sideCtx.fillRect(offsetX + x * cellSize, size - offsetY - (y + 1) * cellHeight, cellSize - 2, cellHeight - 2);
+                    sideCtx.strokeStyle = '#626c71';
+                    sideCtx.strokeRect(offsetX + x * cellSize, size - offsetY - (y + 1) * cellHeight, cellSize - 2, cellHeight - 2);
+                }
+            }
+        }
+
+        function drawIsometricCube(ctx, x, y, size, color) {
+            const w = size * 0.866;
+            const h = size * 0.5;
+            
+            // Top face
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x, y + h * 2);
+            ctx.lineTo(x - w, y + h);
+            ctx.closePath();
+            ctx.fillStyle = color === 'black' ? '#1f2121' : '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#626c71';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            // Left face
+            ctx.beginPath();
+            ctx.moveTo(x, y + h * 2);
+            ctx.lineTo(x - w, y + h);
+            ctx.lineTo(x - w, y + h + size);
+            ctx.lineTo(x, y + h * 2 + size);
+            ctx.closePath();
+            ctx.fillStyle = color === 'black' ? '#0a0a0a' : '#e0e0e0';
+            ctx.fill();
+            ctx.stroke();
+            
+            // Right face
+            ctx.beginPath();
+            ctx.moveTo(x, y + h * 2);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x + w, y + h + size);
+            ctx.lineTo(x, y + h * 2 + size);
+            ctx.closePath();
+            ctx.fillStyle = color === 'black' ? '#141414' : '#f0f0f0';
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // Initialize
+        checkOrientation();
+    </script>
+</body>
+</html>
+
