@@ -279,7 +279,8 @@ function generateDenseLayout(count, width, height, baseSize) {
     const positions = [];
     const centerX = width / 2;
     const centerY = height / 2;
-    const clusterRadius = Math.min(width, height) * 0.35;
+    const baseClusterRadius = Math.min(width, height) * 0.35;
+    let currentClusterRadius = baseClusterRadius;
     const minDistance = 45; // 記号サイズ30px × 2 の半径 + 15px マージン
     let attempts = 0;
     const maxAttempts = 100 * count; // 各記号に100回の試行を許可
@@ -293,12 +294,12 @@ function generateDenseLayout(count, width, height, baseSize) {
             attempts = 0;
             resetCount++;
             // リセット時はクラスター範囲を広げる
-            const expandedRadius = clusterRadius * (1 + resetCount * 0.2);
+            currentClusterRadius = baseClusterRadius * (1 + resetCount * 0.2);
             continue;
         }
 
         const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * clusterRadius * (1 + resetCount * 0.2);
+        const radius = Math.random() * currentClusterRadius;
         const x = centerX + Math.cos(angle) * radius - baseSize / 2;
         const y = centerY + Math.sin(angle) * radius - baseSize / 2;
         const size = baseSize;
