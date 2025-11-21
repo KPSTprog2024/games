@@ -111,6 +111,12 @@
       color: #777;
     }
 
+    .history-empty {
+      color: #888;
+      font-size: 0.85rem;
+      margin: 2px 0 10px;
+    }
+
     .bottom-space {
       margin-top: auto;
       font-size: 0.75rem;
@@ -147,6 +153,11 @@
       <button id="plus10">+10秒</button>
       <button id="plus30">+30秒</button>
     </div>
+
+    <!-- 履歴 -->
+    <div class="section-title">履歴</div>
+    <div class="button-row" id="historyList"></div>
+    <div class="history-empty" id="historyEmpty">履歴はまだありません</div>
 
     <!-- 操作ボタン -->
     <div class="section-title">操作</div>
@@ -203,6 +214,14 @@
     const btnStartPause = document.getElementById("startPause");
     const btnReset = document.getElementById("reset");
     const btnSoundToggle = document.getElementById("soundToggle");
+
+    const historyList = document.getElementById("historyList");
+    const historyEmpty = document.getElementById("historyEmpty");
+
+    // 履歴管理
+    const HISTORY_KEY = "simpleTimerHistory";
+    const HISTORY_LIMIT = 5;
+    let historyData = loadHistory();
 
     // ===== オーディオ準備（Web Audio API） =====
     let audioContext = null;
@@ -301,6 +320,63 @@
       updateSoundButton();
     }
 
+    // ===== 履歴管理 =====
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter((v) => typeof v === "number" && v > 0);
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(historyData));
+      } catch (_) {
+        // 保存できない場合は黙ってスキップ
+      }
+    }
+
+    function formatHistoryLabel(seconds) {
+      if (seconds < 60) {
+        return `${seconds}秒`;
+      }
+      const minutes = Math.floor(seconds / 60);
+      const rest = seconds % 60;
+      if (rest === 0) {
+        return `${minutes}分`;
+      }
+      return `${minutes}分${rest}秒`;
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!historyData.length) {
+        historyEmpty.style.display = "block";
+        return;
+      }
+      historyEmpty.style.display = "none";
+      historyData.forEach((sec) => {
+        const btn = document.createElement("button");
+        btn.textContent = formatHistoryLabel(sec);
+        btn.addEventListener("click", () => setBaseDurationSeconds(sec));
+        historyList.appendChild(btn);
+      });
+    }
+
+    function pushHistory(seconds) {
+      if (seconds <= 0) return;
+      historyData = historyData.filter((v) => v !== seconds);
+      historyData.unshift(seconds);
+      historyData = historyData.slice(0, HISTORY_LIMIT);
+      saveHistory();
+      renderHistory();
+    }
+
     // ===== タイマー制御 =====
     function stopTimerInterval() {
       if (timerId !== null) {
@@ -316,6 +392,7 @@
       baseDuration = Math.max(0, sec);
       remainingSeconds = baseDuration;
       resetBeepFlags();
+      pushHistory(baseDuration);
       updateAllDisplay();
     }
 
@@ -331,6 +408,7 @@
       remainingSeconds = newBase;
       state = State.IDLE;
       resetBeepFlags();
+      pushHistory(newBase);
       updateAllDisplay();
     }
 
@@ -456,6 +534,7 @@
     });
 
     // 初期表示
+    renderHistory();
     updateAllDisplay();
   </script>
 </body>
