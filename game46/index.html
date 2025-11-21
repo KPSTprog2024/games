@@ -831,13 +831,35 @@
       displayRecords();
     }
 
-    // In-memory storage
+    // Storage
+    const STORAGE_KEYS = {
+      records: 'stroopTestRecords',
+      session: 'stroopTestCurrentSessionId'
+    };
+
     let stroopTestRecords = [];
     let currentSessionId = null;
     let helpModalSeen = false;
 
+    function loadRecordsFromStorage() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.records);
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.error('Failed to load records', e);
+        return [];
+      }
+    }
+
+    function persistRecords() {
+      localStorage.setItem(STORAGE_KEYS.records, JSON.stringify(stroopTestRecords));
+    }
+
     function saveRecordToStorage(record) {
-      stroopTestRecords.unshift(record); // Add to beginning
+      stroopTestRecords = [record, ...stroopTestRecords];
+      persistRecords();
     }
 
     function getRecords() {
@@ -846,10 +868,15 @@
 
     function saveCurrentSessionId(sessionId) {
       currentSessionId = sessionId;
+      localStorage.setItem(STORAGE_KEYS.session, sessionId);
     }
 
     function getCurrentSessionId() {
-      return currentSessionId;
+      if (currentSessionId) return currentSessionId;
+
+      const stored = localStorage.getItem(STORAGE_KEYS.session);
+      currentSessionId = stored;
+      return stored;
     }
 
     function findStep1InSession(sessionId) {
@@ -986,8 +1013,10 @@
 
     // Initialize app
     window.addEventListener('DOMContentLoaded', () => {
+      stroopTestRecords = loadRecordsFromStorage();
+      currentSessionId = getCurrentSessionId();
       displayRecords();
-      
+
       // Show help modal on first visit (in this session)
       if (!helpModalSeen) {
         openHelp();
