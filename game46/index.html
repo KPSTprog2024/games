@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ストループテスト</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      padding-bottom: 40px;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      background-color: #fff;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 100;
+      position: relative;
+    }
+
+    .btn-help {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #3498db;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 0;
+      min-width: 40px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      z-index: 101;
+    }
+
+    .btn-help:hover {
+      background-color: #2980b9;
+      transform: scale(1.1);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 12px;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .modal-content h2 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .modal-content h3 {
+      color: #3498db;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+
+    .modal-content h4 {
+      color: #2c3e50;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .modal-content p, .modal-content li {
+      line-height: 1.8;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .modal-content ul {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .modal-content hr {
+      margin: 20px 0;
+      border: none;
+      border-top: 2px solid #ecf0f1;
+    }
+
+    .modal-content strong {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .btn-close-modal {
+      width: 100%;
+      margin-top: 24px;
+      background-color: #27ae60;
+      color: white;
+      font-size: 18px;
+      padding: 16px;
+    }
+
+    .btn-close-modal:hover {
+      background-color: #229954;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 16px;
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #e74c3c;
+      margin-bottom: 16px;
+      min-height: 40px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-height: 44px;
+      min-width: 120px;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-step {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .btn-step:hover:not(:disabled) {
+      background-color: #2980b9;
+      transform: translateY(-2px);
+    }
+
+    .btn-stop {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-stop:hover:not(:disabled) {
+      background-color: #c0392b;
+    }
+
+    .main {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px auto;
+      max-width: min(90vw, 420px);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 2px;
+      background-color: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .grid-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1;
+      aspect-ratio: 1;
+    }
+
+    .grid-cell.text {
+      border-radius: 4px;
+      padding: 4px;
+    }
+
+    .helper-text {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #7f8c8d;
+      text-align: center;
+    }
+
+    .input-section {
+      background-color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin: 20px 0;
+    }
+
+    .input-section.hidden {
+      display: none;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      max-width: 200px;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .btn-save {
+      background-color: #27ae60;
+      color: white;
+      width: 100%;
+    }
+
+    .btn-save:hover:not(:disabled) {
+      background-color: #229954;
+    }
+
+    .records-section {
+      background-color: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin: 20px 0;
+    }
+
+    .records-section h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+
+    .record-item {
+      padding: 16px;
+      border-left: 4px solid #3498db;
+      background-color: #f8f9fa;
+      margin-bottom: 12px;
+      border-radius: 4px;
+    }
+
+    .record-date {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+    }
+
+    .record-info {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .record-interference {
+      font-size: 14px;
+      color: #e74c3c;
+      margin-top: 4px;
+    }
+
+    .btn-export {
+      background-color: #9b59b6;
+      color: white;
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .btn-export:hover:not(:disabled) {
+      background-color: #8e44ad;
+    }
+
+    .empty-records {
+      text-align: center;
+      color: #95a5a6;
+      padding: 40px 20px;
+    }
+
+    /* Responsive grid sizes - portrait and landscape */
+    /* Base mobile portrait (< 480px) */
+    @media (max-width: 479px) and (orientation: portrait) {
+      .grid-container {
+        max-width: min(90vw, 420px);
+      }
+      .grid {
+        padding: 16px;
+      }
+      .grid-cell {
+        font-size: 14px;
+      }
+    }
+
+    /* Tablet portrait (480px - 768px) */
+    @media (min-width: 480px) and (max-width: 767px) and (orientation: portrait) {
+      .grid-container {
+        max-width: min(85vw, 500px);
+      }
+      .grid {
+        padding: 20px;
+      }
+      .grid-cell {
+        font-size: 16px;
+      }
+    }
+
+    /* Desktop portrait (>= 768px) */
+    @media (min-width: 768px) and (orientation: portrait) {
+      .grid-container {
+        max-width: 540px;
+      }
+      .grid {
+        padding: 20px;
+      }
+      .grid-cell {
+        font-size: 16px;
+      }
+    }
+
+    /* Landscape mode - all sizes */
+    @media (orientation: landscape) {
+      .grid-container {
+        max-width: min(65vw, 700px);
+      }
+      .grid {
+        padding: 20px;
+      }
+      .grid-cell {
+        font-size: 16px;
+      }
+    }
+
+    /* Landscape with larger screens */
+    @media (min-width: 768px) and (orientation: landscape) {
+      .grid-container {
+        max-width: 700px;
+      }
+      .grid-cell {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <button class="btn-help" onclick="openHelp()" title="使い方を見る">?</button>
+    <h1>ストループテスト</h1>
+    <div class="timer" id="timer"></div>
+    <div class="controls">
+      <button class="btn-step" id="btnStep1" onclick="startTest(1)">▶ Step 1</button>
+      <button class="btn-step" id="btnStep2" onclick="startTest(2)">▶ Step 2</button>
+      <button class="btn-stop" id="btnStop" onclick="stopTest()" disabled>■ 停止</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="grid-container" id="gridContainer"></div>
+
+    <div class="input-section hidden" id="inputSection">
+      <div class="input-group">
+        <label for="scoreInput">正答数を入力してください:</label>
+        <div class="input-wrapper">
+          <input type="number" id="scoreInput" min="0" max="100" placeholder="0">
+          <span>個</span>
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+      <button class="btn-save" id="btnSave" onclick="saveRecord()">💾 記録する</button>
+    </div>
+
+    <div class="records-section">
+      <h2>過去の記録</h2>
+      <div id="recordsList"></div>
+      <button class="btn-export" onclick="exportCSV()">⬇️ CSV出力</button>
+    </div>
+  </main>
+
+  <!-- Help Modal -->
+  <div id="helpModal" class="modal-overlay hidden" onclick="closeHelpIfClickedOutside(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h2>ストループテスト</h2>
+      <p style="font-size: 18px; color: #7f8c8d; margin-bottom: 20px;">遊びながら脳を鍛えよう！</p>
+      
+      <h3>ストループテストとは？</h3>
+      <p>色を読むことで脳の<strong>「抑制力」</strong>を測定する心理テストです。</p>
+      <p><strong>抑制力</strong>とは、間違った答えを我慢して、正しい答えを選ぶ力のこと。この力が強いほど、集中力や自制心が高いと言われています。</p>
+      
+      <hr>
+      
+      <h3>遊び方</h3>
+      
+      <h4>Step 1: 色の丸を読もう</h4>
+      <ul>
+        <li>「▶ Step 1」ボタンを押す</li>
+        <li>画面に色のついた丸が100個表示されます</li>
+        <li><strong>左上から右下へ順番に</strong>、丸の色を声に出して読みます</li>
+        <li>20秒間でできるだけたくさん読みます</li>
+        <li>保護者の方が正しく読めた数を入力してください</li>
+      </ul>
+      
+      <h4>Step 2: 文字の色を読もう</h4>
+      <ul>
+        <li>「▶ Step 2」ボタンを押す</li>
+        <li>画面に色の名前の文字が表示されます</li>
+        <li><strong>文字の意味ではなく、文字の色</strong>を声に出して読みます</li>
+        <li>例:「あか」という文字が青色なら →「あお」と読む</li>
+        <li>20秒間でできるだけたくさん読みます</li>
+      </ul>
+      
+      <hr>
+      
+      <h3>このテストで何がわかるの？</h3>
+      <p><strong>Step 1の結果</strong> → 純粋な色の認識スピード</p>
+      <p><strong>Step 2の結果</strong> → 間違った答えを我慢して正しい答えを選ぶ力</p>
+      <p><strong>干渉度</strong> → Step 1とStep 2から計算される数値。低いほど抑制力が高い</p>
+      
+      <hr>
+      
+      <h3>うまく読むコツ</h3>
+      <ul>
+        <li>✅ 焦らず、一つずつ確実に</li>
+        <li>✅ 読み間違えたら、すぐに次へ</li>
+        <li>✅ Step 2では「文字を読まない」ことを意識</li>
+        <li>✅ 毎日練習すると上達します！</li>
+      </ul>
+      
+      <hr>
+      
+      <h3>保護者の方へ</h3>
+      <ul>
+        <li>結果を比較するのではなく、成長を見守りましょう</li>
+        <li>楽しくできることが一番大切です</li>
+        <li>お子様のペースで無理なく</li>
+        <li>記録を残すと、成長がわかってモチベーションアップ！</li>
+      </ul>
+      
+      <hr>
+      
+      <h3>対象年齢</h3>
+      <p><strong>おすすめ: 小学生以上</strong></p>
+      <ul>
+        <li>ひらがなが読めるお子様</li>
+        <li>色の名前がわかるお子様</li>
+      </ul>
+      
+      <hr>
+      
+      <h3>ご注意</h3>
+      <p>このテストは遊びや学習目的のものです。医療診断目的では使用できません。</p>
+      
+      <button class="btn-close-modal" onclick="closeHelp()">わかった！始める</button>
+    </div>
+  </div>
+
+  <script>
+    // Color definitions
+    const COLORS = {
+      red: { hex: '#E74C3C', name: 'あか' },
+      blue: { hex: '#3498DB', name: 'あお' },
+      yellow: { hex: '#F39C12', name: 'きいろ' },
+      green: { hex: '#27AE60', name: 'みどり' }
+    };
+
+    const COLOR_ARRAY = ['#E74C3C', '#3498DB', '#F39C12', '#27AE60'];
+    const TEXT_ARRAY = ['あか', 'あお', 'きいろ', 'みどり'];
+    
+    const TEXT_COLOR_MAP = {
+      'あか': ['#3498DB', '#F39C12', '#27AE60'],
+      'あお': ['#E74C3C', '#F39C12', '#27AE60'],
+      'きいろ': ['#E74C3C', '#3498DB', '#27AE60'],
+      'みどり': ['#E74C3C', '#3498DB', '#F39C12']
+    };
+
+    const TEST_DURATION = 20;
+    const GRID_SIZE = 10;
+
+    // State management
+    let state = {
+      status: 'idle', // idle, running, finished
+      currentStep: null,
+      currentSessionId: null,
+      timeRemaining: TEST_DURATION,
+      timerInterval: null
+    };
+
+    // UUID v4 generator
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // Get random element from array
+    function randomChoice(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    // Calculate cell size based on container
+    function calculateCellSize() {
+      const gridContainer = document.querySelector('.grid-container');
+      if (!gridContainer) return 36;
+      
+      const containerWidth = gridContainer.clientWidth;
+      const padding = 32; // Left + right padding (16px * 2)
+      const gapSize = 2;
+      const numGaps = 9; // 10 columns = 9 gaps
+      const totalGapWidth = numGaps * gapSize;
+      const availableWidth = containerWidth - padding - totalGapWidth;
+      const cellSize = Math.floor(availableWidth / 10);
+      
+      // Clamp between reasonable min/max
+      return Math.max(28, Math.min(cellSize, 70));
+    }
+
+    // Get font size based on orientation and screen size
+    function getFontSize() {
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const width = window.innerWidth;
+      
+      if (isLandscape) {
+        return width > 768 ? 16 : 14;
+      } else {
+        if (width < 480) return 12;
+        if (width < 768) return 13;
+        return 14;
+      }
+    }
+
+    // Generate Step 1 grid (colored dots)
+    function generateStep1Grid() {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      const cellSize = calculateCellSize();
+      const circleSize = Math.floor(cellSize * 0.85);
+      
+      for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.style.width = cellSize + 'px';
+        cell.style.height = cellSize + 'px';
+        
+        // Create circle inside cell
+        const circle = document.createElement('div');
+        circle.style.width = circleSize + 'px';
+        circle.style.height = circleSize + 'px';
+        circle.style.borderRadius = '50%';
+        const color = randomChoice(COLOR_ARRAY);
+        circle.style.backgroundColor = color;
+        
+        cell.appendChild(circle);
+        grid.appendChild(cell);
+      }
+      
+      return grid;
+    }
+
+    // Generate Step 2 grid (color words with mismatched colors)
+    function generateStep2Grid() {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      const cellSize = calculateCellSize();
+      const fontSize = getFontSize();
+      
+      for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell text';
+        cell.style.width = cellSize + 'px';
+        cell.style.height = cellSize + 'px';
+        cell.style.fontSize = fontSize + 'px';
+        
+        const text = randomChoice(TEXT_ARRAY);
+        const allowedColors = TEXT_COLOR_MAP[text];
+        const color = randomChoice(allowedColors);
+        cell.textContent = text;
+        cell.style.color = color;
+        grid.appendChild(cell);
+      }
+      
+      return grid;
+    }
+
+    // Start test
+    function startTest(step) {
+      // Generate or reuse sessionId
+      if (step === 1) {
+        state.currentSessionId = generateUUID();
+        saveCurrentSessionId(state.currentSessionId);
+      } else if (step === 2) {
+        // Check if there's a recent Step 1 record (within 5 minutes)
+        const savedSessionId = getCurrentSessionId();
+        const recentStep1 = findRecentStep1(savedSessionId);
+        if (recentStep1) {
+          state.currentSessionId = savedSessionId;
+        } else {
+          state.currentSessionId = generateUUID();
+          saveCurrentSessionId(state.currentSessionId);
+        }
+      }
+
+      state.status = 'running';
+      state.currentStep = step;
+      state.timeRemaining = TEST_DURATION;
+
+      // Update UI
+      document.getElementById('btnStep1').disabled = true;
+      document.getElementById('btnStep2').disabled = true;
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('inputSection').classList.add('hidden');
+      document.getElementById('scoreInput').value = '';
+      document.getElementById('errorMessage').textContent = '';
+
+      // Generate grid
+      const container = document.getElementById('gridContainer');
+      container.innerHTML = '';
+      
+      // Wait for next frame to ensure container width is calculated
+      requestAnimationFrame(() => {
+        const grid = step === 1 ? generateStep1Grid() : generateStep2Grid();
+        container.appendChild(grid);
+      });
+      
+      const helperText = document.createElement('div');
+      helperText.className = 'helper-text';
+      helperText.textContent = '※左上から右下へ順に読みます';
+      container.appendChild(helperText);
+
+      // Start timer
+      updateTimerDisplay();
+      state.timerInterval = setInterval(() => {
+        state.timeRemaining -= 0.1;
+        if (state.timeRemaining <= 0) {
+          state.timeRemaining = 0;
+          stopTest();
+        }
+        updateTimerDisplay();
+      }, 100);
+    }
+
+    // Stop test
+    function stopTest() {
+      if (state.timerInterval) {
+        clearInterval(state.timerInterval);
+        state.timerInterval = null;
+      }
+
+      state.status = 'finished';
+      state.timeRemaining = 0;
+      updateTimerDisplay();
+
+      // Update UI
+      document.getElementById('btnStep1').disabled = false;
+      document.getElementById('btnStep2').disabled = false;
+      document.getElementById('btnStop').disabled = true;
+      document.getElementById('inputSection').classList.remove('hidden');
+      document.getElementById('scoreInput').focus();
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      const timerEl = document.getElementById('timer');
+      if (state.status === 'running' || state.status === 'finished') {
+        timerEl.textContent = `残り時間: ${state.timeRemaining.toFixed(1)}秒`;
+      } else {
+        timerEl.textContent = '';
+      }
+    }
+
+    // Validate score input
+    function validateScore(value) {
+      const errorEl = document.getElementById('errorMessage');
+      
+      if (value === '' || value === null) {
+        errorEl.textContent = '正答数を入力してください';
+        return false;
+      }
+      
+      const num = parseInt(value, 10);
+      if (isNaN(num)) {
+        errorEl.textContent = '数字を入力してください';
+        return false;
+      }
+      
+      if (num < 0 || num > 100) {
+        errorEl.textContent = '0〜100の範囲で入力してください';
+        return false;
+      }
+      
+      errorEl.textContent = '';
+      return true;
+    }
+
+    // Save record
+    function saveRecord() {
+      const scoreInput = document.getElementById('scoreInput');
+      const score = scoreInput.value;
+
+      if (!validateScore(score)) {
+        return;
+      }
+
+      const numScore = parseInt(score, 10);
+      
+      // Calculate interference if Step 2
+      let interference = null;
+      if (state.currentStep === 2) {
+        const step1Record = findStep1InSession(state.currentSessionId);
+        if (step1Record) {
+          interference = 1 - (numScore / step1Record.score);
+        }
+      }
+
+      // Create record
+      const record = {
+        ts: new Date().toISOString(),
+        step: state.currentStep,
+        score: numScore,
+        sessionId: state.currentSessionId,
+        interference: interference
+      };
+
+      // Save to localStorage
+      saveRecordToStorage(record);
+
+      // Reset state
+      state.status = 'idle';
+      state.currentStep = null;
+      state.timeRemaining = TEST_DURATION;
+
+      // Clear grid
+      document.getElementById('gridContainer').innerHTML = '';
+      document.getElementById('inputSection').classList.add('hidden');
+      document.getElementById('scoreInput').value = '';
+      updateTimerDisplay();
+
+      // Refresh records list
+      displayRecords();
+    }
+
+    // In-memory storage
+    let stroopTestRecords = [];
+    let currentSessionId = null;
+    let helpModalSeen = false;
+
+    function saveRecordToStorage(record) {
+      stroopTestRecords.unshift(record); // Add to beginning
+    }
+
+    function getRecords() {
+      return stroopTestRecords;
+    }
+
+    function saveCurrentSessionId(sessionId) {
+      currentSessionId = sessionId;
+    }
+
+    function getCurrentSessionId() {
+      return currentSessionId;
+    }
+
+    function findStep1InSession(sessionId) {
+      const records = getRecords();
+      return records.find(r => r.sessionId === sessionId && r.step === 1);
+    }
+
+    function findRecentStep1(sessionId) {
+      if (!sessionId) return null;
+      
+      const records = getRecords();
+      const step1 = records.find(r => r.sessionId === sessionId && r.step === 1);
+      
+      if (!step1) return null;
+      
+      // Check if within 5 minutes
+      const recordTime = new Date(step1.ts).getTime();
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      
+      return (now - recordTime) <= fiveMinutes ? step1 : null;
+    }
+
+    // Display records
+    function displayRecords() {
+      const records = getRecords();
+      const listEl = document.getElementById('recordsList');
+      
+      if (records.length === 0) {
+        listEl.innerHTML = '<div class="empty-records">記録がありません</div>';
+        return;
+      }
+
+      listEl.innerHTML = records.map(record => {
+        const date = new Date(record.ts);
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        
+        let html = `
+          <div class="record-item">
+            <div class="record-date">${dateStr}</div>
+            <div class="record-info">Step ${record.step}: ${record.score}個</div>
+        `;
+        
+        if (record.interference !== null) {
+          const interferencePercent = Math.round(record.interference * 100);
+          html += `<div class="record-interference">干渉度: ${interferencePercent}%</div>`;
+        }
+        
+        html += '</div>';
+        return html;
+      }).join('');
+    }
+
+    // Export CSV
+    function exportCSV() {
+      const records = getRecords();
+      
+      if (records.length === 0) {
+        alert('出力する記録がありません');
+        return;
+      }
+
+      // Create CSV content with BOM for Excel
+      const BOM = '\uFEFF';
+      let csv = BOM + '日時,ステップ,正答数,干渉度\n';
+      
+      records.forEach(record => {
+        const date = new Date(record.ts);
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        const interference = record.interference !== null ? `${Math.round(record.interference * 100)}%` : '';
+        csv += `${dateStr},${record.step},${record.score},${interference}\n`;
+      });
+
+      // Create download link
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const now = new Date();
+      const filename = `stroop_test_記録_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.csv`;
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Input validation on change
+    document.getElementById('scoreInput').addEventListener('input', function(e) {
+      validateScore(e.target.value);
+    });
+
+    // Handle window resize to recalculate sizes if test is running
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      if (state.status === 'running' && state.currentStep) {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const container = document.getElementById('gridContainer');
+          const helperText = container.querySelector('.helper-text');
+          const helperTextContent = helperText ? helperText.textContent : '';
+          container.innerHTML = '';
+          
+          const grid = state.currentStep === 1 ? generateStep1Grid() : generateStep2Grid();
+          container.appendChild(grid);
+          
+          if (helperTextContent) {
+            const newHelperText = document.createElement('div');
+            newHelperText.className = 'helper-text';
+            newHelperText.textContent = helperTextContent;
+            container.appendChild(newHelperText);
+          }
+        }, 200);
+      }
+    });
+
+    // Help modal functions
+    function openHelp() {
+      document.getElementById('helpModal').classList.remove('hidden');
+    }
+
+    function closeHelp() {
+      document.getElementById('helpModal').classList.add('hidden');
+      helpModalSeen = true;
+    }
+
+    function closeHelpIfClickedOutside(event) {
+      if (event.target.id === 'helpModal') {
+        closeHelp();
+      }
+    }
+
+    // Initialize app
+    window.addEventListener('DOMContentLoaded', () => {
+      displayRecords();
+      
+      // Show help modal on first visit (in this session)
+      if (!helpModalSeen) {
+        openHelp();
+      }
+    });
+  </script>
+</body>
+</html>
