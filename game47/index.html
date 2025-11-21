@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>シンプルタイマー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <style>
+    /* 全体レイアウト */
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f7f7f7;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* 残り時間表示 */
+    .time-display {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 500;
+      margin-top: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* バー部分 */
+    .bar-wrapper {
+      margin: 8px 0 24px;
+      padding: 0 4px;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 26px;
+      background-color: #e0e0e0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      width: 100%;
+      height: 100%;
+      background-color: #4a90e2;
+      transform-origin: left center;
+      transform: scaleX(1);
+      transition: transform 0.1s linear;
+    }
+
+    /* ボタン群 */
+    .section-title {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 4px 0;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 8px;
+      font-size: 0.95rem;
+      border-radius: 999px;
+      border: none;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      transform: scale(0.97);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    }
+
+    .primary {
+      background-color: #4a90e2;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .danger {
+      background-color: #f0f0f0;
+      color: #444;
+    }
+
+    .sound-indicator-on {
+      background-color: #ffffff;
+      color: #222;
+    }
+
+    .sound-indicator-off {
+      background-color: #dddddd;
+      color: #777;
+    }
+
+    .bottom-space {
+      margin-top: auto;
+      font-size: 0.75rem;
+      color: #aaa;
+      text-align: center;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 残り時間表示 -->
+    <div class="time-display" id="timeDisplay">0:00</div>
+
+    <!-- バー表示 -->
+    <div class="bar-wrapper">
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill"></div>
+      </div>
+    </div>
+
+    <!-- プリセットボタン -->
+    <div class="section-title">プリセット</div>
+    <div class="button-row">
+      <button id="preset10">10秒</button>
+      <button id="preset30">30秒</button>
+      <button id="preset60">1分</button>
+      <button id="preset180">3分</button>
+    </div>
+
+    <!-- 加算ボタン -->
+    <div class="section-title">時間を足す</div>
+    <div class="button-row">
+      <button id="plus10">+10秒</button>
+      <button id="plus30">+30秒</button>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="section-title">操作</div>
+    <div class="button-row">
+      <button id="startPause" class="primary">スタート</button>
+      <button id="reset" class="danger">リセット</button>
+      <button id="soundToggle" class="sound-indicator-on">サウンド ON</button>
+    </div>
+
+    <div class="bottom-space">
+      シンプルタイマー
+    </div>
+  </div>
+
+  <script>
+    // ===== タイマー状態管理 =====
+    const State = {
+      IDLE: "idle",
+      RUNNING: "running",
+      PAUSED: "paused",
+      FINISHED: "finished",
+    };
+
+    let state = State.IDLE;
+
+    // 設定された基準時間（秒）
+    let baseDuration = 0;
+    // 現在の残り時間（秒）
+    let remainingSeconds = 0;
+
+    // setInterval用
+    let timerId = null;
+    let endTimestamp = null; // performance.now() ベースの終了時刻（ミリ秒）
+
+    // アラームフラグ
+    let halfBeepPlayed = false;
+    let thirtyBeepPlayed = false;
+
+    // サウンドON/OFF
+    let soundOn = true;
+
+    // ===== DOM取得 =====
+    const timeDisplay = document.getElementById("timeDisplay");
+    const barFill = document.getElementById("barFill");
+
+    const btnPreset10 = document.getElementById("preset10");
+    const btnPreset30 = document.getElementById("preset30");
+    const btnPreset60 = document.getElementById("preset60");
+    const btnPreset180 = document.getElementById("preset180");
+
+    const btnPlus10 = document.getElementById("plus10");
+    const btnPlus30 = document.getElementById("plus30");
+
+    const btnStartPause = document.getElementById("startPause");
+    const btnReset = document.getElementById("reset");
+    const btnSoundToggle = document.getElementById("soundToggle");
+
+    // ===== オーディオ準備（Web Audio API） =====
+    let audioContext = null;
+
+    function ensureAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+    }
+
+    function playBeep(pattern) {
+      if (!soundOn) return;
+      if (!audioContext) return;
+
+      const now = audioContext.currentTime;
+
+      function singleBeep(atTime, duration = 0.12, freq = 1000) {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, atTime);
+
+        gain.gain.setValueAtTime(0.0001, atTime);
+        gain.gain.linearRampToValueAtTime(0.3, atTime + 0.01);
+        gain.gain.linearRampToValueAtTime(0.0001, atTime + duration);
+
+        osc.connect(gain).connect(audioContext.destination);
+        osc.start(atTime);
+        osc.stop(atTime + duration + 0.02);
+      }
+
+      if (pattern === "end") {
+        // ピ・ピ（2回）
+        singleBeep(now, 0.16, 900);
+        singleBeep(now + 0.25, 0.16, 900);
+      } else {
+        // 短いピッ
+        singleBeep(now, 0.12, 1000);
+      }
+    }
+
+    // ===== 表示更新 =====
+    function formatTime(seconds) {
+      const s = Math.max(0, Math.round(seconds));
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}:${sec.toString().padStart(2, "0")}`;
+    }
+
+    function updateTimeDisplay() {
+      timeDisplay.textContent = formatTime(remainingSeconds);
+    }
+
+    function updateBar() {
+      let ratio = 0;
+      if (baseDuration > 0) {
+        ratio = remainingSeconds / baseDuration;
+      }
+      ratio = Math.max(0, Math.min(1, ratio));
+      barFill.style.transform = `scaleX(${ratio})`;
+    }
+
+    function resetBeepFlags() {
+      halfBeepPlayed = false;
+      thirtyBeepPlayed = false;
+    }
+
+    function updateStartPauseLabel() {
+      if (state === State.RUNNING) {
+        btnStartPause.textContent = "一時停止";
+      } else {
+        btnStartPause.textContent = "スタート";
+      }
+    }
+
+    function updateSoundButton() {
+      if (soundOn) {
+        btnSoundToggle.textContent = "サウンド ON";
+        btnSoundToggle.classList.remove("sound-indicator-off");
+        btnSoundToggle.classList.add("sound-indicator-on");
+      } else {
+        btnSoundToggle.textContent = "サウンド OFF";
+        btnSoundToggle.classList.remove("sound-indicator-on");
+        btnSoundToggle.classList.add("sound-indicator-off");
+      }
+    }
+
+    function updateAllDisplay() {
+      updateTimeDisplay();
+      updateBar();
+      updateStartPauseLabel();
+      updateSoundButton();
+    }
+
+    // ===== タイマー制御 =====
+    function stopTimerInterval() {
+      if (timerId !== null) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function setBaseDurationSeconds(sec) {
+      // 動作中であっても、仕様上は「Runningを止めてIdleに戻す」ようにする
+      stopTimerInterval();
+      state = State.IDLE;
+      baseDuration = Math.max(0, sec);
+      remainingSeconds = baseDuration;
+      resetBeepFlags();
+      updateAllDisplay();
+    }
+
+    function addSeconds(sec) {
+      // Idle / Paused / Finished では時間を加算してよい想定
+      if (state === State.RUNNING) {
+        // 初版では Running 中の加算は無効
+        return;
+      }
+      const currentBase = baseDuration > 0 ? baseDuration : remainingSeconds;
+      const newBase = Math.max(0, currentBase + sec);
+      baseDuration = newBase;
+      remainingSeconds = newBase;
+      state = State.IDLE;
+      resetBeepFlags();
+      updateAllDisplay();
+    }
+
+    function startTimer() {
+      if (remainingSeconds <= 0) {
+        return; // 0からはスタートさせない
+      }
+      ensureAudioContext();
+      stopTimerInterval();
+
+      const now = performance.now();
+      endTimestamp = now + remainingSeconds * 1000;
+
+      let lastRemaining = remainingSeconds;
+
+      state = State.RUNNING;
+      updateStartPauseLabel();
+
+      timerId = setInterval(() => {
+        const nowTick = performance.now();
+        const msLeft = endTimestamp - nowTick;
+        let secLeft = msLeft / 1000;
+        if (secLeft < 0) secLeft = 0;
+        const prev = remainingSeconds;
+        remainingSeconds = secLeft;
+
+        // アラーム判定
+        if (baseDuration > 0) {
+          const halfPoint = baseDuration / 2;
+          if (!halfBeepPlayed && prev > halfPoint && remainingSeconds <= halfPoint) {
+            halfBeepPlayed = true;
+            playBeep("short");
+          }
+          if (baseDuration > 30) {
+            if (!thirtyBeepPlayed && prev > 30 && remainingSeconds <= 30) {
+              thirtyBeepPlayed = true;
+              playBeep("short");
+            }
+          }
+        }
+
+        updateTimeDisplay();
+        updateBar();
+
+        if (remainingSeconds <= 0.01) {
+          remainingSeconds = 0;
+          stopTimerInterval();
+          state = State.FINISHED;
+          updateStartPauseLabel();
+          updateTimeDisplay();
+          updateBar();
+          playBeep("end");
+        }
+      }, 60);
+    }
+
+    function pauseTimer() {
+      if (state !== State.RUNNING) return;
+      stopTimerInterval();
+      state = State.PAUSED;
+      updateStartPauseLabel();
+    }
+
+    function resetTimer() {
+      stopTimerInterval();
+      remainingSeconds = baseDuration;
+      if (baseDuration > 0) {
+        state = State.IDLE;
+      } else {
+        state = State.IDLE;
+      }
+      resetBeepFlags();
+      updateAllDisplay();
+    }
+
+    // ===== イベントハンドラ登録 =====
+
+    // プリセット
+    btnPreset10.addEventListener("click", () => setBaseDurationSeconds(10));
+    btnPreset30.addEventListener("click", () => setBaseDurationSeconds(30));
+    btnPreset60.addEventListener("click", () => setBaseDurationSeconds(60));
+    btnPreset180.addEventListener("click", () => setBaseDurationSeconds(180));
+
+    // 加算
+    btnPlus10.addEventListener("click", () => addSeconds(10));
+    btnPlus30.addEventListener("click", () => addSeconds(30));
+
+    // スタート／一時停止
+    btnStartPause.addEventListener("click", () => {
+      if (!audioContext) {
+        ensureAudioContext();
+      }
+      if (state === State.RUNNING) {
+        pauseTimer();
+      } else {
+        // Idle / Paused / Finished の場合
+        if (remainingSeconds > 0) {
+          if (state === State.FINISHED) {
+            // Finished からそのまま再スタートするかどうかは好み次第だが、
+            // ここでは「残り0のため、新たに時間セットが必要」という仕様にしてもよい。
+            // ただし、remainingSeconds>0であれば普通にスタート。
+          }
+          startTimer();
+        }
+      }
+    });
+
+    // リセット
+    btnReset.addEventListener("click", () => {
+      resetTimer();
+    });
+
+    // サウンドON/OFF
+    btnSoundToggle.addEventListener("click", () => {
+      soundOn = !soundOn;
+      if (soundOn) {
+        ensureAudioContext();
+      }
+      updateSoundButton();
+    });
+
+    // 初期表示
+    updateAllDisplay();
+  </script>
+</body>
+</html>
