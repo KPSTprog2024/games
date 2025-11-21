@@ -279,7 +279,8 @@ function generateDenseLayout(count, width, height, baseSize) {
     const positions = [];
     const centerX = width / 2;
     const centerY = height / 2;
-    const clusterRadius = Math.min(width, height) * 0.35;
+    const baseClusterRadius = Math.min(width, height) * 0.35;
+    let currentClusterRadius = baseClusterRadius;
     const minDistance = 45; // 記号サイズ30px × 2 の半径 + 15px マージン
     let attempts = 0;
     const maxAttempts = 100 * count; // 各記号に100回の試行を許可
@@ -293,12 +294,12 @@ function generateDenseLayout(count, width, height, baseSize) {
             attempts = 0;
             resetCount++;
             // リセット時はクラスター範囲を広げる
-            const expandedRadius = clusterRadius * (1 + resetCount * 0.2);
+            currentClusterRadius = baseClusterRadius * (1 + resetCount * 0.2);
             continue;
         }
 
         const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * clusterRadius * (1 + resetCount * 0.2);
+        const radius = Math.random() * currentClusterRadius;
         const x = centerX + Math.cos(angle) * radius - baseSize / 2;
         const y = centerY + Math.sin(angle) * radius - baseSize / 2;
         const size = baseSize;
@@ -495,27 +496,27 @@ function generateParentAdvice(accuracy, avgTime, results) {
 
     // 主な提案（反応時間に基づく）
     if (accuracy < 0.6) {
-        advice.main = 'もう ひとつ やさしい レベルで、ゆっくり れんしゅう してみて ください。';
-        advice.next = 'いまより やさしい なんいど が おすすめ です。';
+        advice.main = 'もう一段階やさしいレベルで、ゆっくり練習してみてください。';
+        advice.next = '今より易しい難易度がおすすめです。';
     } else if (accuracy >= 0.6 && accuracy < 0.75 && avgTime < 1.0) {
-        advice.main = 'すこし あせって いる かも しれません。おちついて、ていねいに かぞえる じかんを つくって みましょう。';
-        advice.next = 'おなじ なんいど で、もう すこし ていねいに とりくみ ましょう。';
+        advice.main = '少し急いでいるかもしれません。落ち着いて、丁寧に数える時間をつくってみましょう。';
+        advice.next = '同じ難易度で、もう少し丁寧に取り組んでみましょう。';
     } else if (accuracy >= 0.75 && avgTime < 1.0) {
-        advice.main = 'はやくて せいかく！すばらしいです。つぎの なんいどに ちょうせん して みましょう！';
-        advice.next = 'つぎの なんいど に すすむ ことを おすすめ します。';
+        advice.main = '速くて正確！素晴らしいです。次の難易度に挑戦してみましょう。';
+        advice.next = '次の難易度に進むことをおすすめします。';
     } else if (accuracy >= 0.75 && avgTime >= 1.0 && avgTime <= 2.0) {
-        advice.main = 'とても バランスが いいです！じぶんの ペースで とりくめて います。';
-        advice.next = 'おなじ なんいど で つづけるか、つぎの レベルに すすんで みましょう。';
+        advice.main = 'とてもバランスが良いです。自分のペースで取り組めています。';
+        advice.next = '同じ難易度で続けるか、次のレベルに進んでみましょう。';
     } else if (accuracy >= 0.75 && avgTime > 2.0) {
-        advice.main = 'せいかくさは ばっちり！じしんが ついたら、すこし はやく こたえる れんしゅうを して みましょう。';
-        advice.next = 'おなじ なんいど で、すこし はやめに こたえる れんしゅうを しましょう。';
+        advice.main = '正確さはばっちり。自信がついたら、少し早く答える練習をしてみましょう。';
+        advice.next = '同じ難易度で、少し早めに答える練習をしましょう。';
     } else {
-        advice.main = 'よく がんばりました！このちょうしで つづけて ください。';
-        advice.next = 'おなじ なんいど で れんしゅうを つづけ ましょう。';
+        advice.main = 'よく頑張りました。この調子で続けてください。';
+        advice.next = '同じ難易度で練習を続けましょう。';
     }
 
     // 補助提案
-    advice.sub = 'にちじょう せいかつで、ものの かずを くらべたり、かぞえたり する あそびを とりいれて みて ください。';
+    advice.sub = '日常生活で、物の数を比べたり数えたりする遊びを取り入れてみてください。';
 
     // 詳細分析（記号別正答率）
     const symbolStats = {};
@@ -532,14 +533,14 @@ function generateParentAdvice(accuracy, avgTime, results) {
         symbolAnalysis.push(`${symbol}：${rate}％（${stat.correct}/${stat.total}）`);
     });
 
-    advice.detail = 'きごう べつ せいかいりつ：' + symbolAnalysis.join('、');
+    advice.detail = '記号別の正解率：' + symbolAnalysis.join('、');
 
     // 特定記号で低正答率の場合
     Object.keys(symbolStats).forEach(symbol => {
         const stat = symbolStats[symbol];
         const rate = stat.correct / stat.total;
         if (rate < 0.6 && stat.total >= 3) {
-            advice.sub += ` ${symbol}は すこし にがて の ようです。${symbol}の もんだいに とくに ちょうせん して みよう。`;
+            advice.sub += ` ${symbol}は少し苦手なようです。${symbol}の問題に特に挑戦してみましょう。`;
         }
     });
 
@@ -636,11 +637,11 @@ function showHistoryDetail(data) {
             <p><strong>タイプ：</strong>${data.playerType}</p>
         </div>
         <div class="history-detail-advice">
-            <h4>おやごさん への アドバイス</h4>
-            <p style="margin-top: 8px;"><strong>しゅな ていあん：</strong>${data.advice.main}</p>
-            <p style="margin-top: 8px;"><strong>ほじょ ていあん：</strong>${data.advice.sub}</p>
-            <p style="margin-top: 8px;"><strong>つぎの おすすめ：</strong>${data.advice.next}</p>
-            <p style="margin-top: 8px;"><strong>くわしい ぶんせき：</strong>${data.advice.detail}</p>
+            <h4>保護者の方へのアドバイス</h4>
+            <p style="margin-top: 8px;"><strong>主な提案：</strong>${data.advice.main}</p>
+            <p style="margin-top: 8px;"><strong>補助的な提案：</strong>${data.advice.sub}</p>
+            <p style="margin-top: 8px;"><strong>次のおすすめ：</strong>${data.advice.next}</p>
+            <p style="margin-top: 8px;"><strong>詳しい分析：</strong>${data.advice.detail}</p>
         </div>
         <button class="btn" onclick="showHistoryScreen()" style="margin-top: 20px;">もどる</button>
     `;
