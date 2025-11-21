@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>おおいのは、どっち？</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- スタート画面 -->
+    <div id="startScreen" class="screen active">
+        <h1 class="title">おおいのは、どっち？</h1>
+        <div class="floating-symbols" id="floatingSymbols">
+            <span class="float-symbol" style="top: 20%; left: 20%;">○</span>
+            <span class="float-symbol" style="top: 40%; left: 60%;">□</span>
+            <span class="float-symbol" style="top: 60%; left: 30%;">△</span>
+            <span class="float-symbol" style="top: 35%; left: 80%;">○</span>
+            <span class="float-symbol" style="top: 70%; left: 70%;">□</span>
+        </div>
+        <div class="parameter-selection">
+            <div class="parameter-group">
+                <h3 class="parameter-label">こすうを えらぶ</h3>
+                <div class="parameter-buttons">
+                    <button class="param-btn" data-param="number" data-value="3-5">3〜5</button>
+                    <button class="param-btn" data-param="number" data-value="5-9">5〜9</button>
+                    <button class="param-btn" data-param="number" data-value="9-12">9〜12</button>
+                    <button class="param-btn" data-param="number" data-value="12-18">12〜18</button>
+                </div>
+            </div>
+            <div class="parameter-group">
+                <h3 class="parameter-label">さを えらぶ</h3>
+                <div class="parameter-buttons">
+                    <button class="param-btn" data-param="difference" data-value="1">1</button>
+                    <button class="param-btn" data-param="difference" data-value="2">2</button>
+                    <button class="param-btn" data-param="difference" data-value="2-3">2〜3</button>
+                </div>
+            </div>
+        </div>
+        <button id="startButton" class="start-btn" disabled>スタート</button>
+    </div>
+
+    <!-- プレイ画面 -->
+    <div id="playScreen" class="screen">
+        <div class="play-header">
+            <h2 class="play-title">おおいのは、どっち？</h2>
+            <div class="progress" id="progress">1 / 10</div>
+        </div>
+        <div class="play-area">
+            <div class="card-area top-area" id="topArea" data-position="top"></div>
+            <div class="card-area bottom-area" id="bottomArea" data-position="bottom"></div>
+        </div>
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="resultScreen" class="screen">
+        <h1 class="title">あそびのきろく</h1>
+        <div class="result-container">
+            <div class="result-summary">
+                <div class="result-info">
+                    <span id="resultDate"></span> / <span id="resultDifficulty"></span>
+                </div>
+                <div class="result-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">せいかいりつ</span>
+                        <span class="stat-value" id="accuracy"></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">へいきんじかん</span>
+                        <span class="stat-value" id="avgTime"></span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">タイプ</span>
+                        <span class="stat-value" id="playerType"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-table-container">
+                <table class="result-table" id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>もんだい</th>
+                            <th>せいかい</th>
+                            <th>じかん</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="child-comment" id="childComment"></div>
+
+            <div class="parent-advice">
+                <h3>おやごさんへ</h3>
+                <div class="advice-section">
+                    <h4>しゅな ていあん</h4>
+                    <p id="mainAdvice"></p>
+                </div>
+                <div class="advice-section">
+                    <h4>ほじょ ていあん</h4>
+                    <p id="subAdvice"></p>
+                </div>
+                <div class="advice-section">
+                    <h4>つぎの おすすめ</h4>
+                    <p id="nextRecommend"></p>
+                </div>
+                <div class="advice-section">
+                    <h4>くわしい ぶんせき</h4>
+                    <p id="detailAnalysis"></p>
+                </div>
+            </div>
+
+            <div class="result-buttons">
+                <button id="restartBtn" class="btn">もういっかい</button>
+                <button id="historyBtn" class="btn">きろく</button>
+                <button id="backBtn" class="btn">もどる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 履歴画面 -->
+    <div id="historyScreen" class="screen">
+        <h1 class="title">あそびのれきし</h1>
+        <div class="history-container">
+            <div id="historyList" class="history-list"></div>
+            <div id="historyDetail" class="history-detail hidden"></div>
+            <button id="backFromHistoryBtn" class="btn back-btn">もどる</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
