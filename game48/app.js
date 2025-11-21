@@ -117,14 +117,24 @@ function getDifficultyRange() {
     return ranges[currentDifficulty];
 }
 
-function addUniqueBlock(gridSize, properties, maxAttempts = 50) {
+
+function getColumnHeight(x, z) {
+    const columnBlocks = currentBlocks.filter((block) => block.x === x && block.z === z);
+    if (columnBlocks.length === 0) return 0;
+    return Math.max(...columnBlocks.map((block) => block.y)) + 1;
+}
+
+function addSupportedBlock(gridSize, properties, maxHeight = 2, maxAttempts = 80) {
     let attempts = 0;
     while (attempts < maxAttempts) {
         attempts += 1;
         const x = Math.floor(Math.random() * gridSize);
         const z = Math.floor(Math.random() * gridSize);
-        const y = Math.floor(Math.random() * 2);
+        const currentHeight = getColumnHeight(x, z);
 
+        if (currentHeight >= maxHeight) continue;
+
+        const y = currentHeight;
         const exists = currentBlocks.some((block) => block.x === x && block.y === y && block.z === z);
         if (exists) continue;
 
@@ -140,7 +150,7 @@ function generateVisibleBlocks(min, max, includeHidden) {
 
     while (currentBlocks.length < targetCount) {
         const visible = includeHidden ? Math.random() > 0.3 : true;
-        if (!addUniqueBlock(gridSize, { color: 'white', visible })) break;
+        if (!addSupportedBlock(gridSize, { color: 'white', visible })) break;
     }
 }
 
@@ -151,7 +161,7 @@ function generateColoredBlocks(minWhite, maxWhite, minBlack, maxBlack) {
 
     let whiteCount = 0;
     while (whiteCount < whiteTarget) {
-        if (addUniqueBlock(gridSize, { color: 'white', visible: true })) {
+        if (addSupportedBlock(gridSize, { color: 'white', visible: true })) {
             whiteCount += 1;
         } else {
             break;
@@ -160,7 +170,7 @@ function generateColoredBlocks(minWhite, maxWhite, minBlack, maxBlack) {
 
     let blackCount = 0;
     while (blackCount < blackTarget) {
-        if (addUniqueBlock(gridSize, { color: 'black', visible: true })) {
+        if (addSupportedBlock(gridSize, { color: 'black', visible: true })) {
             blackCount += 1;
         } else {
             break;
@@ -173,25 +183,14 @@ function generateComparisonBlocks(min, max) {
     const leftCount = Math.floor(Math.random() * (max - min + 1)) + min;
     const diff = Math.floor(Math.random() * 3) + 1;
     const rightCount = Math.random() > 0.5 ? leftCount + diff : Math.max(min, leftCount - diff);
+    const gridSize = 3;
 
     for (let i = 0; i < leftCount; i += 1) {
-        currentBlocks.push({
-            x: Math.floor(Math.random() * 3),
-            y: Math.floor(Math.random() * 2),
-            z: Math.floor(Math.random() * 3),
-            color: 'white',
-            side: 'left',
-        });
+        addSupportedBlock(gridSize, { color: 'white', side: 'left', visible: true });
     }
 
     for (let i = 0; i < rightCount; i += 1) {
-        currentBlocks.push({
-            x: Math.floor(Math.random() * 3),
-            y: Math.floor(Math.random() * 2),
-            z: Math.floor(Math.random() * 3),
-            color: 'white',
-            side: 'right',
-        });
+        addSupportedBlock(gridSize, { color: 'white', side: 'right', visible: true });
     }
 
     correctAnswer = leftCount > rightCount ? 'left' : 'right';
@@ -202,7 +201,7 @@ function generateFromViews(min, max) {
     const gridSize = 3;
 
     while (currentBlocks.length < targetCount) {
-        if (!addUniqueBlock(gridSize, { color: 'white', visible: true })) {
+        if (!addSupportedBlock(gridSize, { color: 'white', visible: true })) {
             break;
         }
     }
@@ -418,37 +417,60 @@ function drawIsometricCube(ctx, x, y, size, color) {
     const w = size * 0.866;
     const h = size * 0.5;
 
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + w, y + h);
-    ctx.lineTo(x, y + h * 2);
-    ctx.lineTo(x - w, y + h);
-    ctx.closePath();
-    ctx.fillStyle = color === 'black' ? '#1f2121' : '#ffffff';
-    ctx.fill();
-    ctx.strokeStyle = '#626c71';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    const top = { x, y };
+    const right = { x: x + w, y: y + h };
+    const left = { x: x - w, y: y + h };
+    const front = { x, y: y + h * 2 };
+    const leftBottom = { x: x - w, y: y + h + size };
+    const rightBottom = { x: x + w, y: y + h + size };
+    const base = { x, y: y + h * 2 + size };
+
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = '#4a5357';
 
     ctx.beginPath();
-    ctx.moveTo(x, y + h * 2);
-    ctx.lineTo(x - w, y + h);
-    ctx.lineTo(x - w, y + h + size);
-    ctx.lineTo(x, y + h * 2 + size);
+    ctx.moveTo(front.x, front.y);
+    ctx.lineTo(left.x, left.y);
+    ctx.lineTo(leftBottom.x, leftBottom.y);
+    ctx.lineTo(base.x, base.y);
     ctx.closePath();
     ctx.fillStyle = color === 'black' ? '#0a0a0a' : '#e0e0e0';
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(x, y + h * 2);
-    ctx.lineTo(x + w, y + h);
-    ctx.lineTo(x + w, y + h + size);
-    ctx.lineTo(x, y + h * 2 + size);
+    ctx.moveTo(front.x, front.y);
+    ctx.lineTo(right.x, right.y);
+    ctx.lineTo(rightBottom.x, rightBottom.y);
+    ctx.lineTo(base.x, base.y);
     ctx.closePath();
     ctx.fillStyle = color === 'black' ? '#141414' : '#f0f0f0';
     ctx.fill();
     ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(top.x, top.y);
+    ctx.lineTo(right.x, right.y);
+    ctx.lineTo(front.x, front.y);
+    ctx.lineTo(left.x, left.y);
+    ctx.closePath();
+    ctx.fillStyle = color === 'black' ? '#1f2121' : '#ffffff';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(top.x, top.y);
+    ctx.lineTo(right.x, right.y);
+    ctx.lineTo(rightBottom.x, rightBottom.y);
+    ctx.lineTo(base.x, base.y);
+    ctx.lineTo(leftBottom.x, leftBottom.y);
+    ctx.lineTo(left.x, left.y);
+    ctx.closePath();
+    ctx.strokeStyle = '#30363a';
+    ctx.stroke();
+    ctx.restore();
 }
 
 checkOrientation();
