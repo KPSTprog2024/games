@@ -117,6 +117,7 @@ function getDifficultyRange() {
     return ranges[currentDifficulty];
 }
 
+
 function getColumnHeight(x, z) {
     const columnBlocks = currentBlocks.filter((block) => block.x === x && block.z === z);
     if (columnBlocks.length === 0) return 0;
