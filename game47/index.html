@@ -338,6 +338,10 @@
       if (remainingSeconds <= 0) {
         return; // 0からはスタートさせない
       }
+      const startingFresh = state === State.IDLE || state === State.FINISHED;
+      if (startingFresh) {
+        resetBeepFlags();
+      }
       ensureAudioContext();
       stopTimerInterval();
 
@@ -427,12 +431,11 @@
         pauseTimer();
       } else {
         // Idle / Paused / Finished の場合
+        if (state === State.FINISHED && baseDuration > 0) {
+          remainingSeconds = baseDuration;
+          updateAllDisplay();
+        }
         if (remainingSeconds > 0) {
-          if (state === State.FINISHED) {
-            // Finished からそのまま再スタートするかどうかは好み次第だが、
-            // ここでは「残り0のため、新たに時間セットが必要」という仕様にしてもよい。
-            // ただし、remainingSeconds>0であれば普通にスタート。
-          }
           startTimer();
         }
       }
