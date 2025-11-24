@@ -152,6 +152,10 @@ class Game{
     this.resyncInterval = 35000; // 35s
     this._lastResyncPerf = performance.now();
 
+    // beat / miss tracking
+    this.lastHitBeat = -1;
+    this.nextBeatCheck = 0;
+
     // character physics
     this.jumpY = 0;
     this.vy = 0;
@@ -261,33 +265,38 @@ class Game{
   start(){
     this.started = true; this.paused = false; this.combo = 0; this.lastJudge = '-';
     this.metro.start();
+    this.lastHitBeat = -1;
+    this.nextBeatCheck = 0;
   }
 
   reset(){
     this.combo = 0; this.lastJudge='-'; this.jumpY=0; this.vy=0; this.missFlash=0;
     if(this.started) this.metro.start();
+    this.lastHitBeat = -1;
+    this.nextBeatCheck = 0;
   }
 
   jump(){
     if(this.calibrating) return;
     if(!this.started || this.paused) return;
     const now = performance.now();
-    const nearest = this.metro.nearestBeatTimeMs(now);
-    const delta = now - nearest - this.latencyMs; // ms
+    const beatInfo = this._getBeatTiming(now);
+    const delta = beatInfo.delta; // ms
     const win = this.hitWindowMs;
     const absd = Math.abs(delta);
     let label;
-    if(absd <= win){
+    if(absd <= win && beatInfo.index > this.lastHitBeat){
       this.combo++;
       label = (absd<=win*0.35) ? 'PERFECT' : (absd<=win*0.7?'GREAT':'GOOD');
       this.lastJudge = label;
       if(this.combo>this.best){ this.best=this.combo; localStorage.setItem(LS.BEST, String(this.best)); }
       if(this.jumpY===0){ this.vy = -this.jumpPower; }
       this.audio.blipSuccess();
+      this.lastHitBeat = beatInfo.index;
+      this.nextBeatCheck = Math.max(this.nextBeatCheck, beatInfo.index + 1);
     } else {
-      this.combo = 0; this.lastJudge = (delta>0?'LATE':'EARLY');
-      label = 'MISS';
-      this.missFlash = 1; this.audio.blipMiss();
+      this._registerMiss(delta>0?'LATE':'EARLY', delta);
+      return;
     }
 
     // record for learning card
@@ -309,6 +318,9 @@ class Game{
       if(this.jumpY>0){ this.jumpY=0; this.vy=0; }
     }
     if(this.missFlash>0){ this.missFlash = Math.max(0, this.missFlash - dt*2); }
+
+    // miss detection whenロープが足元を通過
+    this._checkForMiss(performance.now());
 
     // light resync
     const nowPerf = performance.now();
@@ -336,14 +348,28 @@ class Game{
     const cx = W*0.5; const groundY = H*0.75; const scale = Math.min(W,H);
     const r = Math.max(120, Math.min(scale*0.22, 260));
 
+    let ang = 0; let cycles = 0;
+    if(this.started){
+      cycles = this.metro.cycles(nowPerf);
+      ang = (cycles % 1) * Math.PI*2;
+      const proximity = Math.max(0, -Math.sin(ang));
+      if(proximity>0.2){
+        ctx.save();
+        ctx.globalAlpha = 0.25 * proximity;
+        ctx.fillStyle = '#7cf4d3';
+        ctx.beginPath();
+        ctx.ellipse(cx, groundY+4*this.dpr, r*0.9, 22*this.dpr, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
     // character
     const charY = groundY + this.jumpY;
     drawCharacter(ctx, cx, charY, this.dpr, this.jumpY);
 
     // rope
     if(this.started){
-      const cycles = this.metro.cycles(nowPerf);
-      const ang = (cycles % 1) * Math.PI*2;
       drawRope(ctx, cx, groundY, r, ang, this.missFlash);
     }
 
@@ -372,6 +398,41 @@ class Game{
     document.getElementById('tempoRate').textContent = `${rate} %`;
   }
 
+  _getBeatTiming(now){
+    const cycles = this.metro.cycles(now);
+    const beatIndex = Math.round(cycles);
+    const beatTime = this.metro.basePerf + beatIndex * this.metro.period * 1000;
+    const delta = now - beatTime - this.latencyMs;
+    return {index: beatIndex, delta};
+  }
+
+  _checkForMiss(now){
+    if(!this.started || this.paused || this.calibrating) return;
+    const adjNow = now - this.latencyMs;
+    const beatDur = this.metro.period * 1000;
+    while(true){
+      const beatTime = this.metro.basePerf + this.nextBeatCheck * beatDur;
+      if(adjNow > beatTime + this.hitWindowMs){
+        this._registerMiss('MISS');
+        this.nextBeatCheck++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  _registerMiss(label, deltaOverride){
+    this.combo = 0; this.lastJudge = label;
+    this.missFlash = 1; this.audio.blipMiss();
+    const deltaVal = typeof deltaOverride === 'number' ? deltaOverride : (label==='MISS'?this.hitWindowMs*2: (label==='LATE'?this.hitWindowMs+8:-this.hitWindowMs-8));
+    this.recent.push({delta: deltaVal, label});
+    if(this.recent.length>this.recentCap) this.recent.shift();
+    this.updateLearnCard();
+    document.getElementById('combo').textContent = this.combo;
+    document.getElementById('best').textContent = this.best;
+    document.getElementById('judge').textContent = this.lastJudge;
+  }
+
   async calibrate(){
     if(this.calibrating) return;
     if(!this.audio.ctx){ await this.audio.ensure(); }
@@ -383,6 +444,7 @@ class Game{
     this.calibrating = true;
     this.metro.start();
     this.started = true; this.paused = false;
+    this.lastHitBeat = -1; this.nextBeatCheck = 0;
 
     const onTap = ()=>{
       const now = performance.now();
