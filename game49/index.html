@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>耳を鍛える周波数ゲーム v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-select {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .btn-select:active:not([disabled]) {
+            transform: scale(0.96);
+        }
+        .correct-bg { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
+        .incorrect-bg { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* エクストラモード用の特別スタイル */
+        .extra-mode-theme .status-bar-bg { background-color: #312e81; border-color: #4338ca; color: white; }
+        .extra-mode-theme .status-text { color: #a5b4fc; }
+        .extra-mode-theme .level-text { color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="game-container flex flex-col items-center">
+    <!-- ヘッダーエリア -->
+    <div class="w-full flex justify-between items-center mb-4">
+        <h1 class="text-xl font-bold text-gray-800">周波数トレ v3</h1>
+        <button id="exit-btn" class="hidden text-sm text-gray-500 hover:text-red-500 font-medium px-3 py-1 rounded-full border border-gray-200 hover:border-red-200 hover:bg-red-50 transition">
+            トップへ戻る
+        </button>
+    </div>
+
+    <!-- スコア・難易度表示 (ゲーム中のみ表示) -->
+    <div id="status-bar" class="hidden w-full flex justify-between text-sm mb-6 p-3 bg-slate-50 rounded-xl border border-slate-100 status-bar-bg transition-colors duration-300">
+        <div class="font-bold text-slate-700 status-text"><span id="current-score">0</span> / 5</div>
+        <div id="difficulty-level" class="font-bold text-indigo-600 level-text">レベル: イージー</div>
+        <div id="delta-f" class="text-slate-500 status-text">差: 10.0 Hz</div>
+    </div>
+
+    <!-- 設定エリア (初期表示) -->
+    <div id="setting-panel" class="w-full mb-2">
+        <div class="bg-indigo-50 p-6 rounded-2xl mb-6 text-center">
+            <h2 class="text-2xl font-bold text-indigo-900 mb-2">耳を鍛える</h2>
+            <p class="text-indigo-600 text-sm">3つの音の中から仲間外れを探そう</p>
+        </div>
+
+        <div class="space-y-4 mb-8">
+            <!-- 音色選択 -->
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">音の種類</label>
+                <div class="relative">
+                    <select id="waveform-select" class="w-full p-3 bg-white border border-gray-300 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-gray-700">
+                        <option value="sine">サイン波 (基本)</option>
+                        <option value="triangle">三角波 (柔らかい)</option>
+                        <option value="square">矩形波 (ゲーム的)</option>
+                        <option value="sawtooth">ノコギリ波 (鋭い)</option>
+                        <option value="high-beep">甲高いピー (電子音)</option>
+                        <option value="pulse">8bitパルス (レトロ)</option>
+                        <option value="organ">電子オルガン (合成)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 再生パターン選択 -->
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">再生テンポ</label>
+                <div class="relative">
+                    <select id="pattern-select" class="w-full p-3 bg-white border border-gray-300 rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-gray-700">
+                        <option value="patternA">標準 (音1.0秒 / 間隔0.5秒)</option>
+                        <option value="patternB">ゆっくり (音1.0秒 / 間隔1.0秒)</option>
+                        <option value="patternC">サクサク (音0.5秒 / 間隔0.5秒)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <button id="start-game-btn" class="w-full py-4 bg-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all">
+                ゲームスタート
+            </button>
+            <button id="start-extra-btn" class="w-full py-4 bg-rose-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-rose-700 active:scale-95 transition-all flex justify-center items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                いきなりエクストラ挑戦
+            </button>
+        </div>
+        <div class="mt-6 text-center text-xs text-gray-400" id="high-score-display"></div>
+    </div>
+
+    <!-- ゲームプレイエリア -->
+    <div id="game-panel" class="w-full hidden flex-col items-center">
+        <!-- メッセージ -->
+        <div id="message-box" class="h-8 text-center mb-2 text-base font-bold text-gray-600">
+            音を再生してください
+        </div>
+
+        <!-- 再生コントロール -->
+        <div class="flex w-full gap-3 mb-8">
+            <button id="play-sound-btn" class="flex-1 py-4 bg-pink-500 text-white font-bold text-lg rounded-xl shadow-md hover:bg-pink-600 active:bg-pink-700 transition-colors flex items-center justify-center gap-2">
+                <span id="play-icon">▶</span> 音を聴く
+            </button>
+            
+            <button id="replay-btn" class="w-1/3 py-4 bg-white border-2 border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors flex flex-col items-center justify-center leading-none disabled:opacity-40 disabled:bg-slate-50" disabled>
+                <span class="text-sm mb-1">もう一度</span>
+                <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full" id="replay-count-badge">残り1回</span>
+            </button>
+        </div>
+
+        <!-- 回答ボタン群 -->
+        <div class="grid grid-cols-3 gap-3 w-full mb-4">
+            <button id="answer-0" class="btn-select h-24 bg-white border-2 border-slate-200 rounded-xl text-xl font-bold text-slate-600 shadow-sm hover:border-slate-300">
+                1
+            </button>
+            <button id="answer-1" class="btn-select h-24 bg-white border-2 border-slate-200 rounded-xl text-xl font-bold text-slate-300 shadow-none cursor-default opacity-50" disabled>
+                2
+            </button>
+            <button id="answer-2" class="btn-select h-24 bg-white border-2 border-slate-200 rounded-xl text-xl font-bold text-slate-600 shadow-sm hover:border-slate-300">
+                3
+            </button>
+        </div>
+        <p class="text-xs text-center text-slate-400">※ 違う音は 1番目 か 3番目 です</p>
+    </div>
+
+    <!-- リザルトモーダル -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center w-full max-w-sm transform transition-all scale-100">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 mb-2">結果発表</h2>
+            <div class="my-6">
+                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold">Score</span>
+                <p id="modal-score" class="text-6xl font-black text-indigo-600 tracking-tighter">5/5</p>
+            </div>
+            <p id="modal-message" class="text-sm text-gray-600 mb-8 font-medium leading-relaxed">最高難易度に到達しました！</p>
+            
+            <div class="space-y-3">
+                <button id="restart-game-btn" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition">
+                    同じ設定でリトライ
+                </button>
+                <button id="back-to-home-btn" class="w-full py-3 bg-transparent text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition border border-indigo-100">
+                    設定に戻る
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============== Constants & Config ==============
+    const BASE_FREQ = 440; 
+    const TOTAL_QUESTIONS = 5;
+    
+    // 再生パターン定義
+    const PATTERNS = {
+        patternA: { duration: 1.0, interval: 0.5 },
+        patternB: { duration: 1.0, interval: 1.0 },
+        patternC: { duration: 0.5, interval: 0.5 }
+    };
+
+    // 難易度レベル定義 (イージーを 10.0Hz に変更)
+    const DIFFICULTY_LEVELS = [
+        { name: "イージー", deltaF: 10.0 },
+        { name: "ノーマル", deltaF: 7.5 },
+        { name: "ハード", deltaF: 3.0 }
+    ];
+
+    // エクストラモード開始時のDeltaF (ハードより難しい2.0Hzから開始)
+    const EXTRA_START_DELTA_F = 2.0;
+
+    // ============== State ==============
+    let gameState = {
+        currentQuestion: 0,
+        currentScore: 0,
+        currentDeltaF: DIFFICULTY_LEVELS[0].deltaF,
+        isExtraMode: false,
+        targetIndex: -1,
+        isAudioPlaying: false,
+        userWaveform: 'sine',
+        pattern: PATTERNS.patternA,
+        replayCount: 1
+    };
+
+    let audioContext = null;
+
+    // ============== DOM Elements ==============
+    const el = {
+        app: document.getElementById('app'),
+        settingPanel: document.getElementById('setting-panel'),
+        gamePanel: document.getElementById('game-panel'),
+        statusBar: document.getElementById('status-bar'),
+        exitBtn: document.getElementById('exit-btn'),
+        
+        waveformSelect: document.getElementById('waveform-select'),
+        patternSelect: document.getElementById('pattern-select'),
+        
+        startBtn: document.getElementById('start-game-btn'),
+        startExtraBtn: document.getElementById('start-extra-btn'), // 追加
+        playBtn: document.getElementById('play-sound-btn'),
+        replayBtn: document.getElementById('replay-btn'),
+        replayBadge: document.getElementById('replay-count-badge'),
+        playIcon: document.getElementById('play-icon'),
+        
+        answers: [
+            document.getElementById('answer-0'),
+            document.getElementById('answer-1'),
+            document.getElementById('answer-2')
+        ],
+        
+        score: document.getElementById('current-score'),
+        level: document.getElementById('difficulty-level'),
+        delta: document.getElementById('delta-f'),
+        msg: document.getElementById('message-box'),
+        highScore: document.getElementById('high-score-display'),
+        
+        modal: document.getElementById('result-modal'),
+        mTitle: document.getElementById('modal-title'),
+        mScore: document.getElementById('modal-score'),
+        mMsg: document.getElementById('modal-message'),
+        btnRestart: document.getElementById('restart-game-btn'),
+        btnHome: document.getElementById('back-to-home-btn')
+    };
+
+    // ============== Audio Engine ==============
+    function initAudio() {
+        if (!audioContext) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioCtx();
+        }
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    }
+
+    // 複雑な音色を作成する関数 (v2同様)
+    function createOscillators(freq, type, time) {
+        const oscs = [];
+        const gain = audioContext.createGain();
+        
+        switch(type) {
+            case 'triangle':
+            case 'square':
+            case 'sawtooth':
+            case 'sine':
+                const osc = audioContext.createOscillator();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, time);
+                oscs.push(osc);
+                break;
+
+            case 'high-beep': 
+                [1, 2, 4].forEach((ratio, i) => {
+                    const o = audioContext.createOscillator();
+                    o.type = 'square';
+                    o.frequency.setValueAtTime(freq * ratio, time);
+                    const g = audioContext.createGain();
+                    g.gain.value = 0.5 / (i + 1); 
+                    o.connect(g);
+                    g.connect(gain);
+                    oscs.push({start: t => o.start(t), stop: t => o.stop(t), node: g});
+                });
+                return { oscs, output: gain };
+
+            case 'pulse': 
+                const pOsc = audioContext.createOscillator();
+                pOsc.type = 'square';
+                pOsc.frequency.setValueAtTime(freq, time);
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 2000;
+                pOsc.connect(filter);
+                filter.connect(gain);
+                oscs.push({start: t => pOsc.start(t), stop: t => pOsc.stop(t)});
+                return { oscs, output: gain };
+
+            case 'organ': 
+                [1, 2, 3, 4].forEach((ratio, i) => {
+                    const o = audioContext.createOscillator();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(freq * ratio, time);
+                    const g = audioContext.createGain();
+                    const amps = [1.0, 0.5, 0.2, 0.1]; 
+                    g.gain.value = amps[i];
+                    o.connect(g);
+                    g.connect(gain);
+                    oscs.push({start: t => o.start(t), stop: t => o.stop(t)});
+                });
+                return { oscs, output: gain };
+        }
+
+        if(oscs.length > 0 && type !== 'high-beep' && type !== 'organ' && type !== 'pulse') {
+            oscs[0].connect(gain);
+        }
+
+        return { oscs, output: gain };
+    }
+
+    function playTone(freq, duration, type) {
+        return new Promise(resolve => {
+            const t = audioContext.currentTime;
+            const { oscs, output } = createOscillators(freq, type, t);
+            
+            const masterGain = audioContext.createGain();
+            masterGain.gain.setValueAtTime(0, t);
+            masterGain.gain.linearRampToValueAtTime(0.3, t + 0.05); 
+            masterGain.gain.setValueAtTime(0.3, t + duration - 0.05); 
+            masterGain.gain.linearRampToValueAtTime(0, t + duration); 
+
+            output.connect(masterGain);
+            masterGain.connect(audioContext.destination);
+
+            if (type === 'high-beep' || type === 'organ' || type === 'pulse') {
+                oscs.forEach(o => {
+                    o.start(t);
+                    o.stop(t + duration);
+                });
+            } else {
+                oscs.forEach(o => {
+                    o.start(t);
+                    o.stop(t + duration);
+                });
+            }
+
+            setTimeout(resolve, duration * 1000);
+        });
+    }
+
+    async function playSequence() {
+        if (gameState.isAudioPlaying) return;
+        
+        initAudio();
+        gameState.isAudioPlaying = true;
+        
+        el.playBtn.disabled = true;
+        el.replayBtn.disabled = true;
+        el.msg.textContent = "再生中...";
+        el.playIcon.textContent = ""; 
+        el.playIcon.classList.add("spinner");
+        
+        el.answers.forEach(btn => {
+            btn.className = "btn-select h-24 bg-white border-2 border-slate-200 rounded-xl text-xl font-bold text-slate-600 shadow-sm";
+            if(btn.id !== 'answer-1') btn.classList.add('hover:border-slate-300');
+        });
+        el.answers[1].classList.add('text-slate-300', 'cursor-default', 'opacity-50', 'shadow-none'); 
+
+        const diff = BASE_FREQ + gameState.currentDeltaF;
+        const seq = [BASE_FREQ, BASE_FREQ, BASE_FREQ];
+        seq[gameState.targetIndex] = diff;
+
+        const { duration, interval } = gameState.pattern;
+
+        for (let i = 0; i < 3; i++) {
+            await playTone(seq[i], duration, gameState.userWaveform);
+            if (i < 2) await new Promise(r => setTimeout(r, interval * 1000));
+        }
+
+        gameState.isAudioPlaying = false;
+        el.playIcon.classList.remove("spinner");
+        el.playIcon.textContent = "▶";
+        el.msg.textContent = "違う音はどっち？";
+        
+        enableInteraction();
+    }
+
+    // ============== Game Logic ==============
+    function initGame(forceExtra = false) {
+        gameState.currentQuestion = 0;
+        gameState.currentScore = 0;
+        
+        gameState.userWaveform = el.waveformSelect.value;
+        gameState.pattern = PATTERNS[el.patternSelect.value];
+        
+        // モード設定
+        if (forceExtra) {
+            gameState.isExtraMode = true;
+            gameState.currentDeltaF = EXTRA_START_DELTA_F;
+            el.app.classList.add('extra-mode-theme'); // テーマ適用
+        } else {
+            gameState.isExtraMode = false;
+            gameState.currentDeltaF = DIFFICULTY_LEVELS[0].deltaF;
+            el.app.classList.remove('extra-mode-theme');
+        }
+        
+        el.settingPanel.classList.add('hidden');
+        el.gamePanel.classList.remove('hidden');
+        el.statusBar.classList.remove('hidden');
+        el.exitBtn.classList.remove('hidden');
+        
+        setupQuestion();
+    }
+
+    function setupQuestion() {
+        gameState.currentQuestion++;
+        gameState.targetIndex = Math.random() < 0.5 ? 0 : 2;
+        gameState.replayCount = 1; 
+
+        updateUI();
+        
+        el.msg.textContent = `第${gameState.currentQuestion}問 : 音を聴いてください`;
+        el.playBtn.disabled = false;
+        el.playBtn.classList.remove('hidden');
+        
+        el.replayBtn.disabled = true; 
+        el.replayBadge.textContent = "残り1回";
+        el.replayBadge.classList.replace('bg-slate-100', 'bg-slate-200');
+        el.replayBadge.classList.remove('text-slate-300');
+
+        el.answers[0].disabled = true;
+        el.answers[2].disabled = true;
+    }
+
+    function enableInteraction() {
+        el.answers[0].disabled = false;
+        el.answers[2].disabled = false;
+        
+        if (gameState.replayCount > 0) {
+            el.replayBtn.disabled = false;
+        } else {
+            el.replayBtn.disabled = true;
+        }
+        el.playBtn.classList.add('hidden');
+    }
+
+    function updateUI() {
+        el.score.textContent = gameState.currentScore;
+        el.delta.textContent = `差: ${gameState.currentDeltaF.toFixed(1)}Hz`;
+        
+        let level = "エクストラ";
+        if (!gameState.isExtraMode) {
+            const l = DIFFICULTY_LEVELS.find(v => v.deltaF === gameState.currentDeltaF);
+            if(l) level = l.name;
+        } else {
+            // エクストラモード時のUI装飾
+            if(!el.app.classList.contains('extra-mode-theme')) {
+                el.app.classList.add('extra-mode-theme');
+            }
+        }
+        el.level.textContent = `レベル: ${level}`;
+    }
+
+    async function handleAnswer(idx) {
+        if (gameState.isAudioPlaying) return;
+        
+        el.answers[0].disabled = true;
+        el.answers[2].disabled = true;
+        el.replayBtn.disabled = true;
+
+        const isCorrect = (idx === gameState.targetIndex);
+        const btn = el.answers[idx];
+
+        if (isCorrect) {
+            btn.classList.add('correct-bg');
+            el.msg.textContent = "🙆‍♂️ 正解！";
+            gameState.currentScore++;
+            updateDifficulty(true);
+        } else {
+            btn.classList.add('incorrect-bg');
+            el.msg.textContent = "🙅‍♀️ 残念...";
+            el.answers[gameState.targetIndex].classList.add('correct-bg', 'opacity-50');
+            updateDifficulty(false);
+        }
+
+        await new Promise(r => setTimeout(r, 1500));
+
+        if (gameState.currentQuestion >= TOTAL_QUESTIONS) {
+            showResult();
+        } else {
+            setupQuestion();
+        }
+    }
+
+    function updateDifficulty(isCorrect) {
+        let current = gameState.currentDeltaF;
+        let next = current;
+
+        if (isCorrect) {
+            if (gameState.isExtraMode) {
+                // エクストラ: 1Hzずつ減らす (0.1Hzまで)
+                next = Math.max(0.1, current - 1.0);
+            } else {
+                let lvl = DIFFICULTY_LEVELS.find(l => l.deltaF < current);
+                if (lvl) next = lvl.deltaF;
+                else {
+                    gameState.isExtraMode = true;
+                    next = EXTRA_START_DELTA_F; // エクストラ突入 (2.0Hz)
+                }
+            }
+        } else {
+            if (gameState.isExtraMode) {
+                // エクストラで不正解
+                if (current >= 3.0) {
+                    gameState.isExtraMode = false;
+                    next = 3.0; // ハードに戻る
+                    el.app.classList.remove('extra-mode-theme');
+                } else {
+                    next = Math.min(3.0, current + 1.0);
+                }
+            } else {
+                // 通常モードで不正解 (ひとつ前のレベルへ)
+                let prev = DIFFICULTY_LEVELS.slice().reverse().find(l => l.deltaF > current);
+                if (prev) next = prev.deltaF;
+            }
+        }
+        gameState.currentDeltaF = next;
+    }
+
+    function handleReplay() {
+        if (gameState.replayCount > 0) {
+            gameState.replayCount--;
+            el.replayBadge.textContent = "残り0回";
+            el.replayBadge.classList.replace('bg-slate-200', 'bg-slate-100');
+            el.replayBadge.classList.add('text-slate-300');
+            playSequence();
+        }
+    }
+
+    function showResult() {
+        const score = gameState.currentScore;
+        el.mScore.textContent = `${score}/${TOTAL_QUESTIONS}`;
+        
+        let msg = "";
+        if (score === 5) msg = "素晴らしい耳を持っています！<br>パーフェクト達成！";
+        else if (score >= 3) msg = "いい耳ですね！<br>あと少しでパーフェクトです。";
+        else msg = "ドンマイ！<br>音の違いを意識してみましょう。";
+        
+        msg += `<br><span class="text-xs text-gray-400 mt-2 block">最終到達: ${gameState.currentDeltaF.toFixed(1)}Hz差</span>`;
+        
+        el.mMsg.innerHTML = msg;
+        el.modal.classList.remove('hidden');
+
+        const saved = localStorage.getItem('freqGameHighScore') || 0;
+        if (score > saved) {
+            localStorage.setItem('freqGameHighScore', score);
+        }
+    }
+
+    function exitToTitle() {
+        el.gamePanel.classList.add('hidden');
+        el.statusBar.classList.add('hidden');
+        el.exitBtn.classList.add('hidden');
+        el.modal.classList.add('hidden');
+        el.settingPanel.classList.remove('hidden');
+        el.app.classList.remove('extra-mode-theme');
+        loadHighScore();
+    }
+
+    function loadHighScore() {
+        const s = localStorage.getItem('freqGameHighScore');
+        if (s) el.highScore.textContent = `Best Score: ${s}/5`;
+    }
+
+    // ============== Events ==============
+    el.startBtn.onclick = () => initGame(false);
+    el.startExtraBtn.onclick = () => initGame(true); // いきなりエクストラ
+    el.playBtn.onclick = playSequence;
+    el.replayBtn.onclick = handleReplay;
+    el.exitBtn.onclick = exitToTitle;
+    el.btnHome.onclick = exitToTitle;
+    el.btnRestart.onclick = () => {
+        el.modal.classList.add('hidden');
+        // リスタート時は、現在の設定を維持して再開
+        // (前回がエクストラならエクストラで再開したいが、
+        //  簡単のため現在のモードフラグを使って初期化)
+        initGame(gameState.isExtraMode); 
+    };
+    
+    el.answers[0].onclick = () => handleAnswer(0);
+    el.answers[2].onclick = () => handleAnswer(2);
+
+    window.onload = loadHighScore;
+
+</script>
+</body>
+</html>
