@@ -422,6 +422,8 @@ class DigitalArtApp {
         this.appContainer = document.querySelector('.app-container');
         this.presentationOverlay = document.getElementById('presentationOverlay');
         this.presentationHidden = false;
+        this.uiHiddenDuringPlayback = false;
+        this.awaitingUIRestore = false;
         this.history = [];
 
         this.addShapeCounter = 0;
@@ -438,7 +440,7 @@ class DigitalArtApp {
             animation: { speed: 1.0 },
             // ✍️ 手描き
             freehand: {
-                enabled: false,
+                enabled: true,
                 lineWidth: 6,
                 color: '#FFFFFF',
                 sampleDistance: 2,
@@ -462,24 +464,8 @@ class DigitalArtApp {
         this.setupEventListeners();
         this.setupUI();
         this.setupAnimationManager();
-        this.initializeDefaultShapes();
         this.startAnimationLoop();
         this.updateUndoButtonState();
-    }
-
-    // ---- 初期化 ----
-    initializeDefaultShapes() {
-        const tri = new Triangle(`triangle-${this.state.nextTriangleId++}`, -3, -3, 0, 3, true);
-        tri.zIndex = Date.now();
-        this.state.shapes.set(tri.id, tri);
-
-        setTimeout(() => {
-            const sq = new Square(`square-${this.state.nextSquareId++}`, 3, 3, 0, 3, true);
-            sq.zIndex = Date.now() + 1;
-            this.state.shapes.set(sq.id, sq);
-            this.updateCountsAndHandles();
-        }, 10);
-
         this.updateCountsAndHandles();
     }
 
@@ -500,6 +486,15 @@ class DigitalArtApp {
                 case 'dark': phaseEl.textContent = '暗転中...'; status.className = 'animation-status dark-phase'; bar.classList.add('pulsing'); mainBtn.classList.add('playing'); break;
                 case 'drawing': phaseEl.textContent = '描画中...'; status.className = 'animation-status drawing'; bar.classList.remove('pulsing'); mainBtn.classList.add('playing'); break;
                 case 'complete': phaseEl.textContent = '完了'; status.className = 'animation-status'; bar.classList.remove('pulsing'); mainBtn.classList.remove('playing'); break;
+            }
+            if (phase === 'hiding') {
+                this.hideUIForPlayback();
+            }
+            if (phase === 'complete') {
+                this.showPlaybackRestoreOverlay();
+            }
+            if (phase === 'editing' && !this.awaitingUIRestore) {
+                this.restoreUIAfterPlayback();
             }
             if (this.animationManager.isPlaying) {
                 const sec = (this.animationManager.getElapsedTime() / 1000).toFixed(1);
@@ -539,7 +534,12 @@ class DigitalArtApp {
 
         // メイン再生
         document.getElementById('mainPlayButton').addEventListener('click', () => {
-            this.animationManager.isPlaying ? this.animationManager.stop() : this.animationManager.start();
+            if (this.animationManager.isPlaying) {
+                this.animationManager.stop();
+            } else {
+                this.hideUIForPlayback();
+                this.animationManager.start();
+            }
         });
 
         document.getElementById('undoAction').addEventListener('click', () => this.undoLastAction());
@@ -562,11 +562,21 @@ class DigitalArtApp {
             });
         }
         if (this.presentationOverlay) {
-            this.presentationOverlay.addEventListener('click', () => this.deactivatePresentationHide(true));
+            this.presentationOverlay.addEventListener('click', () => {
+                if (this.awaitingUIRestore) {
+                    this.restoreUIAfterPlayback();
+                } else {
+                    this.deactivatePresentationHide(true);
+                }
+            });
             this.presentationOverlay.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
                     e.preventDefault();
-                    this.deactivatePresentationHide(true);
+                    if (this.awaitingUIRestore) {
+                        this.restoreUIAfterPlayback();
+                    } else {
+                        this.deactivatePresentationHide(true);
+                    }
                 }
             });
         }
@@ -610,6 +620,8 @@ class DigitalArtApp {
         document.getElementById('strokeColor').value = this.state.freehand.color;
         document.getElementById('sampleDistance').value = this.state.freehand.sampleDistance;
         document.getElementById('sampleDistanceValue').textContent = this.state.freehand.sampleDistance;
+
+        this.updateDrawButtonUI();
     }
 
     setupUIControls() {
@@ -643,7 +655,10 @@ class DigitalArtApp {
         document.getElementById('showGridOverlay').addEventListener('change', (e)=> this.state.showGridOverlay = e.target.checked);
 
         // アニメーション
-        document.getElementById('playAnimation').addEventListener('click', ()=> this.animationManager.start());
+        document.getElementById('playAnimation').addEventListener('click', ()=> {
+            if (!this.animationManager.isPlaying) this.hideUIForPlayback();
+            this.animationManager.start();
+        });
         document.getElementById('stopAnimation').addEventListener('click', ()=> this.animationManager.stop());
         document.getElementById('resetAnimation').addEventListener('click', ()=> this.animationManager.reset());
 
@@ -673,16 +688,15 @@ class DigitalArtApp {
 
     toggleDrawMode() {
         this.state.freehand.enabled = !this.state.freehand.enabled;
+        this.updateDrawButtonUI();
+    }
+
+    updateDrawButtonUI() {
         const btn = document.getElementById('toggleDraw');
-        if (this.state.freehand.enabled) {
-            btn.classList.remove('btn--secondary');
-            btn.classList.add('btn--primary');
-            btn.title = '手描きモード: ON';
-        } else {
-            btn.classList.remove('btn--primary');
-            btn.classList.add('btn--secondary');
-            btn.title = '手描きモード: OFF';
-        }
+        if (!btn) return;
+        btn.classList.toggle('btn--primary', this.state.freehand.enabled);
+        btn.classList.toggle('btn--secondary', !this.state.freehand.enabled);
+        btn.title = this.state.freehand.enabled ? '手描きモード: ON' : '手描きモード: OFF';
     }
 
     togglePresentationMode() {
@@ -718,6 +732,43 @@ class DigitalArtApp {
             this.presentationOverlay.setAttribute('tabindex', '-1');
         }
         if (autoPlay) this.animationManager.start();
+    }
+
+    hideUIForPlayback() {
+        if (this.presentationHidden) return;
+        this.uiHiddenDuringPlayback = true;
+        this.awaitingUIRestore = false;
+        if (this.appContainer) this.appContainer.classList.add('playback-ui-hidden');
+        this.hideOverlayIfStandalone();
+    }
+
+    showPlaybackRestoreOverlay() {
+        if (this.presentationHidden) return;
+        this.awaitingUIRestore = true;
+        if (this.presentationOverlay) {
+            this.presentationOverlay.textContent = '再生が完了しました。画面をタップするとボタンが戻ります';
+            this.presentationOverlay.classList.remove('hidden');
+            this.presentationOverlay.setAttribute('aria-hidden', 'false');
+            this.presentationOverlay.setAttribute('tabindex', '0');
+        }
+    }
+
+    restoreUIAfterPlayback() {
+        if (!this.uiHiddenDuringPlayback && !this.awaitingUIRestore) return;
+        this.uiHiddenDuringPlayback = false;
+        this.awaitingUIRestore = false;
+        if (this.appContainer) this.appContainer.classList.remove('playback-ui-hidden');
+        this.hideOverlayIfStandalone();
+    }
+
+    hideOverlayIfStandalone() {
+        if (this.presentationHidden) return;
+        if (this.presentationOverlay) {
+            this.presentationOverlay.classList.add('hidden');
+            this.presentationOverlay.setAttribute('aria-hidden', 'true');
+            this.presentationOverlay.setAttribute('tabindex', '-1');
+            this.presentationOverlay.textContent = '画面をタップして再生 ▶️';
+        }
     }
 
     // ---- 図形/パターン ----
