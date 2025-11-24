@@ -353,33 +353,6 @@
         return Math.sin(t);
     }
 
-    function getTrianglePosition(t) {
-        const norm = ((t % (Math.PI * 2)) + Math.PI * 2) / (Math.PI * 2);
-        const verts = [
-            { x: 0, y: -1 },
-            { x: 1, y: 0.8 },
-            { x: -1, y: 0.8 }
-        ];
-        const seg = Math.floor(norm * 3);
-        const segT = norm * 3 - seg;
-        const a = verts[seg];
-        const b = verts[(seg + 1) % 3];
-        return {
-            x: a.x + (b.x - a.x) * segT,
-            y: a.y + (b.y - a.y) * segT
-        };
-    }
-
-    function getShapePoint(t, type, swapPhase = false) {
-        if (type === SHAPE_TRIANGLE) return getTrianglePosition(t);
-        const xPhase = swapPhase ? t - Math.PI / 2 : t;
-        const yPhase = swapPhase ? t : t - Math.PI / 2;
-        return {
-            x: getWave(xPhase, type),
-            y: getWave(yPhase, type)
-        };
-    }
-
     function initShapes() {
         colShapes = [];
         rowShapes = [];
@@ -560,9 +533,8 @@
 
             drawShapeOutline(uiCtx, cx, cy, r, type, '#444');
             const phase = time * (i + 1);
-            const pos = getShapePoint(phase, type);
-            const px = cx + r * pos.x;
-            const py = cy + r * pos.y;
+            const px = cx + r * getWave(phase, type);
+            const py = cy + r * getWave(phase - Math.PI/2, type);
 
             uiCtx.fillStyle = '#fff';
             uiCtx.beginPath(); uiCtx.arc(px, py, 3, 0, Math.PI*2); uiCtx.fill();
@@ -578,9 +550,8 @@
 
             drawShapeOutline(uiCtx, cx, cy, r, type, '#444');
             const phase = time * (j + 1);
-            const pos = getShapePoint(phase, type, true);
-            const px = cx + r * pos.x;
-            const py = cy + r * pos.y;
+            const px = cx + r * getWave(phase - Math.PI/2, type);
+            const py = cy + r * getWave(phase, type);
 
             uiCtx.fillStyle = '#fff';
             uiCtx.beginPath(); uiCtx.arc(px, py, 3, 0, Math.PI*2); uiCtx.fill();
