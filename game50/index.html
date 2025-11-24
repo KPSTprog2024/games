@@ -262,6 +262,17 @@
                     <span class="label">WIDTH</span>
                     <input type="range" id="width-slider" min="1" max="50" value="10">
                 </div>
+                <div class="control-row">
+                    <span class="label">COLOR</span>
+                    <select id="color-style" class="flex-1 bg-gray-800 text-white text-sm rounded-lg border border-gray-600 px-3 py-2">
+                        <option value="rainbow">Rainbow</option>
+                        <option value="grayscale">Grayscale</option>
+                        <option value="mono">Mono Gradient</option>
+                        <option value="neon">Neon Glow</option>
+                        <option value="crayon">Crayon / Pastel</option>
+                        <option value="watercolor">Watercolor</option>
+                    </select>
+                </div>
             </div>
 
             <!-- タイマー設定 -->
@@ -305,6 +316,7 @@
     const stealthTimer = document.getElementById('stealth-timer');
     const speedSlider = document.getElementById('speed-slider');
     const widthSlider = document.getElementById('width-slider');
+    const colorStyleSelect = document.getElementById('color-style');
     const clearBtn = document.getElementById('clear-btn');
     const pauseBtn = document.getElementById('pause-btn');
     const mixBtn = document.getElementById('mix-btn');
@@ -329,8 +341,12 @@
         lineWidth: 1.0,
         isPaused: false,
         timerVal: 30.0,
-        timerMax: 30.0
+        timerMax: 30.0,
+        colorStyle: 'rainbow'
     };
+
+    const neonPalette = ['#7df9ff', '#e600ff', '#7fff00', '#ffd60a'];
+    const crayonPalette = ['#f4c2c2', '#ffe5b4', '#c1e1c1', '#c4d7e0', '#f9e79f'];
 
     let time = 0;
     let colShapes = [];
@@ -578,12 +594,7 @@
                         const prev = prevPoints[i][j];
                         const dist = Math.hypot(curX - prev.x, curY - prev.y);
                         if (dist < r * 2) {
-                            artCtx.beginPath();
-                            artCtx.moveTo(prev.x, prev.y);
-                            artCtx.lineTo(curX, curY);
-                            const hue = (i * 20 + j * 20 + time * 10) % 360;
-                            artCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
-                            artCtx.stroke();
+                            drawStyledSegment(prev, { x: curX, y: curY }, i, j);
                         }
                     }
                     if (!prevPoints[i]) prevPoints[i] = [];
@@ -596,6 +607,85 @@
         }
 
         requestAnimationFrame(draw);
+    }
+
+    function drawStyledSegment(prev, cur, i, j) {
+        const style = config.colorStyle;
+        const baseHue = (i * 25 + j * 25 + time * 10) % 360;
+
+        artCtx.shadowColor = 'transparent';
+
+        if (style === 'grayscale') {
+            const lightness = 40 + 20 * Math.sin(time * 2 + i + j);
+            artCtx.strokeStyle = `hsl(0 0% ${lightness}%)`;
+            artCtx.shadowBlur = 0;
+            basicStroke(prev, cur);
+            return;
+        }
+
+        if (style === 'mono') {
+            const hue = 210;
+            const sat = 40 + 20 * Math.sin(time * 1.5 + i * 0.5 + j * 0.5);
+            const lightness = 45 + 15 * Math.sin(time * 2 + i + j);
+            artCtx.strokeStyle = `hsl(${hue} ${sat}% ${lightness}%)`;
+            artCtx.shadowBlur = 0;
+            basicStroke(prev, cur);
+            return;
+        }
+
+        if (style === 'neon') {
+            const color = neonPalette[(i + j) % neonPalette.length];
+            artCtx.strokeStyle = color;
+            artCtx.shadowColor = color;
+            artCtx.shadowBlur = 18;
+            artCtx.globalAlpha = 0.9;
+            basicStroke(prev, cur);
+            artCtx.shadowBlur = 0;
+            artCtx.globalAlpha = 1;
+            return;
+        }
+
+        if (style === 'crayon') {
+            const color = crayonPalette[(i + j) % crayonPalette.length];
+            artCtx.strokeStyle = color;
+            artCtx.shadowBlur = 0;
+            for (let k = 0; k < 3; k++) {
+                const jitter = (Math.random() - 0.5) * 2;
+                artCtx.lineWidth = config.lineWidth * (1.2 + k * 0.2);
+                artCtx.globalAlpha = 0.45;
+                artCtx.beginPath();
+                artCtx.moveTo(prev.x + jitter, prev.y + jitter);
+                artCtx.lineTo(cur.x + jitter, cur.y + jitter);
+                artCtx.stroke();
+            }
+            artCtx.lineWidth = config.lineWidth;
+            artCtx.globalAlpha = 1;
+            return;
+        }
+
+        if (style === 'watercolor') {
+            const hue = 180 + 40 * Math.sin(time * 0.8 + i);
+            const lightness = 65 + 10 * Math.sin(time * 0.6 + j);
+            artCtx.strokeStyle = `hsl(${hue} 60% ${lightness}%)`;
+            artCtx.globalAlpha = 0.3;
+            artCtx.lineWidth = config.lineWidth * 1.6;
+            basicStroke(prev, cur);
+            artCtx.lineWidth = config.lineWidth;
+            artCtx.globalAlpha = 1;
+            return;
+        }
+
+        // Rainbow (default)
+        artCtx.strokeStyle = `hsla(${baseHue}, 80%, 60%, 0.8)`;
+        artCtx.shadowBlur = 0;
+        basicStroke(prev, cur);
+    }
+
+    function basicStroke(prev, cur) {
+        artCtx.beginPath();
+        artCtx.moveTo(prev.x, prev.y);
+        artCtx.lineTo(cur.x, cur.y);
+        artCtx.stroke();
     }
 
     function drawShapeOutline(ctx, x, y, r, type, color) {
@@ -641,7 +731,7 @@
     });
 
     clearBtn.addEventListener('click', clearArt);
-    
+
     pauseBtn.addEventListener('click', () => {
         config.isPaused = !config.isPaused;
         pauseBtn.textContent = config.isPaused ? "▶ Play" : "⏸ Pause";
@@ -652,6 +742,10 @@
     });
 
     mixBtn.addEventListener('click', shuffleShapes);
+
+    colorStyleSelect.addEventListener('change', (e) => {
+        config.colorStyle = e.target.value;
+    });
 
     toggleUiBtn.addEventListener('click', () => {
         controlsWrapper.classList.toggle('hidden-ui');
