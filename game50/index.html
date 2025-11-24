@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lissajous Art Pad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            touch-action: none;
+            font-family: ui-rounded, 'Hiragino Maru Gothic ProN', sans-serif;
+        }
+        
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+        }
+
+        #art-canvas { z-index: 1; }
+        #ui-canvas { z-index: 2; pointer-events: none; }
+
+        /* --- ステルスタイマー (左上埋め込み) --- */
+        #stealth-timer {
+            position: absolute;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: bold;
+            font-feature-settings: "tnum";
+            pointer-events: none; /* タップは透過 */
+            /* フォントサイズと位置はJSで計算 */
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        .urgent { color: #ff5555 !important; }
+
+        /* --- UI要素 --- */
+
+        /* 設定ボタン (右下) */
+        #toggle-ui-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 30;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: transform 0.2s, background 0.2s;
+        }
+        #toggle-ui-btn:active { transform: scale(0.9); }
+        #toggle-ui-btn.active { background: rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
+
+        /* コントロールパネルラッパー */
+        #controls-wrapper {
+            position: absolute;
+            bottom: 20px;
+            left: 0; 
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        
+        #controls-wrapper.hidden-ui {
+            transform: translateY(150%);
+        }
+
+        /* コントロールパネル本体 */
+        #controls {
+            pointer-events: auto;
+            width: 90%;
+            max-width: 400px;
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .control-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* スイッチ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #444;
+            transition: .3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* 時間ボタン */
+        .time-group {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .time-btn {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .time-btn.active {
+            background: #444;
+            color: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* スライダー */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+            height: 24px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex: 1;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: #3b82f6; }
+        .btn-danger { background: #ef4444; }
+
+        .label {
+            color: #ccc;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+            width: 50px;
+        }
+        .sub-label {
+            color: #aaa;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <canvas id="art-canvas"></canvas>
+        <canvas id="ui-canvas"></canvas>
+        <!-- ステルスタイマー（左上のマスに配置） -->
+        <div id="stealth-timer">30.0</div>
+    </div>
+
+    <!-- UI表示切替ボタン -->
+    <button id="toggle-ui-btn" title="Settings">⚙️</button>
+
+    <!-- コントロールパネル -->
+    <div id="controls-wrapper" class="hidden-ui">
+        <div id="controls">
+            
+            <!-- 描画設定 -->
+            <div class="control-section">
+                <div class="control-row">
+                    <span class="label">SPEED</span>
+                    <input type="range" id="speed-slider" min="1" max="100" value="30">
+                </div>
+                <div class="control-row">
+                    <span class="label">WIDTH</span>
+                    <input type="range" id="width-slider" min="1" max="50" value="10">
+                </div>
+            </div>
+
+            <!-- タイマー設定 -->
+            <div class="control-section">
+                <div class="control-row">
+                    <span class="sub-label">Auto Shuffle</span>
+                    <label class="switch">
+                        <input type="checkbox" id="timer-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="control-row" style="margin-top:4px;">
+                    <span class="sub-label">Interval</span>
+                    <div class="time-group">
+                        <button class="time-btn" data-time="10">10s</button>
+                        <button class="time-btn active" data-time="30">30s</button>
+                        <button class="time-btn" data-time="60">60s</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="control-section">
+                <div class="control-row">
+                    <button class="btn" id="pause-btn">⏸ Pause</button>
+                    <button class="btn btn-danger" id="clear-btn">🗑️ Clear</button>
+                    <button class="btn btn-primary" id="mix-btn">🎲 Mix</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    const artCanvas = document.getElementById('art-canvas');
+    const artCtx = artCanvas.getContext('2d');
+    const uiCanvas = document.getElementById('ui-canvas');
+    const uiCtx = uiCanvas.getContext('2d');
+    
+    // UI Elements
+    const stealthTimer = document.getElementById('stealth-timer');
+    const speedSlider = document.getElementById('speed-slider');
+    const widthSlider = document.getElementById('width-slider');
+    const clearBtn = document.getElementById('clear-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const mixBtn = document.getElementById('mix-btn');
+    const timerSwitch = document.getElementById('timer-switch');
+    const toggleUiBtn = document.getElementById('toggle-ui-btn');
+    const controlsWrapper = document.getElementById('controls-wrapper');
+    const timeBtns = document.querySelectorAll('.time-btn');
+
+    const SHAPE_CIRCLE = 0;
+    const SHAPE_SQUARE = 1;
+    const SHAPE_TRIANGLE = 2;
+
+    let config = {
+        cols: 6,
+        rows: 8,
+        cellSize: 0,
+        padding: 10,
+        offsetX: 0,
+        offsetY: 0,
+        speedBase: 0.0002,
+        speedMult: 30,
+        lineWidth: 1.0,
+        isPaused: false,
+        timerVal: 30.0,
+        timerMax: 30.0
+    };
+
+    let time = 0;
+    let colShapes = [];
+    let rowShapes = [];
+    let prevPoints = [];
+    let lastTime = Date.now();
+
+    function getWave(t, type) {
+        if (type === SHAPE_CIRCLE) return Math.sin(t);
+        if (type === SHAPE_TRIANGLE) return (2 / Math.PI) * Math.asin(Math.sin(t));
+        if (type === SHAPE_SQUARE) {
+            let p = (t / (Math.PI * 2)) * 4;
+            p = p % 4;
+            if (p < 0) p += 4;
+            if (p < 1) return -1 + 2 * p;
+            if (p < 2) return 1;
+            if (p < 3) return 1 - 2 * (p - 2);
+            return -1;
+        }
+        return Math.sin(t);
+    }
+
+    function initShapes() {
+        colShapes = [];
+        rowShapes = [];
+        for (let i = 0; i < 20; i++) colShapes.push(i % 3);
+        for (let i = 0; i < 20; i++) rowShapes.push((i+1) % 3);
+    }
+
+    function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        [artCanvas, uiCanvas].forEach(c => {
+            c.width = w * dpr;
+            c.height = h * dpr;
+            c.style.width = w + 'px';
+            c.style.height = h + 'px';
+            c.getContext('2d').scale(dpr, dpr);
+        });
+
+        // 画面全体を使う計算
+        // ただし、右下に設定ボタンがあるので少し考慮してもいいが、
+        // 描画エリアは広いほうがいいのでpaddingだけ確保
+        const safeMarginBottom = 0; 
+        const availH = h - safeMarginBottom;
+        
+        const baseSize = Math.min(w, availH) / 8; // 基準サイズ
+
+        config.cols = Math.floor((w - config.padding * 2) / baseSize) - 1;
+        config.rows = Math.floor((availH - config.padding * 2) / baseSize) - 1;
+
+        config.cols = Math.max(config.cols, 3);
+        config.rows = Math.max(config.rows, 3);
+
+        config.cellSize = Math.min(
+            (w - config.padding * 2) / (config.cols + 1),
+            (availH - config.padding * 2) / (config.rows + 1)
+        );
+
+        config.offsetX = (w - config.cellSize * (config.cols + 1)) / 2;
+        config.offsetY = (availH - config.cellSize * (config.rows + 1)) / 2;
+
+        // ステルスタイマーの位置更新（左上の親図形エリア）
+        // (0,0) の位置に相当する座標: config.offsetX, config.offsetY
+        // サイズ: config.cellSize
+        stealthTimer.style.left = config.offsetX + 'px';
+        stealthTimer.style.top = config.offsetY + 'px';
+        stealthTimer.style.width = config.cellSize + 'px';
+        stealthTimer.style.height = config.cellSize + 'px';
+        stealthTimer.style.fontSize = (config.cellSize * 0.28) + 'px'; // 枠に収まるサイズ
+
+        resetPrevPoints();
+        clearArt();
+    }
+
+    function resetPrevPoints() {
+        prevPoints = [];
+        for (let i = 0; i < config.cols; i++) {
+            prevPoints[i] = [];
+            for (let j = 0; j < config.rows; j++) {
+                prevPoints[i][j] = null;
+            }
+        }
+    }
+
+    function clearArt() {
+        const w = artCanvas.width / (window.devicePixelRatio||1);
+        const h = artCanvas.height / (window.devicePixelRatio||1);
+        artCtx.clearRect(0, 0, w, h);
+        resetPrevPoints();
+    }
+
+    function shuffleShapes() {
+        colShapes = colShapes.map(() => Math.floor(Math.random() * 3));
+        rowShapes = rowShapes.map(() => Math.floor(Math.random() * 3));
+        clearArt();
+        config.timerVal = config.timerMax;
+        updateTimerDisplay();
+    }
+
+    function updateTimer(dt) {
+        if (!timerSwitch.checked) {
+            stealthTimer.style.opacity = '0.3'; // OFF時は薄く
+            return;
+        }
+        stealthTimer.style.opacity = '1';
+
+        if (config.isPaused) return;
+
+        config.timerVal -= dt;
+        if (config.timerVal <= 0) {
+            config.timerVal = 0;
+            shuffleShapes();
+        }
+        updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+        stealthTimer.textContent = Math.ceil(config.timerVal); // シンプルに整数秒表示
+        
+        if (config.timerVal <= 3.0 && config.timerVal > 0) {
+            stealthTimer.classList.add('urgent');
+        } else {
+            stealthTimer.classList.remove('urgent');
+        }
+    }
+
+    // Controls
+    timeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const newTime = parseInt(btn.dataset.time);
+            config.timerMax = newTime;
+            config.timerVal = newTime;
+            updateTimerDisplay();
+            timeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+
+    function draw() {
+        const now = Date.now();
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+
+        updateTimer(dt);
+
+        if (!config.isPaused) {
+            config.speedMult = parseInt(speedSlider.value);
+            config.lineWidth = parseInt(widthSlider.value) / 10;
+            time += config.speedBase * config.speedMult;
+        }
+
+        const w = uiCanvas.width / (window.devicePixelRatio||1);
+        const h = uiCanvas.height / (window.devicePixelRatio||1);
+        uiCtx.clearRect(0, 0, w, h);
+
+        const r = (config.cellSize / 2) * 0.8;
+        const cs = config.cellSize;
+
+        uiCtx.lineWidth = 1.5;
+
+        // --- 左上のステルスタイマー用リングを描画 ---
+        // 親図形と同じデザインで囲む
+        const timerCx = config.offsetX + cs / 2;
+        const timerCy = config.offsetY + cs / 2;
+        
+        // 残り時間に応じてゲージが減るエフェクト（円グラフ）
+        if (timerSwitch.checked) {
+            const progress = config.timerVal / config.timerMax;
+            
+            // 背景の薄い円
+            uiCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            uiCtx.beginPath();
+            uiCtx.arc(timerCx, timerCy, r, 0, Math.PI * 2);
+            uiCtx.stroke();
+
+            // 進行ゲージ
+            uiCtx.strokeStyle = config.timerVal <= 3 ? '#ff5555' : '#3b82f6';
+            uiCtx.beginPath();
+            // -90度(12時)からスタート
+            uiCtx.arc(timerCx, timerCy, r, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * progress));
+            uiCtx.stroke();
+        } else {
+            // OFF時は単なる円枠
+            uiCtx.strokeStyle = '#333';
+            uiCtx.beginPath();
+            uiCtx.arc(timerCx, timerCy, r, 0, Math.PI * 2);
+            uiCtx.stroke();
+            stealthTimer.textContent = "OFF";
+        }
+
+
+        // Header (Cols)
+        for (let i = 0; i < config.cols; i++) {
+            const cx = config.offsetX + (i + 1) * cs + cs / 2;
+            const cy = config.offsetY + cs / 2;
+            const type = colShapes[i];
+
+            drawShapeOutline(uiCtx, cx, cy, r, type, '#444');
+            const phase = time * (i + 1);
+            const px = cx + r * getWave(phase, type);
+            const py = cy + r * getWave(phase - Math.PI/2, type);
+
+            uiCtx.fillStyle = '#fff';
+            uiCtx.beginPath(); uiCtx.arc(px, py, 3, 0, Math.PI*2); uiCtx.fill();
+            uiCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            uiCtx.beginPath(); uiCtx.moveTo(px, cy + cs/2); uiCtx.lineTo(px, config.offsetY + (config.rows+1)*cs); uiCtx.stroke();
+        }
+
+        // Sidebar (Rows)
+        for (let j = 0; j < config.rows; j++) {
+            const cx = config.offsetX + cs / 2;
+            const cy = config.offsetY + (j + 1) * cs + cs / 2;
+            const type = rowShapes[j];
+
+            drawShapeOutline(uiCtx, cx, cy, r, type, '#444');
+            const phase = time * (j + 1);
+            const px = cx + r * getWave(phase - Math.PI/2, type);
+            const py = cy + r * getWave(phase, type);
+
+            uiCtx.fillStyle = '#fff';
+            uiCtx.beginPath(); uiCtx.arc(px, py, 3, 0, Math.PI*2); uiCtx.fill();
+            uiCtx.strokeStyle = 'rgba(255,255,255,0.1)';
+            uiCtx.beginPath(); uiCtx.moveTo(cx + cs/2, py); uiCtx.lineTo(config.offsetX + (config.cols+1)*cs, py); uiCtx.stroke();
+        }
+
+        // Art Drawing
+        if (!config.isPaused) {
+            artCtx.lineWidth = config.lineWidth;
+            artCtx.lineCap = 'round';
+        }
+
+        for (let i = 0; i < config.cols; i++) {
+            for (let j = 0; j < config.rows; j++) {
+                const cx = config.offsetX + (i + 1) * cs + cs / 2;
+                const cy = config.offsetY + (j + 1) * cs + cs / 2;
+
+                const curX = cx + r * getWave(time * (i + 1), colShapes[i]);
+                const curY = cy + r * getWave(time * (j + 1), rowShapes[j]);
+
+                if (!config.isPaused) {
+                    if (prevPoints[i] && prevPoints[i][j]) {
+                        const prev = prevPoints[i][j];
+                        const dist = Math.hypot(curX - prev.x, curY - prev.y);
+                        if (dist < r * 2) {
+                            artCtx.beginPath();
+                            artCtx.moveTo(prev.x, prev.y);
+                            artCtx.lineTo(curX, curY);
+                            const hue = (i * 20 + j * 20 + time * 10) % 360;
+                            artCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+                            artCtx.stroke();
+                        }
+                    }
+                    if (!prevPoints[i]) prevPoints[i] = [];
+                    prevPoints[i][j] = { x: curX, y: curY };
+                }
+
+                uiCtx.fillStyle = '#fff';
+                uiCtx.beginPath(); uiCtx.arc(curX, curY, 2, 0, Math.PI * 2); uiCtx.fill();
+            }
+        }
+
+        requestAnimationFrame(draw);
+    }
+
+    function drawShapeOutline(ctx, x, y, r, type, color) {
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        if (type === SHAPE_CIRCLE) ctx.arc(x, y, r, 0, Math.PI * 2);
+        else if (type === SHAPE_SQUARE) ctx.rect(x - r, y - r, r * 2, r * 2);
+        else if (type === SHAPE_TRIANGLE) {
+            ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r * 0.8); ctx.lineTo(x - r, y + r * 0.8); ctx.closePath();
+        }
+        ctx.stroke();
+    }
+
+    // Interaction
+    window.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('#controls') || e.target.closest('#toggle-ui-btn')) return;
+
+        const rect = uiCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const cs = config.cellSize;
+
+        if (y > config.offsetY && y < config.offsetY + cs) {
+            const colIndex = Math.floor((x - config.offsetX) / cs) - 1;
+            if (colIndex >= 0 && colIndex < config.cols) {
+                colShapes[colIndex] = (colShapes[colIndex] + 1) % 3;
+                prevPoints[colIndex] = [];
+            }
+        }
+        if (x > config.offsetX && x < config.offsetX + cs) {
+            const rowIndex = Math.floor((y - config.offsetY) / cs) - 1;
+            if (rowIndex >= 0 && rowIndex < config.rows) {
+                rowShapes[rowIndex] = (rowShapes[rowIndex] + 1) % 3;
+                for(let i=0; i<config.cols; i++) {
+                    if(prevPoints[i]) prevPoints[i][rowIndex] = null;
+                }
+            }
+        }
+    });
+
+    clearBtn.addEventListener('click', clearArt);
+    
+    pauseBtn.addEventListener('click', () => {
+        config.isPaused = !config.isPaused;
+        pauseBtn.textContent = config.isPaused ? "▶ Play" : "⏸ Pause";
+        if (!config.isPaused) {
+            resetPrevPoints();
+            lastTime = Date.now();
+        }
+    });
+
+    mixBtn.addEventListener('click', shuffleShapes);
+
+    toggleUiBtn.addEventListener('click', () => {
+        controlsWrapper.classList.toggle('hidden-ui');
+        const isHidden = controlsWrapper.classList.contains('hidden-ui');
+        toggleUiBtn.classList.toggle('active', !isHidden);
+    });
+
+    window.addEventListener('resize', resize);
+    
+    initShapes();
+    resize();
+    draw();
+
+</script>
+</body>
+</html>
