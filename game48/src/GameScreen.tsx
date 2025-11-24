@@ -149,7 +149,7 @@ const IsometricCanvas = ({ blocks, size = 300 }: { blocks: Point3D[]; size?: num
     ctx.stroke();
   };
 
-  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />;
+  return <canvas ref={canvasRef} style={{ width: '100%', height: '100%', maxWidth: '320px' }} />;
 };
 
 // --- Game Components ---
@@ -254,32 +254,32 @@ const GameScreen = () => {
           <p className="text-slate-500 mb-8">おじゅけん に チャレンジ！</p>
 
           <div className="space-y-6">
-            <div className="space-y-2">
-              <p className="font-bold text-lg text-slate-600">あそびかた</p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => startGame('compare', difficulty)}
-                  className="p-4 bg-blue-100 hover:bg-blue-200 rounded-2xl border-2 border-blue-300 transition-all flex flex-col items-center gap-2 active:scale-95"
-                >
-                  <div className="text-3xl">⚖️</div>
-                  <span className="font-bold text-blue-700">どっちが おおい？</span>
-                </button>
-                <button
-                  onClick={() => startGame('count', difficulty)}
-                  className="p-4 bg-amber-100 hover:bg-amber-200 rounded-2xl border-2 border-amber-300 transition-all flex flex-col items-center gap-2 active:scale-95"
-                >
-                  <div className="text-3xl">🔢</div>
-                  <span className="font-bold text-amber-700">なんこ ある？</span>
-                </button>
+          <div className="space-y-2">
+            <p className="font-bold text-lg text-slate-600">あそびかた</p>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => startGame('compare', difficulty)}
+                className="p-5 md:p-6 bg-blue-100 hover:bg-blue-200 rounded-3xl border-2 border-blue-300 transition-all flex flex-col items-center gap-3 active:scale-95 text-lg md:text-xl"
+              >
+                <div className="text-3xl">⚖️</div>
+                <span className="font-bold text-blue-700">どっちが おおい？</span>
+              </button>
+              <button
+                onClick={() => startGame('count', difficulty)}
+                className="p-5 md:p-6 bg-amber-100 hover:bg-amber-200 rounded-3xl border-2 border-amber-300 transition-all flex flex-col items-center gap-3 active:scale-95 text-lg md:text-xl"
+              >
+                <div className="text-3xl">🔢</div>
+                <span className="font-bold text-amber-700">なんこ ある？</span>
+              </button>
               </div>
             </div>
 
             <div className="space-y-2">
               <p className="font-bold text-lg text-slate-600">むずかしさ</p>
-              <div className="flex justify-center gap-2 bg-slate-100 p-2 rounded-xl">
-                {(['easy', 'normal', 'hard'] as Difficulty[]).map((d) => (
-                  <button
-                    key={d}
+            <div className="flex justify-center gap-2 bg-slate-100 p-2 rounded-xl">
+              {(['easy', 'normal', 'hard'] as Difficulty[]).map((d) => (
+                <button
+                  key={d}
                     onClick={() => setDifficulty(d)}
                     className={`px-3 py-2 rounded-lg font-bold transition-all text-sm md:text-base ${
                       difficulty === d ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-slate-400'
@@ -387,13 +387,13 @@ const GameScreen = () => {
         )}
 
         {mode === 'compare' && (
-          <div className="grid grid-cols-2 gap-4 h-full items-center">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 h-full items-center max-w-full">
             <div
               onClick={() => handleAnswer('left')}
-              className="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95"
+              className="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95 max-w-[220px] w-full mx-auto"
             >
-              <div className="w-full h-full p-4">
-                <IsometricCanvas blocks={leftBlocks} size={300} />
+              <div className="w-full h-full p-3 sm:p-4">
+                <IsometricCanvas blocks={leftBlocks} size={240} />
               </div>
               <div className="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
                 こっち！
@@ -402,10 +402,10 @@ const GameScreen = () => {
 
             <div
               onClick={() => handleAnswer('right')}
-              className="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95"
+              className="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95 max-w-[220px] w-full mx-auto"
             >
-              <div className="w-full h-full p-4">
-                <IsometricCanvas blocks={rightBlocks} size={300} />
+              <div className="w-full h-full p-3 sm:p-4">
+                <IsometricCanvas blocks={rightBlocks} size={240} />
               </div>
               <div className="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
                 こっち！
@@ -417,17 +417,17 @@ const GameScreen = () => {
         {mode === 'count' && (
           <div className="flex flex-col h-full items-center justify-start pt-4">
             <div className="w-full max-w-sm aspect-square bg-slate-50 border-4 border-slate-200 rounded-3xl mb-8 flex items-center justify-center overflow-hidden p-6 shadow-inner">
-              <IsometricCanvas blocks={countBlocks} size={400} />
+              <IsometricCanvas blocks={countBlocks} size={340} />
             </div>
 
-            <div key={keyForReset} className="grid grid-cols-4 gap-3 w-full max-w-sm">
+            <div key={keyForReset} className="grid grid-cols-4 gap-4 w-full max-w-sm">
               {[...Array(9)].map((_, i) => {
                 const num = i + 3;
                 return (
                   <button
                     key={num}
                     onClick={(e) => handleAnswer(num, e)}
-                    className="aspect-square bg-white border-b-4 border-slate-200 text-3xl font-bold text-slate-600 rounded-2xl hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all active:border-b-0 active:translate-y-1 shadow-sm focus:outline-none"
+                    className="aspect-square bg-white border-b-4 border-slate-200 text-4xl md:text-5xl font-extrabold text-slate-600 rounded-3xl hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-all active:border-b-0 active:translate-y-1 shadow-sm focus:outline-none"
                   >
                     {num}
                   </button>
