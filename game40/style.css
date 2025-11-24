@@ -975,6 +975,17 @@ input[type="range"]::-moz-range-thumb {
   opacity: 0;
 }
 
+.app-container.playback-ui-hidden .main-controls,
+.app-container.playback-ui-hidden .shape-controls,
+.app-container.playback-ui-hidden .menu-toggle,
+.app-container.playback-ui-hidden .status-info,
+.app-container.playback-ui-hidden #proMenu,
+.app-container.playback-ui-hidden #menuOverlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
   .pro-menu {
