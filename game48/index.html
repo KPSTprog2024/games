@@ -68,6 +68,7 @@
             totalQuestions: 5,
             showResult: false,
             feedback: null, // 'correct' or 'wrong'
+            awaitingNext: false,
             // Game data for current problem
             leftBlocks: [],
             rightBlocks: [],
@@ -258,6 +259,7 @@
 
         const generateProblem = () => {
             STATE.feedback = null;
+            STATE.awaitingNext = false;
             
             let min = 3, max = 5;
             if (STATE.difficulty === 'normal') { min = 4; max = 7; }
@@ -293,22 +295,26 @@
 
             const isCorrect = answer === STATE.correctAnswer;
             STATE.feedback = isCorrect ? 'correct' : 'wrong';
+            STATE.awaitingNext = true;
 
             if (isCorrect) STATE.score++;
 
             // Re-render immediately to show feedback overlay
-            render(); 
+            render();
+        };
 
-            // Wait 2.5 seconds to show feedback (including counts)
-            setTimeout(() => {
-                if (STATE.questionIndex < STATE.totalQuestions - 1) {
-                    STATE.questionIndex++;
-                    generateProblem();
-                } else {
-                    STATE.showResult = true;
-                    render();
-                }
-            }, 2500);
+        const handleFeedbackProceed = () => {
+            if (!STATE.feedback || !STATE.awaitingNext) return;
+
+            if (STATE.questionIndex < STATE.totalQuestions - 1) {
+                STATE.questionIndex++;
+                generateProblem();
+            } else {
+                STATE.feedback = null;
+                STATE.awaitingNext = false;
+                STATE.showResult = true;
+                render();
+            }
         };
 
         const resetGame = () => {
@@ -387,7 +393,12 @@
                         if (btn) btn.onclick = (e) => handleAnswer(i, e);
                     }
                 }
-                
+
+                if (STATE.feedback && STATE.awaitingNext) {
+                    const overlay = document.getElementById('feedbackOverlay');
+                    if (overlay) overlay.onclick = handleFeedbackProceed;
+                }
+
                 // Redraw canvases after DOM insertion
                 drawGameCanvases();
             } else if (STATE.showResult) {
@@ -503,9 +514,10 @@
 
 
             return `
-                <div class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300 rounded-xl">
+                <div id="feedbackOverlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 transition-all duration-300 rounded-xl cursor-pointer">
                     ${content}
                     ${countDisplay}
+                    <p class="mt-8 text-slate-500 font-bold">つぎの もんだいに すすむには ここを タップしてね</p>
                 </div>
             `;
         };
@@ -518,26 +530,26 @@
             if (STATE.mode === 'compare') {
                 // Compare Mode View
                 gameAreaHTML = `
-                    <div class="grid grid-cols-2 gap-4 h-full items-center">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full items-start">
                         <!-- Left Choice -->
-                        <div id="answerLeft" class="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95">
-                            <div class="w-full h-full p-4">
+                        <button id="answerLeft" type="button" class="group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 w-full flex flex-col items-center gap-3 overflow-hidden active:scale-95 focus:outline-none">
+                            <div class="w-full aspect-square flex items-center justify-center p-4">
                                 <canvas id="leftCanvas" class="w-full h-full"></canvas>
                             </div>
-                            <div class="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
+                            <div class="bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100 mb-4">
                                 こっち！
                             </div>
-                        </div>
+                        </button>
 
                         <!-- Right Choice -->
-                        <div id="answerRight" class="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95">
-                            <div class="w-full h-full p-4">
+                        <button id="answerRight" type="button" class="group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 w-full flex flex-col items-center gap-3 overflow-hidden active:scale-95 focus:outline-none">
+                            <div class="w-full aspect-square flex items-center justify-center p-4">
                                 <canvas id="rightCanvas" class="w-full h-full"></canvas>
                             </div>
-                            <div class="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
+                            <div class="bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100 mb-4">
                                 こっち！
                             </div>
-                        </div>
+                        </button>
                     </div>
                 `;
             } else if (STATE.mode === 'count') {
