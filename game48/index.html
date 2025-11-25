@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>つみき の おけいこ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font for better Japanese display -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for Game Aesthetics */
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        /* Custom button effect for game feel */
+        .game-button {
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 0 #3b82f6; /* blue-500 */
+        }
+        .game-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #60a5fa; /* blue-400 */
+        }
+        .answer-button {
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 0 #cbd5e1; /* slate-300 */
+        }
+        .answer-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #e2e8f0; /* slate-200 */
+        }
+        .answer-button:hover:not(:active) {
+            box-shadow: 0 4px 0 0 #60a5fa; /* blue-400 */
+        }
+
+        /* Aspect ratio for canvas to ensure cubes look square */
+        .aspect-square {
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Keyframe for Hanamaru effect */
+        @keyframes bounce-hanamaru {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .animate-hanamaru {
+            animation: bounce-hanamaru 0.3s ease-in-out infinite alternate;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-start justify-center p-4">
+
+    <!-- Main Application Container -->
+    <div id="app" class="w-full max-w-2xl bg-white shadow-2xl rounded-2xl overflow-hidden select-none min-h-[90vh]">
+        <!-- Content will be injected here -->
+    </div>
+
+    <!-- Scripting Area -->
+    <script>
+        // --- 1. Global State Management ---
+        const STATE = {
+            mode: 'menu', // 'menu', 'compare', 'count'
+            difficulty: 'easy', // 'easy', 'normal', 'hard'
+            questionIndex: 0,
+            score: 0,
+            totalQuestions: 5,
+            showResult: false,
+            feedback: null, // 'correct' or 'wrong'
+            // Game data for current problem
+            leftBlocks: [],
+            rightBlocks: [],
+            countBlocks: [],
+            correctAnswer: 0,
+            feedbackData: { // To display the answer counts
+                leftCount: 0,
+                rightCount: 0,
+                correctCount: 0
+            }
+        };
+
+        // --- 2. Block Generation Logic (3D Point structure) ---
+
+        /**
+         * Generates a set of blocks (Point3D[]) that satisfy the stability constraint.
+         * @param {number} count - The total number of blocks to generate.
+         * @param {string} difficulty - The current difficulty level.
+         * @returns {Array<Point3D>} - Array of {x, y, z} coordinates.
+         */
+        const generateBlocks = (count, difficulty) => {
+            const blocks = [];
+            // Start with a block at (0, 0, 0)
+            blocks.push({ x: 0, y: 0, z: 0 });
+
+            while (blocks.length < count) {
+                const candidates = [];
+                
+                blocks.forEach(b => {
+                    // Candidate 1: Above
+                    candidates.push({ x: b.x, y: b.y, z: b.z + 1 });
+                    
+                    // Candidate 2: Neighbors (Front/Back/Left/Right)
+                    const neighbors = [
+                        { x: b.x + 1, y: b.y, z: b.z },
+                        { x: b.x - 1, y: b.y, z: b.z },
+                        { x: b.x, y: b.y + 1, z: b.z },
+                        { x: b.x, y: b.y - 1, z: b.z },
+                    ];
+                    
+                    neighbors.forEach(n => {
+                        // Check stability constraint for neighbors
+                        if (n.z === 0) {
+                            candidates.push(n); // On the ground, always stable
+                        } else {
+                            // Must have support directly below (n.z - 1)
+                            const hasSupport = blocks.some(eb => eb.x === n.x && eb.y === n.y && eb.z === n.z - 1);
+                            if (hasSupport) candidates.push(n);
+                        }
+                    });
+                });
+
+                // Filter candidates: check for duplicates, range, and height limits
+                const validCandidates = candidates.filter(c => {
+                    // Duplicates
+                    if (blocks.some(b => b.x === c.x && b.y === c.y && b.z === c.z)) return false;
+                    
+                    // Range restriction (prevents excessive spreading)
+                    const range = difficulty === 'easy' ? 2 : 3;
+                    if (Math.abs(c.x) > range || Math.abs(c.y) > range) return false;
+                    
+                    // Height restriction (limits complexity/hidden blocks)
+                    let maxHeight = 1;
+                    if (difficulty === 'normal') maxHeight = 2;
+                    if (difficulty === 'hard') maxHeight = 3;
+                    if (c.z >= maxHeight) return false;
+
+                    return true;
+                });
+
+                if (validCandidates.length === 0) break; // Should not happen often
+
+                // Select a random valid block
+                const nextBlock = validCandidates[Math.floor(Math.random() * validCandidates.length)];
+                blocks.push(nextBlock);
+            }
+
+            return blocks;
+        };
+
+        // --- 3. Isometric Drawing Logic (Canvas) ---
+
+        /**
+         * Draws the block structure onto a given canvas element using isometric projection.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @param {Array<Point3D>} blocks - The array of block coordinates.
+         */
+        const drawBlocks = (canvas, blocks) => {
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            // Canvas size and scaling for sharpness
+            const size = 300; 
+            const scale = 2; 
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            ctx.scale(scale, scale);
+
+            // Isometric parameters
+            const tileW = 40; // Block width (projection)
+            const tileH = 20; // Block height (projection)
+            const blockH = 35; // Block vertical height
+
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Painter's Algorithm: Sort (depth-first: x+y+z small to large)
+            const sortedBlocks = [...blocks].sort((a, b) => {
+                const scoreA = a.x + a.y + a.z;
+                const scoreB = b.x + b.y + b.z;
+                if (scoreA !== scoreB) return scoreA - scoreB;
+                return a.z - b.z;
+            });
+
+            // Center position
+            const centerX = size / 2;
+            const centerY = size / 2 + 40; 
+
+            sortedBlocks.forEach(block => {
+                // Isometric conversion
+                const screenX = centerX + (block.x - block.y) * tileW;
+                const screenY = centerY + (block.x + block.y) * tileH - (block.z * blockH);
+                drawCube(ctx, screenX, screenY, tileW, tileH, blockH);
+            });
+        };
+
+        /**
+         * Draws a single cube in isometric view.
+         */
+        const drawCube = (ctx, x, y, tw, th, bh) => {
+            const topColor = '#ffffff';
+            const leftColor = '#e2e8f0';
+            const rightColor = '#cbd5e1';
+            const strokeColor = '#334155';
+
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+
+            // 1. Top Face
+            ctx.beginPath();
+            ctx.moveTo(x, y - bh);
+            ctx.lineTo(x + tw, y - th - bh);
+            ctx.lineTo(x, y - th * 2 - bh);
+            ctx.lineTo(x - tw, y - th - bh);
+            ctx.closePath();
+            ctx.fillStyle = topColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.stroke();
+
+            // 2. Right Face
+            ctx.beginPath();
+            ctx.moveTo(x, y - bh);
+            ctx.lineTo(x + tw, y - th - bh);
+            ctx.lineTo(x + tw, y - th);
+            ctx.lineTo(x, y);
+            ctx.closePath();
+            ctx.fillStyle = rightColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.stroke();
+
+            // 3. Left Face
+            ctx.beginPath();
+            ctx.moveTo(x, y - bh);
+            ctx.lineTo(x - tw, y - th - bh);
+            ctx.lineTo(x - tw, y - th);
+            ctx.lineTo(x, y);
+            ctx.closePath();
+            ctx.fillStyle = leftColor;
+            ctx.fill();
+            ctx.strokeStyle = strokeColor;
+            ctx.stroke();
+        };
+
+        // --- 4. Game Logic & Control ---
+
+        const startGame = (mode, difficulty) => {
+            STATE.mode = mode;
+            STATE.difficulty = difficulty;
+            STATE.questionIndex = 0;
+            STATE.score = 0;
+            STATE.showResult = false;
+            STATE.feedback = null;
+            render();
+            generateProblem();
+        };
+
+        const generateProblem = () => {
+            STATE.feedback = null;
+            
+            let min = 3, max = 5;
+            if (STATE.difficulty === 'normal') { min = 4; max = 7; }
+            if (STATE.difficulty === 'hard') { min = 6; max = 9; }
+
+            if (STATE.mode === 'compare') {
+                let countL = Math.floor(Math.random() * (max - min + 1)) + min;
+                let countR = Math.floor(Math.random() * (max - min + 1)) + min;
+                
+                while (countL === countR) {
+                    countR = Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+
+                STATE.leftBlocks = generateBlocks(countL, STATE.difficulty);
+                STATE.rightBlocks = generateBlocks(countR, STATE.difficulty);
+                STATE.correctAnswer = countL > countR ? 'left' : 'right';
+                STATE.feedbackData.leftCount = countL;
+                STATE.feedbackData.rightCount = countR;
+
+            } else if (STATE.mode === 'count') {
+                const count = Math.floor(Math.random() * (max - min + 1)) + min;
+                STATE.countBlocks = generateBlocks(count, STATE.difficulty);
+                STATE.correctAnswer = count;
+                STATE.feedbackData.correctCount = count;
+            }
+
+            render();
+            drawGameCanvases();
+        };
+
+        const handleAnswer = (answer) => {
+            if (STATE.feedback) return;
+
+            const isCorrect = answer === STATE.correctAnswer;
+            STATE.feedback = isCorrect ? 'correct' : 'wrong';
+
+            if (isCorrect) STATE.score++;
+
+            // Re-render immediately to show feedback overlay
+            render(); 
+
+            // Wait 2.5 seconds to show feedback (including counts)
+            setTimeout(() => {
+                if (STATE.questionIndex < STATE.totalQuestions - 1) {
+                    STATE.questionIndex++;
+                    generateProblem();
+                } else {
+                    STATE.showResult = true;
+                    render();
+                }
+            }, 2500);
+        };
+
+        const resetGame = () => {
+            STATE.mode = 'menu';
+            STATE.feedback = null;
+            STATE.showResult = false;
+            render();
+        };
+
+        // --- 5. Rendering (DOM Manipulation) ---
+
+        /**
+         * Draws the blocks onto the visible canvas elements.
+         */
+        const drawGameCanvases = () => {
+            if (STATE.mode === 'compare') {
+                const leftCanvas = document.getElementById('leftCanvas');
+                const rightCanvas = document.getElementById('rightCanvas');
+                if (leftCanvas) drawBlocks(leftCanvas, STATE.leftBlocks);
+                if (rightCanvas) drawBlocks(rightCanvas, STATE.rightBlocks);
+            } else if (STATE.mode === 'count') {
+                const countCanvas = document.getElementById('countCanvas');
+                if (countCanvas) drawBlocks(countCanvas, STATE.countBlocks);
+            }
+        };
+
+
+        /**
+         * Renders the current view based on the game state.
+         */
+        const render = () => {
+            const app = document.getElementById('app');
+            let contentHTML = '';
+
+            if (STATE.mode === 'menu') {
+                contentHTML = renderMenuScreen();
+            } else if (STATE.showResult) {
+                contentHTML = renderResultScreen();
+            } else {
+                contentHTML = renderGameScreen();
+            }
+
+            app.innerHTML = contentHTML;
+
+            // Re-attach event listeners after DOM update
+            if (STATE.mode === 'menu') {
+                document.querySelectorAll('[data-mode]').forEach(btn => {
+                    btn.onclick = () => startGame(btn.getAttribute('data-mode'), STATE.difficulty);
+                });
+                document.querySelectorAll('[data-difficulty]').forEach(btn => {
+                    btn.onclick = () => {
+                        STATE.difficulty = btn.getAttribute('data-difficulty');
+                        render();
+                    };
+                    // Manually handle active class for difficulty buttons
+                    if (btn.getAttribute('data-difficulty') === STATE.difficulty) {
+                         btn.classList.add('bg-blue-500', 'text-white', 'shadow-md');
+                         btn.classList.remove('bg-white', 'text-slate-400');
+                    } else {
+                         btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md');
+                         btn.classList.add('bg-white', 'text-slate-400');
+                    }
+                });
+            } else if (!STATE.showResult) {
+                // Attach common listeners
+                const backBtn = document.getElementById('backToMenu');
+                if (backBtn) backBtn.onclick = resetGame;
+
+                // Attach answer listeners
+                if (STATE.mode === 'compare') {
+                    document.getElementById('answerLeft').onclick = () => handleAnswer('left');
+                    document.getElementById('answerRight').onclick = () => handleAnswer('right');
+                } else if (STATE.mode === 'count') {
+                    for (let i = 3; i <= 11; i++) {
+                        const btn = document.getElementById(`answerBtn${i}`);
+                        if (btn) btn.onclick = (e) => handleAnswer(i, e);
+                    }
+                }
+                
+                // Redraw canvases after DOM insertion
+                drawGameCanvases();
+            } else if (STATE.showResult) {
+                document.getElementById('playAgain').onclick = resetGame;
+            }
+        };
+
+        // --- 6. View Helpers (HTML Generation) ---
+
+        const renderMenuScreen = () => `
+            <div class="min-h-[90vh] flex flex-col items-center justify-center p-4">
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl max-w-lg w-full text-center">
+                    <h1 class="text-3xl md:text-4xl font-black text-blue-600 mb-2">つみき の おけいこ</h1>
+                    <p class="text-slate-500 mb-8">おじゅけん に チャレンジ！</p>
+
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <p class="font-bold text-lg text-slate-600">あそびかた を えらんでね</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button data-mode="compare" class="p-4 bg-blue-100 rounded-2xl border-2 border-blue-300 transition-all flex flex-col items-center gap-2 hover:bg-blue-200 active:scale-95">
+                                    <div class="text-3xl">⚖️</div>
+                                    <span class="font-bold text-blue-700">どっちが おおい？</span>
+                                </button>
+                                <button data-mode="count" class="p-4 bg-amber-100 rounded-2xl border-2 border-amber-300 transition-all flex flex-col items-center gap-2 hover:bg-amber-200 active:scale-95">
+                                    <div class="text-3xl">🔢</div>
+                                    <span class="font-bold text-amber-700">なんこ ある？</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="font-bold text-lg text-slate-600">むずかしさ</p>
+                            <div class="flex justify-center gap-2 bg-slate-100 p-2 rounded-xl">
+                                ${(['easy', 'normal', 'hard']).map(d => `
+                                    <button data-difficulty="${d}" class="px-3 py-2 rounded-lg font-bold transition-all text-sm md:text-base hover:bg-slate-50">
+                                        ${d === 'easy' ? 'かんたん' : d === 'normal' ? 'ふつう' : 'むずかしい'}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const renderHeader = () => `
+            <!-- Header -->
+            <div class="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
+                <button id="backToMenu" class="text-slate-400 hover:text-slate-600 font-bold text-sm">
+                    もどる
+                </button>
+                <div class="flex gap-1">
+                    ${[...Array(STATE.totalQuestions)].map((_, i) => `
+                        <div class="w-3 h-3 rounded-full ${
+                            i < STATE.questionIndex ? 'bg-blue-500' : 
+                            i === STATE.questionIndex ? 'bg-blue-200 animate-pulse' : 'bg-slate-200'
+                        }"></div>
+                    `).join('')}
+                </div>
+                <div class="font-bold text-slate-500">
+                    だい ${STATE.questionIndex + 1} もん
+                </div>
+            </div>
+        `;
+        
+        const renderFeedbackOverlay = () => {
+            if (!STATE.feedback) return '';
+
+            let content = '';
+            if (STATE.feedback === 'correct') {
+                // Correct feedback (Hanamaru)
+                content = `
+                    <div class="animate-bounce-hanamaru mb-4">
+                        <div class="w-40 h-40 rounded-full border-8 border-red-500 flex items-center justify-center mx-auto">
+                            <div class="w-24 h-24 rounded-full border-8 border-red-500 opacity-60"></div>
+                        </div>
+                        <p class="text-center text-red-500 font-bold text-4xl mt-4">せいかい！</p>
+                    </div>
+                `;
+            } else {
+                // Wrong feedback (X mark)
+                content = `
+                    <div class="animate-pulse mb-4">
+                        <svg class="w-40 h-40 text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-center text-blue-500 font-bold text-4xl mt-4">ざんねん...</p>
+                    </div>
+                `;
+            }
+
+            let countDisplay = '';
+            if (STATE.mode === 'compare') {
+                countDisplay = `
+                    <div class="flex gap-12 mt-4 text-2xl font-bold text-slate-600 bg-slate-100 p-6 rounded-2xl">
+                        <div class="text-center">
+                            <div class="text-sm text-slate-400 mb-1">ひだり</div>
+                            <span class="text-4xl text-blue-600">${STATE.feedbackData.leftCount}</span> こ
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm text-slate-400 mb-1">みぎ</div>
+                            <span class="text-4xl text-blue-600">${STATE.feedbackData.rightCount}</span> こ
+                        </div>
+                    </div>
+                `;
+            } else if (STATE.mode === 'count' && STATE.feedback === 'wrong') {
+                countDisplay = `
+                    <div class="mt-4 text-2xl font-bold text-slate-600 bg-slate-100 p-4 rounded-xl">
+                        こたえは <span class="text-4xl text-blue-600 mx-2">${STATE.feedbackData.correctCount}</span> こ だよ
+                    </div>
+                `;
+            }
+
+
+            return `
+                <div class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300 rounded-xl">
+                    ${content}
+                    ${countDisplay}
+                </div>
+            `;
+        };
+
+        const renderGameScreen = () => {
+            const questionText = STATE.mode === 'compare' ? 'つみき は どっちが おおい？' : 'つみき は ぜんぶで なんこ？';
+            
+            let gameAreaHTML = '';
+            
+            if (STATE.mode === 'compare') {
+                // Compare Mode View
+                gameAreaHTML = `
+                    <div class="grid grid-cols-2 gap-4 h-full items-center">
+                        <!-- Left Choice -->
+                        <div id="answerLeft" class="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95">
+                            <div class="w-full h-full p-4">
+                                <canvas id="leftCanvas" class="w-full h-full"></canvas>
+                            </div>
+                            <div class="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
+                                こっち！
+                            </div>
+                        </div>
+
+                        <!-- Right Choice -->
+                        <div id="answerRight" class="relative aspect-square cursor-pointer group bg-slate-50 border-4 border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center overflow-hidden active:scale-95">
+                            <div class="w-full h-full p-4">
+                                <canvas id="rightCanvas" class="w-full h-full"></canvas>
+                            </div>
+                            <div class="absolute bottom-4 bg-white/90 px-6 py-2 rounded-full font-bold text-slate-500 shadow-sm border border-slate-100">
+                                こっち！
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (STATE.mode === 'count') {
+                // Count Mode View
+                gameAreaHTML = `
+                    <div class="flex flex-col h-full items-center justify-start pt-4">
+                        <!-- Canvas for counting -->
+                        <div class="w-full max-w-sm aspect-square bg-slate-50 border-4 border-slate-200 rounded-3xl mb-8 flex items-center justify-center overflow-hidden p-6 shadow-inner">
+                            <canvas id="countCanvas" class="w-full h-full"></canvas>
+                        </div>
+
+                        <!-- Answer Buttons (3 to 11) -->
+                        <div class="grid grid-cols-4 gap-3 w-full max-w-sm">
+                            ${[...Array(9)].map((_, i) => { 
+                                const num = i + 3;
+                                return `
+                                    <button
+                                        id="answerBtn${num}"
+                                        class="answer-button aspect-square bg-white border-b-4 text-3xl font-bold text-slate-600 rounded-2xl hover:bg-blue-50 hover:text-white transition-all focus:outline-none"
+                                    >
+                                        ${num}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                ${renderHeader()}
+                <!-- Question Text -->
+                <div class="p-4 md:p-6 text-center">
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-700">
+                        ${questionText}
+                    </h2>
+                </div>
+                <!-- Game Area -->
+                <div class="flex-1 flex flex-col justify-center px-4 pb-8 relative">
+                    ${gameAreaHTML}
+                    ${renderFeedbackOverlay()}
+                </div>
+            `;
+        };
+
+        const renderResultScreen = () => {
+            const trophySVG = `<svg class="w-24 h-24 mx-auto mb-4 ${STATE.score === STATE.totalQuestions ? 'text-yellow-400' : 'text-slate-300'}" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.3 2H5.7C4.7 2 4 2.7 4 3.7v18.6c0 1 1.1 1.7 2.1 1.2l5.9-3.2 5.9 3.2c1 0.5 2.1-0.2 2.1-1.2V3.7c0-1-0.7-1.7-1.7-1.7zM12 18.5l-4.7 2.5V4h9.4v17zM12 13.5c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/></svg>`;
+            
+            const starSVGs = [...Array(STATE.score)].map((_, i) => `
+                <svg class="w-8 h-8 text-yellow-400 fill-current animate-bounce" style="animation-delay: ${i * 100}ms;" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+            `).join('');
+
+            return `
+                <div class="min-h-[90vh] flex flex-col items-center justify-center p-4">
+                    <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+                        ${trophySVG}
+                        <h2 class="text-3xl font-bold mb-2">よくできました！</h2>
+                        <div class="text-6xl font-black text-blue-600 mb-6">
+                            ${STATE.score} <span class="text-2xl text-slate-400">/ ${STATE.totalQuestions}</span>
+                        </div>
+                        <div class="flex justify-center gap-2 mb-8 h-8">
+                            ${starSVGs}
+                        </div>
+                        <button 
+                            id="playAgain"
+                            class="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold text-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 0h-4.418"></path></svg>
+                            もういちど やる
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        // --- Initialization ---
+
+        window.onload = () => {
+            render();
+        };
+
+    </script>
+</body>
+</html>
