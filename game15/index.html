@@ -10,7 +10,11 @@
     <div class="app-container">
         <!-- ヘッダー -->
         <header class="app-header">
-            <h1>掛け算を学ぼう！</h1>
+            <div class="headline">
+                <p class="eyebrow">掛け算の世界へようこそ</p>
+                <h1>掛け算を学ぼう！</h1>
+                <p class="subtitle">好きなマスを選んで、行と列をかけ算でつなげよう。色とアイコンで覚えやすく。</p>
+            </div>
             <div class="theme-selector">
                 <button class="theme-btn" data-theme="apple">🍎</button>
                 <button class="theme-btn" data-theme="star">⭐</button>
@@ -20,30 +24,61 @@
 
         <!-- 上半分：グリッドエリア -->
         <div class="upper-section">
-            <!-- グリッド -->
-            <div class="grid-container">
-                <div class="grid" id="multiplication-grid">
-                    <!-- グリッドセルはJavaScriptで生成 -->
+            <div class="playground">
+                <!-- グリッド -->
+                <div class="grid-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">10×10 グリッド</span>
+                        <span class="panel-tag">タップで選択</span>
+                    </div>
+                    <div class="grid-container">
+                        <div class="grid" id="multiplication-grid">
+                            <!-- グリッドセルはJavaScriptで生成 -->
+                        </div>
+                    </div>
+                    <p class="panel-caption">左上の●から伸びる長方形が、きみの選んだかけ算。</p>
                 </div>
-            </div>
 
-            <!-- 計算式表示 -->
-            <div class="formula-display">
-                <div class="multiplication-formula" id="multiplication-formula">
-                    範囲を選択してください
-                </div>
-                <div class="addition-formula" id="addition-formula">
+                <!-- 計算式表示 -->
+                <div class="formula-card">
+                    <div class="badge-row">
+                        <span class="badge">今日のトレイル</span>
+                        <div class="pill-row">
+                            <div class="pill metric">
+                                <span class="metric-label">行数</span>
+                                <span class="metric-value" id="row-count-display">0</span>
+                            </div>
+                            <div class="pill metric">
+                                <span class="metric-label">列数</span>
+                                <span class="metric-value" id="col-count-display">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="formula-display">
+                        <div class="multiplication-formula" id="multiplication-formula">
+                            範囲を選択してください
+                        </div>
+                        <div class="addition-formula" id="addition-formula">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 下半分：数字一覧と設定 -->
         <div class="lower-section">
-            <!-- 設定コントロール -->
             <div class="controls">
-                <div class="column-control">
-                    <label for="column-slider">列数：<span id="column-count">10</span>列</label>
+                <div class="control-card">
+                    <div class="control-title">
+                        <div>
+                            <p class="eyebrow">数字の並び</p>
+                            <h2>数字リストの列数を調整</h2>
+                        </div>
+                        <span class="layout-count" aria-live="polite">現在 <strong id="column-count">10</strong> 列</span>
+                    </div>
+                    <label class="slider-label" for="column-slider">数字リストの列数</label>
                     <input type="range" id="column-slider" min="5" max="20" value="10" class="slider">
+                    <p class="control-hint">列を増やしたり減らしたりして、縦のリズムを変えてみよう。</p>
                 </div>
             </div>
 
