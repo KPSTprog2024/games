@@ -90,7 +90,12 @@ class MultiplicationApp {
     updateFormula() {
         const multiplicationFormula = document.getElementById('multiplication-formula');
         const additionFormula = document.getElementById('addition-formula');
-        
+        const rowDisplay = document.getElementById('row-count-display');
+        const colDisplay = document.getElementById('col-count-display');
+
+        rowDisplay.textContent = this.selectedRow || 0;
+        colDisplay.textContent = this.selectedCol || 0;
+
         if (this.selectedRow === 0 || this.selectedCol === 0) {
             multiplicationFormula.textContent = '範囲を選択してください';
             additionFormula.textContent = '';

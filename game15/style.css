@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Zen+Maru+Gothic:wght@400;500;700&display=swap");
+
 :root {
   /* Primitive Color Tokens */
   --color-white: rgba(255, 255, 255, 1);
@@ -44,10 +46,10 @@
   --color-bg-8: rgba(6, 182, 212, 0.08); /* Light cyan */
 
   /* Semantic Color Tokens (Light Mode) */
-  --color-background: var(--color-cream-50);
-  --color-surface: var(--color-cream-100);
-  --color-text: var(--color-slate-900);
-  --color-text-secondary: var(--color-slate-500);
+  --color-background: #0f172a;
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-text: #e2e8f0;
+  --color-text-secondary: rgba(226, 232, 240, 0.75);
   --color-primary: var(--color-teal-500);
   --color-primary-hover: var(--color-teal-600);
   --color-primary-active: var(--color-teal-700);
@@ -80,10 +82,10 @@
   --color-info-rgb: 98, 108, 113;
 
   /* Typography */
-  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
-    Monaco, Consolas, monospace;
+  --font-family-base: "Zen Maru Gothic", "Hiragino Sans", "Yu Gothic",
+    "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-family-mono: "DM Mono", "SFMono-Regular", "Menlo", Consolas,
+    monospace;
   --font-size-xs: 11px;
   --font-size-sm: 12px;
   --font-size-base: 14px;
@@ -741,77 +743,136 @@ select.form-control {
 /* アプリ固有のスタイル */
 .app-container {
     min-height: 100vh;
-    background-color: var(--color-background);
+    background: radial-gradient(circle at 10% 20%, rgba(255, 173, 96, 0.15), transparent 35%),
+      radial-gradient(circle at 90% 10%, rgba(56, 189, 248, 0.18), transparent 30%),
+      linear-gradient(145deg, #0f172a, #0b2f35 60%, #0a2a2f);
     display: flex;
     flex-direction: column;
-    padding: var(--space-16);
+    padding: clamp(16px, 3vw, 32px);
     font-family: var(--font-family-base);
-    max-height: 100vh;
-    overflow: hidden;
+    color: var(--color-text);
+    overflow-y: auto;
 }
 
 /* ヘッダー */
 .app-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-12);
+    align-items: flex-start;
+    margin-bottom: var(--space-16);
     padding-bottom: var(--space-8);
-    border-bottom: 1px solid var(--color-border);
-    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: var(--space-16);
 }
 
-.app-header h1 {
-    font-size: var(--font-size-2xl);
-    color: var(--color-text);
+.headline h1 {
+    font-size: clamp(28px, 3vw, 40px);
+    color: #f8fafc;
+    margin: 4px 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.eyebrow {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
     margin: 0;
 }
 
+.subtitle {
+    color: rgba(226, 232, 240, 0.9);
+    max-width: 760px;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 400;
+}
+
 .theme-selector {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-8);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: var(--space-8);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
 }
 
 .theme-btn {
-    background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-base);
-    padding: var(--space-8);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-md);
+    padding: var(--space-10);
     font-size: var(--font-size-xl);
     cursor: pointer;
     transition: all var(--duration-fast) var(--ease-standard);
-    min-width: 48px;
-    min-height: 48px;
+    min-width: 60px;
+    min-height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #e2e8f0;
+    backdrop-filter: blur(6px);
 }
 
 .theme-btn:hover {
-    background: var(--color-secondary);
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px) scale(1.02);
 }
 
 .theme-btn.active {
-    border-color: var(--color-primary);
-    background: var(--color-primary);
-    color: var(--color-btn-primary-text);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05));
+    color: #0f172a;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3);
 }
 
 /* 上半分のセクション */
 .upper-section {
     flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     margin-bottom: var(--space-16);
-    height: 55vh;
-    max-height: 400px;
+}
+
+.playground {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(16px, 2.5vw, 32px);
+    align-items: start;
 }
 
 /* グリッドコンテナ */
+.grid-panel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: clamp(16px, 2vw, 20px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+    color: #e2e8f0;
+}
+
+.panel-title {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.panel-tag {
+    font-size: var(--font-size-sm);
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .grid-container {
-    margin-bottom: var(--space-16);
+    margin-bottom: var(--space-12);
     flex-shrink: 0;
 }
 
@@ -820,16 +881,18 @@ select.form-control {
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     gap: 1px;
-    background-color: var(--color-border);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius-base);
-    padding: 1px;
-    width: min(70vmin, 260px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 16px;
+    padding: 2px;
+    width: min(70vmin, 320px);
     aspect-ratio: 1 / 1;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .grid-cell {
-    background-color: var(--color-surface);
+    background: rgba(9, 19, 26, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -837,103 +900,213 @@ select.form-control {
     transition: all var(--duration-fast) var(--ease-standard);
     aspect-ratio: 1 / 1;
     line-height: 1;
-    font-size: calc((min(70vmin, 260px) / 10) * 0.8);
-    border-radius: var(--radius-sm);
+    font-size: calc((min(70vmin, 320px) / 10) * 0.8);
+    border-radius: 12px;
     user-select: none;
+    color: #e2e8f0;
 }
 
 .grid-cell:hover {
-    background-color: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
 }
 
 .grid-cell.selected {
-    background-color: var(--color-bg-1);
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.32), rgba(34, 197, 94, 0.22));
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #0b172a;
+    box-shadow: 0 6px 14px rgba(56, 189, 248, 0.2);
 }
 
 .grid-cell.origin {
-    background-color: var(--color-primary);
-    color: var(--color-btn-primary-text);
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #0f172a;
     font-weight: var(--font-weight-bold);
+    border-color: rgba(249, 115, 22, 0.4);
+}
+
+.panel-caption {
+    color: rgba(226, 232, 240, 0.85);
+    font-size: var(--font-size-sm);
+    margin: 0;
 }
 
 /* 計算式表示 */
-.formula-display {
+.formula-card {
+    background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.1), transparent 35%),
+      rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: clamp(16px, 2vw, 22px);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+    color: #f8fafc;
+}
+
+.badge-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-bottom: var(--space-10);
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: linear-gradient(120deg, rgba(56, 189, 248, 0.25), rgba(52, 211, 153, 0.2));
+    color: #0b172a;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.pill-row {
+    display: flex;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.pill {
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(4px);
+    color: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.metric-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.metric-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f8fafc;
+    min-width: 24px;
     text-align: center;
-    max-width: 500px;
+}
+
+.formula-display {
+    text-align: left;
+    max-width: 560px;
     flex-shrink: 0;
 }
 
 .multiplication-formula {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
+    font-size: 26px;
+    font-weight: 700;
+    color: #f8fafc;
     margin-bottom: var(--space-6);
-    min-height: 24px;
+    min-height: 32px;
 }
 
 .addition-formula {
-    font-size: var(--font-size-md);
-    color: var(--color-text-secondary);
-    min-height: 20px;
+    font-size: 16px;
+    color: rgba(226, 232, 240, 0.85);
+    min-height: 22px;
+    line-height: 1.6;
 }
 
 /* 下半分のセクション */
 .lower-section {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    gap: clamp(16px, 3vw, 32px);
     min-height: 0;
-    height: calc(45vh - 80px);
 }
 
 /* コントロール */
 .controls {
-    margin-bottom: var(--space-12);
-    text-align: center;
     flex-shrink: 0;
 }
 
-.column-control {
-    display: inline-block;
+.control-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: clamp(16px, 2vw, 20px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+    color: #e2e8f0;
+    height: 100%;
 }
 
-.column-control label {
+.control-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-10);
+    margin-bottom: var(--space-10);
+}
+
+.control-title h2 {
+    margin: 6px 0 0;
+    color: #f8fafc;
+}
+
+.layout-count {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.slider-label {
     display: block;
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-    margin-bottom: var(--space-8);
+    font-size: 13px;
+    color: rgba(226, 232, 240, 0.85);
+    margin-bottom: var(--space-6);
 }
 
 .slider {
-    width: 160px;
-    height: 8px;
+    width: 100%;
+    height: 10px;
     border-radius: var(--radius-full);
-    background: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.14);
     outline: none;
     appearance: none;
     cursor: pointer;
+    margin-bottom: var(--space-8);
 }
 
 .slider::-webkit-slider-thumb {
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    background: var(--color-primary);
+    background: linear-gradient(135deg, #38bdf8, #34d399);
     cursor: pointer;
-    border: 2px solid var(--color-surface);
-    box-shadow: var(--shadow-sm);
+    border: 2px solid rgba(15, 23, 42, 0.9);
+    box-shadow: 0 10px 20px rgba(56, 189, 248, 0.35);
 }
 
 .slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    background: var(--color-primary);
+    background: linear-gradient(135deg, #38bdf8, #34d399);
     cursor: pointer;
-    border: 2px solid var(--color-surface);
-    box-shadow: var(--shadow-sm);
+    border: 2px solid rgba(15, 23, 42, 0.9);
+    box-shadow: 0 10px 20px rgba(56, 189, 248, 0.35);
+}
+
+.control-hint {
+    color: rgba(226, 232, 240, 0.8);
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.5;
 }
 
 /* 数字一覧コンテナ */
@@ -941,31 +1114,32 @@ select.form-control {
     flex: 1;
     overflow-y: auto;
     min-height: 0;
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    background-color: var(--color-surface);
+    padding: var(--space-10);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(6, 12, 18, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
 .numbers-grid {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-6);
     justify-content: center;
-    padding: var(--space-8);
+    padding: var(--space-6);
 }
 
 .number-cell {
-    background-color: var(--color-background);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    padding: var(--space-4);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: var(--space-6);
     text-align: center;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
-    color: var(--color-text);
+    color: #e2e8f0;
     transition: all var(--duration-fast) var(--ease-standard);
-    min-width: 28px;
-    min-height: 28px;
+    min-width: 30px;
+    min-height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -973,52 +1147,58 @@ select.form-control {
 }
 
 .number-cell.highlighted {
-    background-color: var(--color-bg-6);
-    border-color: var(--color-orange-500);
-    color: var(--color-orange-500);
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.22), rgba(56, 189, 248, 0.25));
+    border-color: rgba(244, 114, 182, 0.35);
+    color: #0b172a;
     font-weight: var(--font-weight-bold);
-    transform: scale(1.05);
+    transform: translateY(-1px) scale(1.04);
 }
 
 /* レスポンシブ調整 */
+@media (max-width: 960px) {
+    .lower-section {
+        grid-template-columns: 1fr;
+    }
+
+    .control-card {
+        min-height: auto;
+    }
+}
+
 @media (max-width: 768px) {
     .app-container {
         padding: var(--space-12);
     }
 
-    .app-header h1 {
-        font-size: var(--font-size-xl);
+    .app-header {
+        flex-direction: column;
     }
-    
+
+    .playground {
+        grid-template-columns: 1fr;
+    }
+
+    .grid {
+        width: min(80vmin, 340px);
+    }
+
     .multiplication-formula {
-        font-size: var(--font-size-lg);
+        font-size: 22px;
     }
-    
+
     .addition-formula {
-        font-size: var(--font-size-md);
-    }
-
-    .upper-section {
-        height: 40vh;
-    }
-
-    .lower-section {
-        height: calc(60vh - 80px);
+        font-size: 15px;
     }
 }
 
-@media (max-width: 480px) {
-    .upper-section {
-        height: 35vh;
-    }
-    
-    .lower-section {
-        height: calc(65vh - 80px);
+@media (max-width: 520px) {
+    .numbers-grid {
+        gap: var(--space-4);
     }
 
     .number-cell {
-        min-width: 28px;
-        min-height: 28px;
+        min-width: 26px;
+        min-height: 26px;
         font-size: var(--font-size-xs);
     }
 }
@@ -1029,12 +1209,12 @@ select.form-control {
 }
 
 .numbers-container::-webkit-scrollbar-track {
-    background: var(--color-secondary);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-sm);
 }
 
 .numbers-container::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
+    background: linear-gradient(180deg, #38bdf8, #34d399);
     border-radius: var(--radius-sm);
 }
 
