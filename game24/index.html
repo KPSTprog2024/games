@@ -3,23 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>レーザービリヤード 24</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>レーザービリヤード</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <div class="eyebrow">MIRAGE LAB 24</div>
             <h1>レーザービリヤード</h1>
-            <p class="subtitle">多彩なビームを操るレトロフューチャーなビリヤード研究室</p>
-            <div class="header-chips">
-                <span class="chip">マルチレーザー</span>
-                <span class="chip">黄金比プリセット</span>
-                <span class="chip">ネオングリッド</span>
-            </div>
+            <p class="subtitle">複数レーザー同時シミュレーション</p>
         </header>
 
         <div class="main-content">
@@ -33,10 +24,6 @@
 
             <!-- Control Panel (35% height) -->
             <div class="control-panel">
-                <div class="panel-intro">
-                    <h2>シミュレーション操作盤</h2>
-                    <p>角度・配置・カラーを即座に切替えてビームの反射美を描き出す。</p>
-                </div>
                 <div class="control-group">
                     <div class="button-group">
                         <button id="playPauseBtn" class="btn btn--primary">再生</button>
@@ -49,11 +36,8 @@
                 <div class="controls-container">
                     <!-- 複数レーザー設定セクション -->
                     <div class="control-section">
-                        <div class="section-head">
-                            <span class="section-kicker">BEAMS</span>
-                            <h3 class="section-title">複数レーザー設定</h3>
-                        </div>
-
+                        <h3 class="section-title">🌟 複数レーザー設定</h3>
+                        
                         <div class="control-item">
                             <label class="form-label">
                                 レーザー数: <span id="laserCountValue">3</span>本
@@ -97,10 +81,7 @@
 
                     <!-- アスペクト比＋基本レーザー設定セクション -->
                     <div class="control-section">
-                        <div class="section-head">
-                            <span class="section-kicker">GEOMETRY</span>
-                            <h3 class="section-title">アスペクト比＋レーザー設定</h3>
-                        </div>
+                        <h3 class="section-title">🔧 アスペクト比＋レーザー設定</h3>
                         
                         <div class="control-item">
                             <label class="form-label">プリセット選択</label>
@@ -152,10 +133,7 @@
 
                     <!-- 描画設定セクション -->
                     <div class="control-section">
-                        <div class="section-head">
-                            <span class="section-kicker">COLOR</span>
-                            <h3 class="section-title">描画＋カラー設定</h3>
-                        </div>
+                        <h3 class="section-title">🎨 描画＋カラー設定</h3>
 
                         <div class="control-item">
                             <label class="form-label">カラーモード</label>
