@@ -1,94 +1,558 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>こどもむけジグソーパズルゲーム</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Font (読みやすく安心感のある丸み) -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css">
-  <!-- Phaser.js（据え置き） -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>写真ジグソーパズル</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Tailwind CSSのデフォルト設定を上書き */
+  :root {
+      --color-primary: #3b82f6; /* Blue 500 */
+      --color-accent: #f97316; /* Orange 500 */
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #dbeafe; /* Light Blue 100 */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+  }
+  
+  /* ヘッダー */
+  #controls {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  select, button {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  select { 
+    border: 1px solid var(--color-primary); 
+    background: #eff6ff; 
+    color: #1e3a8a; 
+  }
+  button.camera { 
+    background: var(--color-accent); 
+    color: white; 
+    border: none; 
+  }
+  button.reset { 
+    background: #10b981; /* Emerald 500 */ 
+    color: white; 
+    border: none; 
+  }
+  button:active { transform: scale(0.98); }
+
+  /* メインエリア */
+  #game-container {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  canvas {
+    display: block;
+    touch-action: none;
+  }
+
+  /* ヒントボタン（右下固定） */
+  #hint-button {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: #f59e0b; /* Amber 500 */
+    color: white;
+    padding: 12px 15px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 1.2rem;
+    font-weight: 900;
+    line-height: 1;
+    z-index: 30; /* ピースより上 */
+  }
+
+  /* クリアメッセージ */
+  #win-message {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.98);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 6px solid var(--color-accent);
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    z-index: 50;
+    width: 80%;
+    max-width: 400px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+  }
+  #win-message h2 { 
+    color: var(--color-accent); 
+    margin: 0 0 10px 0; 
+    font-size: 2.5rem;
+  }
+
+  @keyframes popIn {
+    from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+</style>
 </head>
 <body>
 
-<!-- グローバル・トースト（成功メッセージ用） -->
-<div id="toast" class="toast" aria-live="polite">ぴったり！</div>
+<div id="controls">
+  <select id="level">
+    <option value="3,4">かんたん (12)</option>
+    <option value="4,5" selected>ふつう (20)</option>
+    <option value="5,6">ちょいムズ (30)</option>
+  </select>
+  <input type="file" id="imageInput" accept="image/*" style="display:none">
+  <button class="camera" onclick="document.getElementById('imageInput').click()">📷 写真を選ぶ</button>
+  <button class="reset" onclick="initGame()">🔄 最初から</button>
+</div>
 
-<!-- スタート画面 -->
-<div id="start-screen" class="screen card">
-  <h1>きょうのジグソーパズル</h1>
-  <p class="subtitle">写真はどこにも保存されません</p>
-
-  <div class="button-container">
-    <label for="piece-count" class="tile-button">
-      ピースのかずをえらんでね
-      <div id="piece-count-display" class="piece-count-display">12ピース（3×4）</div>
-      <select id="piece-count" aria-label="ピース数を選ぶ">
-        <option value="3x4">12ピース（3×4）</option>
-        <option value="4x5">20ピース（4×5）</option>
-        <option value="6x8">48ピース（6×8）</option>
-      </select>
-    </label>
-
-    <label for="preview-position" class="tile-button">
-      みほんのいちをえらんでね
-      <div id="preview-position-display" class="piece-count-display">した</div>
-      <select id="preview-position" aria-label="見本画像の配置を選ぶ">
-        <option value="bottom">した</option>
-        <option value="right">みぎ</option>
-        <option value="left">ひだり</option>
-        <option value="top">うえ</option>
-      </select>
-    </label>
-
-    <label for="upload-image" class="tile-button">
-      がぞうをいれる
-      <input type="file" id="upload-image" accept="image/png, image/jpeg" aria-label="画像を選ぶ">
-    </label>
-
-    <!-- 画像プレビュー -->
-    <div id="image-preview" class="preview card" aria-hidden="true">
-      <img id="preview-img" alt="プレビュー画像">
-    </div>
-
-    <button id="start-button" disabled class="tile-button primary" aria-disabled="true">はじめる</button>
+<div id="game-container">
+  <canvas id="puzzleCanvas"></canvas>
+  
+  <!-- ヒントボタン -->
+  <button id="hint-button" onclick="toggleHint()">ヒント</button>
+  
+  <!-- クリアメッセージ -->
+  <div id="win-message" onclick="hideWinMessage()">
+    <h2>🎉 完成！ 🎉</h2>
+    <p>すごい！できたね！<br>（タップで消えます）</p>
+    <button class="reset" style="margin-top:15px; padding:8px 15px;">もう一回</button>
   </div>
 </div>
 
-<!-- パズルプレイ画面 -->
-<div id="game-screen" class="screen" style="display:none;">
-  <div class="game-header card">
-    <div class="title-wrap">
-      <h1 id="game-title">きょうのジグソーパズル</h1>
-      <div class="progress">
-        <div class="progress-bar" id="progress-bar" style="width:0%;"></div>
-      </div>
-      <div class="progress-text" id="progress-text">0%</div>
-    </div>
-    <label for="zoom-slider" class="sr-only">ズーム</label>
-    <input id="zoom-slider" type="range" min="0.5" max="2" step="0.1" value="1">
-    <button id="reset-button" class="btn ghost" aria-label="やりなおす">🔁 やりなおす</button>
-  </div>
+<script>
+  const canvas = document.getElementById('puzzleCanvas');
+  const ctx = canvas.getContext('2d');
+  const levelSelect = document.getElementById('level');
+  const winMessage = document.getElementById('win-message');
+  const container = document.getElementById('game-container');
+  const hintButton = document.getElementById('hint-button');
+  
+  let img = new Image();
+  img.src = "https://placehold.co/800x600/FF9800/FFFFFF?text=Photo+Puzzle";
 
-  <div id="game-container" class="card game-container" role="application" aria-label="パズルエリア">
-    <!-- Phaserの描画領域 -->
-  </div>
-</div>
+  let pieces = [];
+  let cols, rows;
+  let pieceWidth, pieceHeight;
+  let selectedPiece = null;
+  const TAB_SIZE_RATIO = 0.25; 
+  let tabSize;
 
-<!-- ゲームクリア画面 -->
-<div id="game-clear-screen" class="screen card" style="display:none;">
-  <h1 id="clear-message"></h1>
-  <img id="completed-image" alt="完成したパズル">
-  <br>
-  <button id="retry-button" class="btn primary">もういちどあそぶ</button>
-</div>
+  let boardRect = { x: 0, y: 0, w: 0, h: 0 };
+  
+  // ヒント機能の状態を管理する変数
+  let hintOpacity = 0.15; // 0.0 (非表示) から 1.0 (完全表示) の間
+  let isGameOver = false;
 
-<!-- 紙吹雪コンテナ -->
-<div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
+  img.onload = () => initGame();
 
-<!-- スクリプト -->
-<script src="main.js"></script>
+  document.getElementById('imageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const newImg = new Image();
+        newImg.onload = function() {
+            img = newImg;
+            initGame();
+        };
+        newImg.src = event.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  levelSelect.addEventListener('change', initGame);
+
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(initGame, 200);
+  });
+
+  // --- ヒント機能の切り替え ---
+  function toggleHint() {
+    // 透過度を切り替える（0.15:うっすら -> 0.0:隠す -> 0.15:うっすら）
+    if (hintOpacity > 0) {
+        hintOpacity = 0.0;
+        hintButton.textContent = "ヒント (OFF)";
+        hintButton.style.backgroundColor = "#9ca3af"; /* Gray 400 */
+    } else {
+        hintOpacity = 0.15;
+        hintButton.textContent = "ヒント";
+        hintButton.style.backgroundColor = "#f59e0b"; /* Amber 500 */
+    }
+    draw();
+  }
+  
+  function initGame() {
+    isGameOver = false; // ゲームオーバーフラグをリセット
+    // 難易度設定
+    const val = levelSelect.value.split(',');
+    cols = parseInt(val[0]);
+    rows = parseInt(val[1]);
+    
+    // キャンバス設定
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
+    // ボードサイズ計算
+    const marginRatio = 0.85; 
+    let renderWidth = img.width;
+    let renderHeight = img.height;
+    
+    const scale = Math.min(
+      (canvas.width * marginRatio) / renderWidth, 
+      (canvas.height * marginRatio) / renderHeight
+    );
+    
+    boardRect.w = renderWidth * scale;
+    boardRect.h = renderHeight * scale;
+    boardRect.x = (canvas.width - boardRect.w) / 2;
+    boardRect.y = (canvas.height - boardRect.h) / 2;
+    
+    pieceWidth = boardRect.w / cols;
+    pieceHeight = boardRect.h / rows;
+    tabSize = Math.min(pieceWidth, pieceHeight) * TAB_SIZE_RATIO;
+    
+    createPieces();
+    shufflePieces();
+    
+    winMessage.style.display = 'none';
+    hintButton.style.display = 'block'; // ヒントボタンを表示
+    
+    // ヒントボタンの初期状態設定
+    hintOpacity = 0.15;
+    hintButton.textContent = "ヒント";
+    hintButton.style.backgroundColor = "#f59e0b";
+    
+    draw();
+  }
+
+  // createPieces, drawJigsawPath, shufflePieces は前回と同じロジック
+  // 画像生成とピース情報のセットアップ
+  function createPieces() {
+    pieces = [];
+    const xTabs = Array.from({length: rows}, () => Array(cols).fill(0));
+    const yTabs = Array.from({length: rows}, () => Array(cols).fill(0));
+
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        if(c < cols - 1) xTabs[r][c] = Math.random() < 0.5 ? 1 : -1;
+        if(r < rows - 1) yTabs[r][c] = Math.random() < 0.5 ? 1 : -1;
+      }
+    }
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const shape = {
+          top: (r === 0) ? 0 : -yTabs[r-1][c],
+          right: (c === cols-1) ? 0 : xTabs[r][c],
+          bottom: (r === rows-1) ? 0 : yTabs[r][c],
+          left: (c === 0) ? 0 : -xTabs[r][c-1]
+        };
+
+        const pCanvas = document.createElement('canvas');
+        const margin = tabSize * 1.5;
+        pCanvas.width = pieceWidth + margin * 2;
+        pCanvas.height = pieceHeight + margin * 2;
+        const pCtx = pCanvas.getContext('2d');
+        
+        pCtx.save();
+        pCtx.translate(margin, margin);
+        drawJigsawPath(pCtx, pieceWidth, pieceHeight, shape);
+        pCtx.clip();
+
+        const sourceScale = img.width / boardRect.w;
+        const sx = c * pieceWidth * sourceScale;
+        const sy = r * pieceHeight * sourceScale;
+        const sw = pieceWidth * sourceScale;
+        const sh = pieceHeight * sourceScale;
+        const srcMargin = margin * sourceScale;
+        
+        pCtx.drawImage(
+            img,
+            sx - srcMargin, sy - srcMargin, 
+            sw + srcMargin * 2, sh + srcMargin * 2,
+            -margin, -margin, 
+            pieceWidth + margin * 2, pieceHeight + margin * 2
+        );
+        
+        // 枠線と立体感
+        pCtx.strokeStyle = 'rgba(255,255,255,0.7)';
+        pCtx.lineWidth = 2;
+        pCtx.stroke();
+        pCtx.strokeStyle = 'rgba(0,0,0,0.3)';
+        pCtx.lineWidth = 1;
+        pCtx.stroke();
+        
+        pCtx.restore();
+
+        pieces.push({
+          img: pCanvas,
+          correctX: boardRect.x + c * pieceWidth,
+          correctY: boardRect.y + r * pieceHeight,
+          x: 0, 
+          y: 0,
+          margin: margin,
+          isLocked: false,
+          w: pieceWidth,
+          h: pieceHeight
+        });
+      }
+    }
+  }
+
+  function drawJigsawPath(ctx, w, h, shape) {
+    const tab = tabSize; 
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+
+    // Top
+    if (shape.top !== 0) {
+      const dir = shape.top === 1 ? -1 : 1;
+      ctx.lineTo(w * 0.35, 0);
+      ctx.bezierCurveTo(w * 0.35, dir * tab, w * 0.65, dir * tab, w * 0.65, 0);
+    }
+    ctx.lineTo(w, 0);
+
+    // Right
+    if (shape.right !== 0) {
+      const dir = shape.right === 1 ? 1 : -1;
+      ctx.lineTo(w, h * 0.35);
+      ctx.bezierCurveTo(w + dir * tab, h * 0.35, w + dir * tab, h * 0.65, w, h * 0.65);
+    }
+    ctx.lineTo(w, h);
+
+    // Bottom
+    if (shape.bottom !== 0) {
+      const dir = shape.bottom === 1 ? 1 : -1;
+      ctx.lineTo(w * 0.65, h);
+      ctx.bezierCurveTo(w * 0.65, h + dir * tab, w * 0.35, h + dir * tab, w * 0.35, h);
+    }
+    ctx.lineTo(0, h);
+
+    // Left
+    if (shape.left !== 0) {
+      const dir = shape.left === 1 ? -1 : 1;
+      ctx.lineTo(0, h * 0.65);
+      ctx.bezierCurveTo(dir * tab, h * 0.65, dir * tab, h * 0.35, 0, h * 0.35);
+    }
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+  }
+
+  function shufflePieces() {
+    pieces.forEach(p => {
+        p.isLocked = false;
+        const safeMargin = 20;
+        const maxX = canvas.width - p.w * 0.8 - safeMargin;
+        const maxY = canvas.height - p.h * 0.8 - safeMargin;
+        const minX = p.w * 0.2 + safeMargin;
+        const minY = p.h * 0.2 + safeMargin;
+        
+        p.x = minX + Math.random() * (maxX - minX);
+        p.y = minY + Math.random() * (maxY - minY);
+    });
+    draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. パズルボード（枠）を描画
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillRect(boardRect.x, boardRect.y, boardRect.w, boardRect.h);
+    
+    // --- ヒントの表示 (透過度を可変に) ---
+    ctx.save();
+    if (isGameOver) {
+        // クリア後は常に完成図を完全表示 (1.0)
+        ctx.globalAlpha = 1.0; 
+    } else {
+        // ゲーム中はヒント設定の透過度を適用
+        ctx.globalAlpha = hintOpacity; 
+    }
+    ctx.drawImage(img, boardRect.x, boardRect.y, boardRect.w, boardRect.h);
+    ctx.restore();
+
+    // 枠線
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(boardRect.x, boardRect.y, boardRect.w, boardRect.h);
+
+    // 2. ピース描画
+    const renderList = pieces.slice().sort((a, b) => {
+        if (a === selectedPiece) return 1;
+        if (b === selectedPiece) return -1;
+        if (a.isLocked && !b.isLocked) return -1;
+        if (!a.isLocked && b.isLocked) return 1;
+        return 0;
+    });
+
+    renderList.forEach(p => {
+      // ピースがロックされていない（動いている）場合のみ影をつける
+      if(p === selectedPiece && !p.isLocked) {
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 8;
+        ctx.shadowOffsetY = 8;
+      } else if (!p.isLocked) {
+        ctx.shadowColor = "rgba(0,0,0,0.2)";
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+      } else {
+        ctx.shadowColor = "transparent";
+      }
+
+      ctx.drawImage(p.img, p.x - p.margin, p.y - p.margin);
+      ctx.shadowColor = "transparent";
+    });
+  }
+
+  // --- タッチ操作 ---
+  
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function handleStart(e) {
+    if (isGameOver) return; // ゲームクリア後は操作無効
+
+    e.preventDefault();
+    const pos = getPos(e);
+    
+    const checkList = pieces.slice().sort((a, b) => {
+        if (a === selectedPiece) return 1;
+        if (b === selectedPiece) return -1;
+        if (a.isLocked && !b.isLocked) return -1;
+        if (!a.isLocked && b.isLocked) return 1;
+        return 0;
+    });
+
+    for (let i = checkList.length - 1; i >= 0; i--) {
+      const p = checkList[i];
+      if (p.isLocked) continue;
+
+      const cx = p.x + pieceWidth/2;
+      const cy = p.y + pieceHeight/2;
+      const dist = Math.max(Math.abs(pos.x - cx), Math.abs(pos.y - cy));
+      
+      if (dist < Math.max(pieceWidth, pieceHeight) * 0.6) {
+        selectedPiece = p;
+        selectedPiece.offsetX = pos.x - p.x;
+        selectedPiece.offsetY = pos.y - p.y;
+        draw();
+        return;
+      }
+    }
+  }
+
+  function handleMove(e) {
+    if (!selectedPiece || isGameOver) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    
+    let newX = pos.x - selectedPiece.offsetX;
+    let newY = pos.y - selectedPiece.offsetY;
+
+    // 画面外への飛び出し防止
+    const minX = 0 - selectedPiece.w * 0.2;
+    const minY = 0 - selectedPiece.h * 0.2;
+    const maxX = canvas.width - selectedPiece.w * 0.8;
+    const maxY = canvas.height - selectedPiece.h * 0.8;
+
+    newX = Math.max(minX, Math.min(newX, maxX));
+    newY = Math.max(minY, Math.min(newY, maxY));
+
+    selectedPiece.x = newX;
+    selectedPiece.y = newY;
+    draw();
+  }
+
+  function handleEnd(e) {
+    if (!selectedPiece || isGameOver) return;
+    
+    // 吸着判定
+    const dist = Math.hypot(selectedPiece.x - selectedPiece.correctX, selectedPiece.y - selectedPiece.correctY);
+    const threshold = Math.min(pieceWidth, pieceHeight) * 0.35;
+    
+    if (dist < threshold) {
+      selectedPiece.x = selectedPiece.correctX;
+      selectedPiece.y = selectedPiece.correctY;
+      selectedPiece.isLocked = true;
+      // 成功時のカチッという視覚的なフィードバックを draw で反映
+      draw(); 
+      checkWin();
+    } 
+    selectedPiece = null;
+    draw();
+  }
+
+  canvas.addEventListener('mousedown', handleStart);
+  canvas.addEventListener('mousemove', handleMove);
+  canvas.addEventListener('mouseup', handleEnd);
+  canvas.addEventListener('touchstart', handleStart, {passive: false});
+  canvas.addEventListener('touchmove', handleMove, {passive: false});
+  canvas.addEventListener('touchend', handleEnd);
+  
+  // クリア判定
+  function checkWin() {
+    if (pieces.every(p => p.isLocked)) {
+      isGameOver = true;
+      winMessage.style.display = 'block';
+      hintButton.style.display = 'none'; // ヒントボタンを隠す
+      // 完成図を完全表示するために再描画
+      draw(); 
+    }
+  }
+  
+  // クリアメッセージを非表示にする
+  function hideWinMessage(e) {
+    // ボタンをクリックした場合はそのままinitGameが実行される
+    if (e && e.target.tagName === 'BUTTON') {
+        initGame();
+        return;
+    }
+    // それ以外（メッセージエリアタップ）の場合はメッセージだけ消す
+    winMessage.style.display = 'none';
+  }
+</script>
 </body>
 </html>
