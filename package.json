@@ -4,6 +4,10 @@
   "description": "",
   "main": "script.js",
   "scripts": {
+    "build:game51": "vite build --root game51 --base ./ --outDir dist/game51",
+    "build:game52": "vite build --root game52 --base ./ --outDir dist/game52",
+    "dev:game51": "vite dev --root game51",
+    "dev:game52": "vite dev --root game52",
     "build:game48": "vite build --config game48/vite.config.ts",
     "dev:game48": "vite dev --config game48/vite.config.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
