@@ -45,14 +45,15 @@ const playSound = (type) => {
 
   switch (type) {
     case 'switch_a_to_b':
-      // Sharp, high-pitched blip for A -> B
-      playTone(1200, 'square', now, 0.1, 0.3);
+      // Lower, double blip for A -> B (swapped from previous B sound)
+      playTone(600, 'triangle', now, 0.08, 0.4);
+      playTone(800, 'triangle', now + 0.12, 0.08, 0.4);
       break;
 
     case 'switch_b_to_a':
-      // Lower, double blip for B -> A
-      playTone(600, 'triangle', now, 0.08, 0.4);
-      playTone(800, 'triangle', now + 0.1, 0.08, 0.4);
+      // Sharp, high-pitched double blip for B -> A (swapped from previous A sound)
+      playTone(1200, 'square', now, 0.1, 0.3);
+      playTone(1400, 'square', now + 0.12, 0.1, 0.25);
       break;
 
     case 'finish': {
