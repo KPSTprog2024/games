@@ -292,6 +292,7 @@ function updateLabelSprite(sprite, text, color) {
 
 function updateFrequencyLabels(params) {
   const labelDistance = params.amplitude + 2.2;
+  const offset = Math.max(2.5, params.amplitude * 0.6);
   const labels = {
     x: `X: ${params.freqX.toFixed(1)}`,
     y: `Y: ${params.freqY.toFixed(1)}`,
@@ -305,9 +306,9 @@ function updateFrequencyLabels(params) {
     }
   });
 
-  freqLabels.x.position.set(labelDistance, 0, 0);
-  freqLabels.y.position.set(0, labelDistance, 0);
-  freqLabels.z.position.set(0, 0, labelDistance);
+  freqLabels.x.position.set(labelDistance + offset, offset * 0.3, -offset);
+  freqLabels.y.position.set(-offset, labelDistance + offset, offset);
+  freqLabels.z.position.set(offset, -offset * 0.4, labelDistance + offset);
 }
 
 function animate() {
