@@ -32,6 +32,9 @@ let pointerMesh;
 const componentLines = {};
 const componentPoints = { x: [], y: [], z: [] };
 const componentPointers = {};
+const freqLabels = {};
+const labelTexts = { x: '', y: '', z: '' };
+const labelColors = { x: '#ef4444', y: '#10b981', z: '#3b82f6' };
 let isUnlimitedTrail = false;
 let isRunning = true;
 let startTime = performance.now();
@@ -110,6 +113,11 @@ function initThree() {
     const mini = new THREE.Mesh(miniSphereGeo, miniMat);
     componentPointers[axis] = mini;
     scene.add(mini);
+  });
+
+  ['x', 'y', 'z'].forEach((axis) => {
+    freqLabels[axis] = createLabelSprite('', labelColors[axis]);
+    scene.add(freqLabels[axis]);
   });
 
   window.addEventListener('resize', onResize);
@@ -243,12 +251,73 @@ function updateComponentTrails(pos) {
   });
 }
 
+function makeLabelCanvas(text, color) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const fontSize = 24;
+  const padding = 12;
+  ctx.font = `${fontSize}px Inter, 'Noto Sans JP', system-ui`;
+  const textWidth = ctx.measureText(text).width;
+  canvas.width = textWidth + padding * 2;
+  canvas.height = fontSize + padding * 1.6;
+  ctx.font = `${fontSize}px Inter, 'Noto Sans JP', system-ui`;
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillText(text, padding, canvas.height / 2);
+  return canvas;
+}
+
+function createLabelSprite(text, color) {
+  const canvas = makeLabelCanvas(text, color);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(canvas.width / 60, canvas.height / 60, 1);
+  return sprite;
+}
+
+function updateLabelSprite(sprite, text, color) {
+  const canvas = makeLabelCanvas(text, color);
+  sprite.material.map.dispose();
+  sprite.material.map = new THREE.CanvasTexture(canvas);
+  sprite.material.needsUpdate = true;
+  sprite.scale.set(canvas.width / 60, canvas.height / 60, 1);
+}
+
+function updateFrequencyLabels(params) {
+  const labelDistance = params.amplitude + 2.2;
+  const labels = {
+    x: `X: ${params.freqX.toFixed(1)}`,
+    y: `Y: ${params.freqY.toFixed(1)}`,
+    z: `Z: ${params.freqZ.toFixed(1)}`,
+  };
+
+  ['x', 'y', 'z'].forEach((axis) => {
+    if (labels[axis] !== labelTexts[axis]) {
+      updateLabelSprite(freqLabels[axis], labels[axis], labelColors[axis]);
+      labelTexts[axis] = labels[axis];
+    }
+  });
+
+  freqLabels.x.position.set(labelDistance, 0, 0);
+  freqLabels.y.position.set(0, labelDistance, 0);
+  freqLabels.z.position.set(0, 0, labelDistance);
+}
+
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
+  const params = currentParams();
+  updateFrequencyLabels(params);
+
   if (isRunning) {
-    const params = currentParams();
     trailLimit = params.trail;
     const elapsed = (performance.now() - startTime) * 0.001 * params.speed;
     const pos = lissajous(elapsed, params);
