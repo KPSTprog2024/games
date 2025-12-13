@@ -31,21 +31,34 @@ let pointerMesh;
 let isRunning = true;
 let startTime = performance.now();
 
+function getSceneSize() {
+  const rect = sceneEl.getBoundingClientRect();
+  return {
+    width: rect.width || window.innerWidth,
+    height: rect.height || window.innerHeight * 0.7,
+  };
+}
+
 function initThree() {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
+  const { width, height } = getSceneSize();
+  renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
+  renderer.domElement.style.display = 'block';
   sceneEl.appendChild(renderer.domElement);
 
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(55, sceneEl.clientWidth / sceneEl.clientHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
   camera.position.set(20, 16, 20);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.enablePan = true;
+  controls.target.set(0, 0, 0);
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x080820, 1.1);
   scene.add(hemi);
@@ -85,10 +98,10 @@ function initThree() {
 }
 
 function onResize() {
-  const { clientWidth, clientHeight } = sceneEl;
-  camera.aspect = clientWidth / clientHeight;
+  const { width, height } = getSceneSize();
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(clientWidth, clientHeight);
+  renderer.setSize(width, height);
 }
 
 function onKey(e) {
@@ -110,7 +123,7 @@ function updateRatioDisplay() {
   const fz = Number(inputs.freqZ.value);
   const simplify = (a, b, c) => {
     const gcd2 = (x, y) => (!y ? x : gcd2(y, x % y));
-    const g = gcd2(gcd2(Math.round(a * 10), Math.round(b * 10)), Math.round(fz * 10));
+    const g = gcd2(gcd2(Math.round(a * 10), Math.round(b * 10)), Math.round(c * 10));
     return [a * 10 / g, b * 10 / g, c * 10 / g].map((n) => Math.round(n));
   };
   const [sx, sy, sz] = simplify(fx, fy, fz);
