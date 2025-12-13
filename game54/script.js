@@ -44,8 +44,8 @@ function initThree() {
   const { width, height } = getSceneSize();
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio || 1);
-  renderer.domElement.style.width = '100%';
-  renderer.domElement.style.height = '100%';
+  renderer.domElement.style.width = `${width}px`;
+  renderer.domElement.style.height = `${height}px`;
   renderer.domElement.style.display = 'block';
   sceneEl.appendChild(renderer.domElement);
 
@@ -102,6 +102,8 @@ function onResize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
+  renderer.domElement.style.width = `${width}px`;
+  renderer.domElement.style.height = `${height}px`;
 }
 
 function onKey(e) {
