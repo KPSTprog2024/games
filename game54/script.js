@@ -23,11 +23,16 @@ const buttons = {
   reset: document.getElementById('reset'),
   toggle: document.getElementById('toggle'),
   clear: document.getElementById('clear'),
+  unlimitedTrail: document.getElementById('unlimitedTrail'),
 };
 
 let renderer, scene, camera, controls;
 let line, points = [], trailLimit = parseInt(inputs.trail.value, 10);
 let pointerMesh;
+const componentLines = {};
+const componentPoints = { x: [], y: [], z: [] };
+const componentPointers = {};
+let isUnlimitedTrail = false;
 let isRunning = true;
 let startTime = performance.now();
 
@@ -93,6 +98,20 @@ function initThree() {
   pointerMesh = new THREE.Mesh(sphereGeo, sphereMat);
   scene.add(pointerMesh);
 
+  const componentColors = { x: 0xef4444, y: 0x10b981, z: 0x3b82f6 };
+  const miniSphereGeo = new THREE.SphereGeometry(0.18, 20, 20);
+  ['x', 'y', 'z'].forEach((axis) => {
+    const compGeo = new THREE.BufferGeometry().setFromPoints([]);
+    const compMat = new THREE.LineBasicMaterial({ color: componentColors[axis], transparent: true, opacity: 0.7 });
+    componentLines[axis] = new THREE.Line(compGeo, compMat);
+    scene.add(componentLines[axis]);
+
+    const miniMat = new THREE.MeshStandardMaterial({ color: componentColors[axis], emissive: componentColors[axis], emissiveIntensity: 0.8 });
+    const mini = new THREE.Mesh(miniSphereGeo, miniMat);
+    componentPointers[axis] = mini;
+    scene.add(mini);
+  });
+
   window.addEventListener('resize', onResize);
   window.addEventListener('keydown', onKey);
 }
@@ -114,7 +133,11 @@ function onKey(e) {
 
 function updateValueLabels() {
   Object.entries(inputs).forEach(([key, input]) => {
-    valueEls[key].textContent = key === 'trail' ? input.value : Number(input.value).toFixed(1).replace(/\.0$/, '.0');
+    if (key === 'trail') {
+      valueEls[key].textContent = isUnlimitedTrail ? '∞' : input.value;
+    } else {
+      valueEls[key].textContent = Number(input.value).toFixed(1).replace(/\.0$/, '.0');
+    }
   });
   updateRatioDisplay();
 }
@@ -156,18 +179,68 @@ function lissajous(t, params) {
 function reset() {
   points = [];
   line.geometry.setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+  ['x', 'y', 'z'].forEach((axis) => {
+    componentPoints[axis] = [];
+    componentLines[axis].geometry.setFromPoints([]);
+    componentPointers[axis].position.set(0, 0, 0);
+  });
   startTime = performance.now();
 }
 
 function clearTrail() {
   points = [];
   line.geometry.setFromPoints([]);
+  ['x', 'y', 'z'].forEach((axis) => {
+    componentPoints[axis] = [];
+    componentLines[axis].geometry.setFromPoints([]);
+    componentPointers[axis].position.set(0, 0, 0);
+  });
 }
 
 function toggleRunning() {
   isRunning = !isRunning;
   buttons.toggle.textContent = isRunning ? '一時停止' : '再生';
   buttons.toggle.dataset.running = isRunning;
+}
+
+function trimTrails(limit) {
+  while (points.length > limit) {
+    points.shift();
+  }
+  ['x', 'y', 'z'].forEach((axis) => {
+    while (componentPoints[axis].length > limit) {
+      componentPoints[axis].shift();
+    }
+    componentLines[axis].geometry.setFromPoints(componentPoints[axis]);
+  });
+}
+
+function toggleUnlimitedTrail() {
+  isUnlimitedTrail = !isUnlimitedTrail;
+  buttons.unlimitedTrail.dataset.active = isUnlimitedTrail;
+  buttons.unlimitedTrail.textContent = isUnlimitedTrail ? '上限解除中' : '軌跡上限なし';
+  inputs.trail.disabled = isUnlimitedTrail;
+  if (!isUnlimitedTrail) {
+    trimTrails(trailLimit);
+  }
+  updateValueLabels();
+}
+
+function updateComponentTrails(pos) {
+  const snapshots = {
+    x: new THREE.Vector3(pos.x, 0, 0),
+    y: new THREE.Vector3(0, pos.y, 0),
+    z: new THREE.Vector3(0, 0, pos.z),
+  };
+  ['x', 'y', 'z'].forEach((axis) => {
+    componentPoints[axis].push(snapshots[axis]);
+    const limit = isUnlimitedTrail ? Number.POSITIVE_INFINITY : trailLimit;
+    if (componentPoints[axis].length > limit) {
+      componentPoints[axis].shift();
+    }
+    componentLines[axis].geometry.setFromPoints(componentPoints[axis]);
+    componentPointers[axis].position.copy(snapshots[axis]);
+  });
 }
 
 function animate() {
@@ -180,11 +253,13 @@ function animate() {
     const elapsed = (performance.now() - startTime) * 0.001 * params.speed;
     const pos = lissajous(elapsed, params);
     points.push(pos);
-    if (points.length > trailLimit) {
+    const limit = isUnlimitedTrail ? Number.POSITIVE_INFINITY : trailLimit;
+    if (points.length > limit) {
       points.shift();
     }
     line.geometry.setFromPoints(points);
     pointerMesh.position.copy(pos);
+    updateComponentTrails(pos);
   }
 
   renderer.render(scene, camera);
@@ -196,6 +271,9 @@ function attachEvents() {
       updateValueLabels();
       if (input.id === 'trail') {
         trailLimit = parseInt(input.value, 10);
+        if (!isUnlimitedTrail) {
+          trimTrails(trailLimit);
+        }
       }
     });
   });
@@ -203,6 +281,7 @@ function attachEvents() {
   buttons.reset.addEventListener('click', reset);
   buttons.toggle.addEventListener('click', toggleRunning);
   buttons.clear.addEventListener('click', clearTrail);
+  buttons.unlimitedTrail.addEventListener('click', toggleUnlimitedTrail);
 }
 
 initThree();
