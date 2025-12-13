@@ -178,7 +178,7 @@ button#toggle[data-running='false'] {
 
 #scene {
   width: 100%;
-  height: 100%;
+  height: 70vh;
   min-height: 70vh;
 }
 
