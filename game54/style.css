@@ -123,6 +123,12 @@ input[type='range'] {
   margin: 12px 0 16px;
 }
 
+.button-row.tight {
+  grid-template-columns: 1fr;
+  margin-top: -4px;
+  margin-bottom: 12px;
+}
+
 button {
   padding: 10px 12px;
   border-radius: 10px;
@@ -148,6 +154,13 @@ button#toggle[data-running='false'] {
   background: #f59e0b;
   box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
   color: #4a2904;
+}
+
+button#unlimitedTrail[data-active='true'] {
+  background: #111827;
+  color: #e5e7eb;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ratio-display {
