@@ -32,6 +32,11 @@ let pointerMesh;
 const componentLines = {};
 const componentPoints = { x: [], y: [], z: [] };
 const componentPointers = {};
+const componentOffsets = {
+  x: new THREE.Vector3(-16, 0, 0),
+  y: new THREE.Vector3(16, 0, 0),
+  z: new THREE.Vector3(0, 0, -16),
+};
 const freqLabels = {};
 const labelTexts = { x: '', y: '', z: '' };
 const labelColors = { x: '#ef4444', y: '#10b981', z: '#3b82f6' };
@@ -112,6 +117,7 @@ function initThree() {
     const miniMat = new THREE.MeshStandardMaterial({ color: componentColors[axis], emissive: componentColors[axis], emissiveIntensity: 0.8 });
     const mini = new THREE.Mesh(miniSphereGeo, miniMat);
     componentPointers[axis] = mini;
+    componentPointers[axis].position.copy(componentOffsets[axis]);
     scene.add(mini);
   });
 
@@ -190,7 +196,7 @@ function reset() {
   ['x', 'y', 'z'].forEach((axis) => {
     componentPoints[axis] = [];
     componentLines[axis].geometry.setFromPoints([]);
-    componentPointers[axis].position.set(0, 0, 0);
+    componentPointers[axis].position.copy(componentOffsets[axis]);
   });
   startTime = performance.now();
 }
@@ -201,7 +207,7 @@ function clearTrail() {
   ['x', 'y', 'z'].forEach((axis) => {
     componentPoints[axis] = [];
     componentLines[axis].geometry.setFromPoints([]);
-    componentPointers[axis].position.set(0, 0, 0);
+    componentPointers[axis].position.copy(componentOffsets[axis]);
   });
 }
 
@@ -236,9 +242,9 @@ function toggleUnlimitedTrail() {
 
 function updateComponentTrails(pos) {
   const snapshots = {
-    x: new THREE.Vector3(pos.x, 0, 0),
-    y: new THREE.Vector3(0, pos.y, 0),
-    z: new THREE.Vector3(0, 0, pos.z),
+    x: componentOffsets.x.clone().add(new THREE.Vector3(pos.x, 0, 0)),
+    y: componentOffsets.y.clone().add(new THREE.Vector3(0, pos.y, 0)),
+    z: componentOffsets.z.clone().add(new THREE.Vector3(0, 0, pos.z)),
   };
   ['x', 'y', 'z'].forEach((axis) => {
     componentPoints[axis].push(snapshots[axis]);
@@ -292,6 +298,7 @@ function updateLabelSprite(sprite, text, color) {
 
 function updateFrequencyLabels(params) {
   const labelDistance = params.amplitude + 2.2;
+  const offset = Math.max(2.5, params.amplitude * 0.6);
   const labels = {
     x: `X: ${params.freqX.toFixed(1)}`,
     y: `Y: ${params.freqY.toFixed(1)}`,
@@ -305,9 +312,9 @@ function updateFrequencyLabels(params) {
     }
   });
 
-  freqLabels.x.position.set(labelDistance, 0, 0);
-  freqLabels.y.position.set(0, labelDistance, 0);
-  freqLabels.z.position.set(0, 0, labelDistance);
+  freqLabels.x.position.set(labelDistance + offset, offset * 0.3, -offset);
+  freqLabels.y.position.set(-offset, labelDistance + offset, offset);
+  freqLabels.z.position.set(offset, -offset * 0.4, labelDistance + offset);
 }
 
 function animate() {
