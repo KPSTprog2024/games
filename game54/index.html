@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game54 - 3D Lissajous Atlas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div>
+      <p class="eyebrow">game54 / Interactive 3D Lissajous</p>
+      <h1>3D Lissajous Atlas</h1>
+      <p class="lede">XY と同じ円運動を Z 方向にも拡張。周波数・振幅・スピードをリアルタイムに変え、カメラを動かしながら軌跡を観察できます。</p>
+    </div>
+    <div class="legend">
+      <span class="chip">WASD / ドラッグ: カメラ操作</span>
+      <span class="chip">R: リセット</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="controls-panel">
+      <div class="panel-heading">パラメーター</div>
+      <div class="control">
+        <label for="freqX">X 周波数<span id="freqXValue" class="value">3.0</span></label>
+        <input id="freqX" type="range" min="0.5" max="8" step="0.1" value="3" />
+      </div>
+      <div class="control">
+        <label for="freqY">Y 周波数<span id="freqYValue" class="value">4.0</span></label>
+        <input id="freqY" type="range" min="0.5" max="8" step="0.1" value="4" />
+      </div>
+      <div class="control">
+        <label for="freqZ">Z 周波数<span id="freqZValue" class="value">5.0</span></label>
+        <input id="freqZ" type="range" min="0.5" max="8" step="0.1" value="5" />
+      </div>
+      <div class="control">
+        <label for="amplitude">振幅<span id="amplitudeValue" class="value">8</span></label>
+        <input id="amplitude" type="range" min="2" max="12" step="0.5" value="8" />
+      </div>
+      <div class="control">
+        <label for="speed">スピード<span id="speedValue" class="value">1.0</span></label>
+        <input id="speed" type="range" min="0.2" max="4" step="0.1" value="1" />
+      </div>
+      <div class="control">
+        <label for="trail">軌跡の長さ<span id="trailValue" class="value">600</span></label>
+        <input id="trail" type="range" min="100" max="1200" step="50" value="600" />
+      </div>
+      <div class="button-row">
+        <button id="reset">リセット</button>
+        <button id="toggle" data-running="true">一時停止</button>
+        <button id="clear">軌跡クリア</button>
+      </div>
+      <div class="panel-heading">現在の比率</div>
+      <div class="ratio-display" id="ratioDisplay">X:Y:Z = 3 : 4 : 5</div>
+      <p class="hint">周波数比を変えるとリサージュの結び目が変化します。グリッドは XY 平面（床）と XZ 平面（壁）の 2 面に敷かれています。</p>
+    </section>
+
+    <section class="scene-panel">
+      <div id="scene"></div>
+      <div class="overlay">
+        <div class="overlay-title">3D Lissajous</div>
+        <div class="overlay-sub">偏差・周波数比で立体的なリサージュ曲線を描く。</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
