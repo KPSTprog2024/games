@@ -29,6 +29,9 @@
             <div class="score-info">
                 <span class="score-text">せいかい: <span id="game-score">0</span></span>
             </div>
+            <div class="progress-info">
+                <span id="progress-text" class="progress-text">1/8</span>
+            </div>
         </div>
         
         <div class="game-content">
@@ -60,6 +63,23 @@
             <div id="feedback-answer" class="feedback-answer"></div>
             <button id="continue-btn" class="btn btn--primary btn--large">
                 ➡️ つぎへ
+            </button>
+        </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-screen" class="screen hidden">
+        <div class="result-content">
+            <h2 class="result-title">🧩 セットおわり！</h2>
+            <p class="result-score">8もんちゅう <span id="result-score">0 / 8</span> せいかい</p>
+
+            <div id="wrong-review" class="wrong-review">
+                <h3 class="wrong-title-main">まちがった ぎょうじを ふくしゅうしよう</h3>
+                <ul id="wrong-list" class="wrong-list"></ul>
+            </div>
+
+            <button id="restart-btn" class="btn btn--primary btn--large">
+                🔄 もういちど あそぶ
             </button>
         </div>
     </div>
