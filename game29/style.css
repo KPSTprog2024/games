@@ -822,6 +822,25 @@ select.form-control {
   grid-template-columns: 1fr;
 }
 
+.app-container.fullscreen-active {
+  background: var(--color-background);
+  height: 100vh;
+}
+
+.app-container.fullscreen-active .header,
+.app-container.fullscreen-active .controls-panel,
+.app-container.fullscreen-active .color-panel,
+.app-container.fullscreen-active .timeline-panel {
+  display: none;
+}
+
+.app-container.fullscreen-active .main-content {
+  grid-template-columns: 1fr;
+  padding: 0;
+  gap: 0;
+  height: 100vh;
+}
+
 /* Panel Base Styles */
 .controls-panel,
 .color-panel {
@@ -1022,6 +1041,14 @@ select.form-control {
   min-height: 500px;
 }
 
+.app-container.fullscreen-active .canvas-panel {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  min-height: 100vh;
+  height: 100vh;
+}
+
 #harmonographCanvas {
   flex: 1;
   width: 100%;
@@ -1043,6 +1070,10 @@ select.form-control {
   pointer-events: none;
 }
 
+.app-container.fullscreen-active .canvas-overlay {
+  pointer-events: auto;
+}
+
 .render-status {
   position: absolute;
   top: var(--space-12);
@@ -1054,6 +1085,20 @@ select.form-control {
   font-size: var(--font-size-sm);
   opacity: 0;
   transition: opacity var(--duration-normal) var(--ease-standard);
+}
+
+.fullscreen-exit {
+  position: absolute;
+  bottom: var(--space-12);
+  right: var(--space-12);
+  pointer-events: auto;
+  display: none;
+  background: rgba(var(--color-surface-rgb, 255, 255, 255), 0.85);
+  color: var(--color-text);
+}
+
+.app-container.fullscreen-active .fullscreen-exit {
+  display: inline-flex;
 }
 
 .render-status.active {
