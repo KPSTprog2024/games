@@ -23,6 +23,8 @@ class InfiniteHarmonographGenerator {
         this.loopStart = null;
         this.loopEnd = null;
         this.panelsHidden = false;
+        this.isFullscreen = false;
+        this.wasPanelsHidden = false;
         
         // Canvas properties
         this.resizeCanvas();
@@ -156,11 +158,13 @@ class InfiniteHarmonographGenerator {
     
     init() {
         this.setupEventListeners();
+        this.setupFullscreenControls();
         this.generateColorPresets();
         this.updateAllControls();
         this.updateModeInfo();
         this.updateTimelineMarkers();
         this.updatePanelVisibility();
+        this.updateFullscreenUI();
         this.startAnimation();
         
         // Set first preset as active and load it
@@ -290,9 +294,52 @@ class InfiniteHarmonographGenerator {
         document.getElementById('exportPNG').addEventListener('click', () => {
             this.exportPNG();
         });
-        
+
         document.getElementById('exportRange').addEventListener('click', () => {
             this.exportTimeRange();
+        });
+    }
+
+    setupFullscreenControls() {
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const exitFullscreenBtn = document.getElementById('exitFullscreen');
+        const canvasOverlay = document.querySelector('.canvas-overlay');
+
+        if (fullscreenToggle) {
+            fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
+        }
+
+        if (exitFullscreenBtn) {
+            exitFullscreenBtn.addEventListener('click', () => this.exitFullscreen());
+        }
+
+        const exitHandler = () => {
+            if (this.isFullscreen) {
+                this.exitFullscreen();
+            }
+        };
+
+        if (this.canvas) {
+            this.canvas.addEventListener('click', exitHandler);
+        }
+
+        if (canvasOverlay) {
+            canvasOverlay.addEventListener('click', exitHandler);
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            this.isFullscreen = !!document.fullscreenElement;
+
+            if (this.isFullscreen) {
+                this.wasPanelsHidden = this.panelsHidden;
+                this.panelsHidden = true;
+            } else {
+                this.panelsHidden = this.wasPanelsHidden;
+            }
+
+            this.updatePanelVisibility();
+            this.updateFullscreenUI();
+            this.resizeCanvas();
         });
     }
     
@@ -437,6 +484,60 @@ class InfiniteHarmonographGenerator {
         this.canvas.classList.remove('infinite-indicator');
         if (this.drawingMode === 'infinite' || this.drawingMode === 'accumulate') {
             this.canvas.classList.add('infinite-indicator');
+        }
+    }
+
+    async toggleFullscreen() {
+        if (!this.isFullscreen) {
+            this.wasPanelsHidden = this.panelsHidden;
+            this.panelsHidden = true;
+            this.updatePanelVisibility();
+            this.updateFullscreenUI();
+
+            if (this.appContainer?.requestFullscreen) {
+                try {
+                    await this.appContainer.requestFullscreen();
+                    return;
+                } catch (err) {
+                    console.error('Failed to enter fullscreen:', err);
+                }
+            }
+
+            this.isFullscreen = true;
+            this.updateFullscreenUI();
+            this.resizeCanvas();
+        } else {
+            await this.exitFullscreen();
+        }
+    }
+
+    async exitFullscreen() {
+        if (document.fullscreenElement) {
+            try {
+                await document.exitFullscreen();
+            } catch (err) {
+                console.error('Failed to exit fullscreen:', err);
+            }
+        }
+
+        if (this.isFullscreen) {
+            this.isFullscreen = false;
+            this.panelsHidden = this.wasPanelsHidden;
+            this.updatePanelVisibility();
+            this.updateFullscreenUI();
+            this.resizeCanvas();
+        }
+    }
+
+    updateFullscreenUI() {
+        if (this.appContainer) {
+            this.appContainer.classList.toggle('fullscreen-active', this.isFullscreen);
+        }
+
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        if (fullscreenToggle) {
+            fullscreenToggle.textContent = this.isFullscreen ? '🖥️ 全画面解除' : '🖥️ 全画面';
+            fullscreenToggle.setAttribute('aria-pressed', this.isFullscreen.toString());
         }
     }
 
