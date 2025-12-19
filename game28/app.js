@@ -6,6 +6,7 @@ class SpirographGenerator {
         this.animationId = null;
         this.isAnimating = false;
         this.isPaused = false;
+        this.lastTimestamp = null;
         this.currentAngle = 0;
         this.points = [];
         
@@ -34,6 +35,8 @@ class SpirographGenerator {
         this.initCanvas();
         this.bindEvents();
         this.updateControls();
+        this.updateButtons();
+        this.updateAnimationStatus('待機中', 'info');
     }
     
     initCanvas() {
@@ -262,11 +265,18 @@ class SpirographGenerator {
         this.ctx.stroke();
     }
     
-    animate() {
+    animate(timestamp) {
         if (!this.isAnimating || this.isPaused) return;
-        
+
+        if (this.lastTimestamp === null) {
+            this.lastTimestamp = timestamp;
+        }
+
+        const deltaMultiplier = (timestamp - this.lastTimestamp) / 16.67; // Normalize to ~60fps
+        this.lastTimestamp = timestamp;
+
         const cycleLength = this.calculateCycleLength();
-        const angleStep = this.settings.speed * 0.02;
+        const angleStep = this.settings.speed * 0.02 * Math.max(deltaMultiplier, 0.1);
         
         // Calculate current point
         const point = this.calculatePoint(this.currentAngle);
@@ -298,15 +308,16 @@ class SpirographGenerator {
             return;
         }
         
-        this.animationId = requestAnimationFrame(() => this.animate());
+        this.animationId = requestAnimationFrame((ts) => this.animate(ts));
     }
     
     startAnimation() {
         if (this.isPaused) {
             this.isPaused = false;
             this.isAnimating = true;
+            this.lastTimestamp = null;
             this.updateAnimationStatus('アニメーション中', 'success');
-            this.animate();
+            this.animationId = requestAnimationFrame((ts) => this.animate(ts));
         } else {
             this.resetAnimation();
             this.isAnimating = true;
@@ -314,9 +325,10 @@ class SpirographGenerator {
             this.points = [];
             this.clearCanvas();
             this.updateAnimationStatus('アニメーション中', 'success');
-            this.animate();
+            this.lastTimestamp = null;
+            this.animationId = requestAnimationFrame((ts) => this.animate(ts));
         }
-        
+
         this.updateButtons();
     }
     
@@ -333,6 +345,7 @@ class SpirographGenerator {
     resetAnimation() {
         this.isAnimating = false;
         this.isPaused = false;
+        this.lastTimestamp = null;
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -348,6 +361,7 @@ class SpirographGenerator {
     completeAnimation() {
         this.isAnimating = false;
         this.isPaused = false;
+        this.lastTimestamp = null;
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
