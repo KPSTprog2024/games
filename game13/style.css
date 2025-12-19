@@ -848,16 +848,25 @@ body {
     padding: var(--space-16) var(--space-20);
     box-shadow: var(--shadow-sm);
     z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .score-info {
-    text-align: center;
+    text-align: left;
 }
 
 .score-text {
     font-size: clamp(1.1rem, 4vw, 1.4rem);
     font-weight: var(--font-weight-bold);
     color: var(--color-text);
+}
+
+.progress-info {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
 }
 
 .game-content {
@@ -1070,4 +1079,69 @@ body {
 
 .choice-btn:nth-child(2) {
     animation-delay: 0.1s;
+}
+
+/* 結果画面 */
+.result-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    align-items: center;
+    text-align: center;
+}
+
+.result-title {
+    font-size: clamp(1.8rem, 5vw, 2.2rem);
+    margin-bottom: var(--space-8);
+}
+
+.result-score {
+    font-size: clamp(1.3rem, 4vw, 1.6rem);
+    color: var(--color-text-secondary);
+}
+
+.wrong-review {
+    width: 100%;
+    max-width: 720px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-16);
+    box-shadow: var(--shadow-md);
+}
+
+.wrong-title-main {
+    font-size: clamp(1.2rem, 4vw, 1.4rem);
+    margin-bottom: var(--space-12);
+}
+
+.wrong-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-12);
+}
+
+.wrong-item {
+    background: var(--color-bg-2);
+    border-radius: var(--radius-md);
+    padding: var(--space-12);
+    text-align: left;
+    border: 1px solid rgba(var(--color-warning-rgb), 0.4);
+}
+
+.wrong-item.no-mistake {
+    background: var(--color-bg-3);
+    border-color: rgba(var(--color-success-rgb), 0.4);
+    text-align: center;
+}
+
+.wrong-title {
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-6);
+}
+
+.wrong-detail {
+    color: var(--color-text-secondary);
 }

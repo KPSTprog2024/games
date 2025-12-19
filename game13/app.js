@@ -79,22 +79,27 @@ let gameState = {
     score: 0,
     currentEvent: null,
     choices: [],
-    correctChoice: null
+    correctChoice: null,
+    questionIndex: 0,
+    wrongAnswers: [],
+    eventQueue: []
 };
 
 // グローバル変数
 let lastTouchEnd = 0;
+const TOTAL_QUESTIONS = 8;
 
 // DOM要素（DOMContentLoaded後に初期化）
-let startScreen, gameScreen, feedbackScreen;
-let startBtn, continueBtn;
-let currentScoreEl, gameScoreEl;
-let eventImage, choice1Btn, choice2Btn;
+let startScreen, gameScreen, feedbackScreen, resultScreen;
+let startBtn, continueBtn, restartBtn;
+let currentScoreEl, gameScoreEl, resultScoreEl;
+let eventImage, choice1Btn, choice2Btn, progressText;
 let feedbackIcon, feedbackText, feedbackAnswer;
+let wrongListEl;
 
 // 画面切り替え関数
 function showScreen(screen) {
-    const screens = [startScreen, gameScreen, feedbackScreen];
+    const screens = [startScreen, gameScreen, feedbackScreen, resultScreen];
     screens.forEach(s => s.classList.add('hidden'));
     screen.classList.remove('hidden');
 }
@@ -116,8 +121,13 @@ function shuffleArray(array) {
 
 // 新しい問題を生成
 function generateQuestion() {
-    // 正解の行事をランダム選択
-    gameState.currentEvent = getRandomElement(events);
+    if (gameState.questionIndex >= gameState.eventQueue.length) {
+        showResults();
+        return;
+    }
+
+    // 正解の行事をキューから取得
+    gameState.currentEvent = gameState.eventQueue[gameState.questionIndex];
     
     // 不正解の選択肢をランダム選択（正解と異なるもの）
     const incorrectOptions = events.filter(event => event.id !== gameState.currentEvent.id);
@@ -133,6 +143,11 @@ function generateQuestion() {
 
 // ゲームUIを更新
 function updateGameUI() {
+    // 進捗表示
+    if (progressText) {
+        progressText.textContent = `${gameState.questionIndex + 1}/${TOTAL_QUESTIONS}`;
+    }
+
     // 画像を表示
     eventImage.src = gameState.currentEvent.image;
     eventImage.alt = gameState.currentEvent.description;
@@ -146,7 +161,7 @@ function updateGameUI() {
     choice2Btn.className = 'choice-btn';
     choice1Btn.disabled = false;
     choice2Btn.disabled = false;
-    
+
     // スコア更新
     gameScoreEl.textContent = gameState.score;
 }
@@ -165,6 +180,10 @@ function handleChoice(selectedChoice, buttonElement, otherButtonElement) {
         gameState.score++;
     } else {
         buttonElement.classList.add('incorrect');
+        gameState.wrongAnswers.push({
+            correct: gameState.correctChoice,
+            chosen: selectedChoice
+        });
         // 正解のボタンをハイライト
         if (otherButtonElement.querySelector('.choice-text').textContent === gameState.correctChoice.name) {
             otherButtonElement.classList.add('correct');
@@ -197,6 +216,17 @@ function showFeedback(isCorrect) {
 // ゲーム開始
 function startGame() {
     try {
+        gameState = {
+            score: 0,
+            currentEvent: null,
+            choices: [],
+            correctChoice: null,
+            questionIndex: 0,
+            wrongAnswers: [],
+            eventQueue: shuffleArray(events).slice(0, TOTAL_QUESTIONS)
+        };
+
+        updateScoreDisplay();
         generateQuestion();
         showScreen(gameScreen);
     } catch (error) {
@@ -207,6 +237,12 @@ function startGame() {
 // 次の問題へ
 function nextQuestion() {
     try {
+        gameState.questionIndex++;
+        if (gameState.questionIndex >= TOTAL_QUESTIONS) {
+            showResults();
+            return;
+        }
+
         generateQuestion();
         showScreen(gameScreen);
     } catch (error) {
@@ -217,6 +253,49 @@ function nextQuestion() {
 // スコア表示を更新
 function updateScoreDisplay() {
     currentScoreEl.textContent = gameState.score;
+    resultScoreEl.textContent = `${gameState.score} / ${TOTAL_QUESTIONS}`;
+}
+
+// 結果画面の更新
+function updateResults() {
+    updateScoreDisplay();
+
+    if (!wrongListEl) return;
+
+    // DocumentFragmentでまとめて描画してリフローを抑制
+    const fragment = document.createDocumentFragment();
+
+    if (gameState.wrongAnswers.length === 0) {
+        const item = document.createElement('li');
+        item.className = 'wrong-item no-mistake';
+        item.textContent = 'まちがいなし！すばらしい✨';
+        fragment.appendChild(item);
+    } else {
+        gameState.wrongAnswers.forEach(answer => {
+            const item = document.createElement('li');
+            item.className = 'wrong-item';
+
+            const title = document.createElement('div');
+            title.className = 'wrong-title';
+            title.textContent = `せいかい: ${answer.correct.name}`;
+
+            const detail = document.createElement('div');
+            detail.className = 'wrong-detail';
+            detail.textContent = `えらんだ: ${answer.chosen.name}`;
+
+            item.appendChild(title);
+            item.appendChild(detail);
+            fragment.appendChild(item);
+        });
+    }
+
+    wrongListEl.innerHTML = '';
+    wrongListEl.appendChild(fragment);
+}
+
+function showResults() {
+    updateResults();
+    showScreen(resultScreen);
 }
 
 // イベントリスナー設定
@@ -231,6 +310,11 @@ function setupEventListeners() {
     continueBtn.addEventListener('click', function(e) {
         e.preventDefault();
         nextQuestion();
+    });
+
+    restartBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        startGame();
     });
     
     // 選択肢ボタン
@@ -255,15 +339,19 @@ function initializeElements() {
     startScreen = document.getElementById('start-screen');
     gameScreen = document.getElementById('game-screen');
     feedbackScreen = document.getElementById('feedback-screen');
-    
+    resultScreen = document.getElementById('result-screen');
+
     // ボタン要素
     startBtn = document.getElementById('start-btn');
     continueBtn = document.getElementById('continue-btn');
-    
+    restartBtn = document.getElementById('restart-btn');
+
     // スコア表示要素
     currentScoreEl = document.getElementById('current-score');
     gameScoreEl = document.getElementById('game-score');
-    
+    resultScoreEl = document.getElementById('result-score');
+    progressText = document.getElementById('progress-text');
+
     // ゲーム要素
     eventImage = document.getElementById('event-image');
     choice1Btn = document.getElementById('choice-1');
@@ -273,6 +361,9 @@ function initializeElements() {
     feedbackIcon = document.getElementById('feedback-icon');
     feedbackText = document.getElementById('feedback-text');
     feedbackAnswer = document.getElementById('feedback-answer');
+
+    // 結果画面要素
+    wrongListEl = document.getElementById('wrong-list');
 }
 
 // ページ読み込み時の初期化
