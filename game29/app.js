@@ -6,7 +6,8 @@ class InfiniteHarmonographGenerator {
         this.ctx = this.canvas.getContext('2d');
         this.timelineCanvas = document.getElementById('timelineCanvas');
         this.timelineCtx = this.timelineCanvas.getContext('2d');
-        
+        this.appContainer = document.querySelector('.app-container');
+
         // Animation state
         this.isAnimating = false;
         this.animationId = null;
@@ -14,11 +15,14 @@ class InfiniteHarmonographGenerator {
         this.globalSpeed = 1.0;
         this.maxRecordedTime = 0;
         this.startTime = Date.now();
-        
+        this.lastRenderedTime = 0;
+        this.forceFullRedraw = true;
+
         // Drawing modes
         this.drawingMode = 'infinite';
         this.loopStart = null;
         this.loopEnd = null;
+        this.panelsHidden = false;
         
         // Canvas properties
         this.resizeCanvas();
@@ -156,6 +160,7 @@ class InfiniteHarmonographGenerator {
         this.updateAllControls();
         this.updateModeInfo();
         this.updateTimelineMarkers();
+        this.updatePanelVisibility();
         this.startAnimation();
         
         // Set first preset as active and load it
@@ -206,11 +211,20 @@ class InfiniteHarmonographGenerator {
             this.updateModeInfo();
             this.toggleDecayControls();
             this.updateTimelineMarkers();
+            this.resetDrawingState();
             if (this.drawingMode === 'finite' || this.drawingMode === 'cycle') {
                 this.clearCanvas();
                 this.currentTime = 0;
             }
         });
+
+        const togglePanelsBtn = document.getElementById('togglePanels');
+        if (togglePanelsBtn) {
+            togglePanelsBtn.addEventListener('click', () => {
+                this.panelsHidden = !this.panelsHidden;
+                this.updatePanelVisibility();
+            });
+        }
         
         // Playback controls
         document.getElementById('playPause').addEventListener('click', () => {
@@ -411,7 +425,7 @@ class InfiniteHarmonographGenerator {
     updateModeInfo() {
         const modeInfo = document.getElementById('modeInfo');
         if (!modeInfo) return;
-        
+
         const config = this.modeConfigs[this.drawingMode];
         
         modeInfo.innerHTML = `
@@ -423,6 +437,18 @@ class InfiniteHarmonographGenerator {
         this.canvas.classList.remove('infinite-indicator');
         if (this.drawingMode === 'infinite' || this.drawingMode === 'accumulate') {
             this.canvas.classList.add('infinite-indicator');
+        }
+    }
+
+    updatePanelVisibility() {
+        if (this.appContainer) {
+            this.appContainer.classList.toggle('panels-hidden', this.panelsHidden);
+        }
+
+        const togglePanelsBtn = document.getElementById('togglePanels');
+        if (togglePanelsBtn) {
+            togglePanelsBtn.textContent = this.panelsHidden ? '📐 パネルを表示' : '📐 パネルを隠す';
+            togglePanelsBtn.setAttribute('aria-expanded', (!this.panelsHidden).toString());
         }
     }
     
@@ -515,8 +541,19 @@ class InfiniteHarmonographGenerator {
         
         const y = B1 * Math.sin(f3 * calcTime + p3) * decay3 +
                   B2 * Math.sin(f4 * calcTime + p4) * decay4;
-        
+
         return { x: x + this.centerX, y: y + this.centerY, t: t };
+    }
+
+    resetDrawingState() {
+        this.lastRenderedTime = 0;
+        this.forceFullRedraw = true;
+    }
+
+    shouldFullRedraw() {
+        const goingBackwards = this.currentTime < this.lastRenderedTime;
+        const jumpedForward = this.currentTime - this.lastRenderedTime > 1;
+        return this.forceFullRedraw || !this.isAnimating || goingBackwards || jumpedForward;
     }
     
     renderFrame() {
@@ -546,40 +583,49 @@ class InfiniteHarmonographGenerator {
     renderNormalMode() {
         const bgColor = this.getAnimatedColor('background', this.currentTime);
         const fgColor = this.getAnimatedColor('foreground', this.currentTime);
-        
+
         // Set animated background
         this.canvas.style.background = bgColor;
-        
-        // For accumulate and cycle modes, don't clear canvas
-        if (this.drawingMode !== 'accumulate' && this.drawingMode !== 'cycle') {
+
+        const needsFullRedraw = this.shouldFullRedraw();
+
+        if (needsFullRedraw) {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.drawHarmonographPath(fgColor, 0, this.currentTime);
+        } else {
+            this.drawHarmonographPath(fgColor, this.lastRenderedTime, this.currentTime);
         }
-        
-        // Calculate and draw path
-        this.drawHarmonographPath(fgColor);
+
+        this.lastRenderedTime = this.currentTime;
+        this.forceFullRedraw = false;
     }
     
     renderFadeMode() {
         const bgColor = this.getAnimatedColor('background', this.currentTime);
-        
+
         // Set background
         this.canvas.style.background = bgColor;
-        
+
         // Apply fade effect by drawing semi-transparent background
         this.ctx.fillStyle = bgColor + '05'; // Very low opacity
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
+
         // Draw current segment
         const fgColor = this.getAnimatedColor('foreground', this.currentTime);
-        this.drawCurrentSegment(fgColor);
+        const segmentStart = Math.max(this.lastRenderedTime, this.currentTime - 0.5);
+        this.drawCurrentSegment(fgColor, segmentStart);
+
+        this.lastRenderedTime = this.currentTime;
+        this.forceFullRedraw = false;
     }
     
-    drawHarmonographPath(color) {
+    drawHarmonographPath(color, startTime = 0, endTime = this.currentTime) {
         const timeStep = 0.02;
+        if (endTime <= startTime) return;
         const path = [];
-        
-        // Generate path points up to current time
-        for (let t = 0; t <= this.currentTime; t += timeStep) {
+
+        // Generate path points up to target time
+        for (let t = startTime; t <= endTime; t += timeStep) {
             path.push(this.calculatePoint(t));
         }
         
@@ -602,13 +648,13 @@ class InfiniteHarmonographGenerator {
         this.ctx.restore();
     }
     
-    drawCurrentSegment(color) {
+    drawCurrentSegment(color, startTime) {
         const timeStep = 0.02;
         const segmentLength = 0.5; // Draw last 0.5 seconds
-        const startTime = Math.max(0, this.currentTime - segmentLength);
-        
+        const safeStart = Math.max(0, startTime ?? this.currentTime - segmentLength);
+
         const path = [];
-        for (let t = startTime; t <= this.currentTime; t += timeStep) {
+        for (let t = safeStart; t <= this.currentTime; t += timeStep) {
             path.push(this.calculatePoint(t));
         }
         
@@ -985,6 +1031,7 @@ class InfiniteHarmonographGenerator {
         this.drawingHistory.clear();
         this.maxRecordedTime = 0;
         this.currentTime = 0;
+        this.resetDrawingState();
         this.updateTimelinePreview();
     }
     
@@ -1008,7 +1055,7 @@ class InfiniteHarmonographGenerator {
         this.params.d2 = Math.random() * 0.05 + 0.005;
         this.params.d3 = Math.random() * 0.05 + 0.005;
         this.params.d4 = Math.random() * 0.05 + 0.005;
-        
+
         this.updateAllControls();
         this.clearCanvas();
     }

@@ -438,6 +438,16 @@ pre code {
   background: var(--color-secondary-active);
 }
 
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px dashed var(--color-border);
+}
+
+.btn--ghost:hover {
+  background: var(--color-secondary);
+}
+
 .btn--outline {
   background: transparent;
   border: 1px solid var(--color-border);
@@ -808,6 +818,10 @@ select.form-control {
   min-height: 0;
 }
 
+.app-container.panels-hidden .main-content {
+  grid-template-columns: 1fr;
+}
+
 /* Panel Base Styles */
 .controls-panel,
 .color-panel {
@@ -819,6 +833,11 @@ select.form-control {
   overflow-y: auto;
   height: fit-content;
   max-height: calc(100vh - 280px);
+}
+
+.app-container.panels-hidden .controls-panel,
+.app-container.panels-hidden .color-panel {
+  display: none;
 }
 
 .panel-section {
