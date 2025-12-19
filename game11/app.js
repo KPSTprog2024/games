@@ -417,15 +417,25 @@ function checkOrderGame() {
   const userOrder = gameState.orderSlots.map(slot => slot ? slot.order : -1);
   
   const isCorrect = JSON.stringify(correctOrder) === JSON.stringify(userOrder);
-  
+
   if (isCorrect) {
     gameState.score++;
     gameState.stars++;
   }
-  
-  // 解説用のデータを設定（春のデータ）
-  gameState.currentQuestionData = learningData.spring[0];
-  
+
+  const correctOrderDetail = gameState.currentQuestionData.correctOrder;
+
+  const orderDescription = correctOrderDetail
+    .map(season => `${season.name} ${season.emoji}`)
+    .join(' → ');
+
+  gameState.currentQuestionData = {
+    emoji: correctOrderDetail.map(season => season.emoji).join(' → '),
+    name: '四季のじゅんばん',
+    season: '春 → 夏 → 秋 → 冬',
+    description: `四季はこのじゅんばんでめぐるよ：${orderDescription}`
+  };
+
   showExplanation(isCorrect);
 }
 
@@ -528,7 +538,7 @@ function showExplanation(isCorrect) {
   explanationName.textContent = item.name;
   explanationSeason.textContent = `季節：${item.season}`;
   explanationDescription.textContent = item.description;
-  
+
   // 季節に応じた色付け
   const seasonClass = {
     '春': 'spring-text',
@@ -536,7 +546,7 @@ function showExplanation(isCorrect) {
     '秋': 'autumn-text',
     '冬': 'winter-text'
   };
-  explanationSeason.className = `explanation-season ${seasonClass[item.season]}`;
+  explanationSeason.className = `explanation-season ${seasonClass[item.season] || ''}`;
   
   showScreen('explanation');
 }
