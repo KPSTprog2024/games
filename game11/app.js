@@ -353,8 +353,15 @@ function checkMatchGameAnswer() {
   }
   
   // 解説用に正解アイテムを保持
-  gameState.currentQuestionData = correctItem;
-  
+  const selectedItem = gameState.selectedAnswers[0];
+
+  gameState.currentQuestionData = {
+    items: [
+      { ...referenceItem, title: 'もんだいのアイテム' },
+      { ...selectedItem, title: 'えらんだアイテム' }
+    ]
+  };
+
   setTimeout(() => {
     showExplanation(isCorrect);
   }, 1000);
@@ -521,33 +528,66 @@ function updateTestProgress() {
 // 解説画面表示
 function showExplanation(isCorrect) {
   const judgmentResult = document.getElementById('judgment-result');
-  const explanationIcon = document.getElementById('explanation-icon');
-  const explanationName = document.getElementById('explanation-name');
-  const explanationSeason = document.getElementById('explanation-season');
-  const explanationDescription = document.getElementById('explanation-description');
-  
+  const explanationItemsContainer = document.getElementById('explanation-items');
+
+  explanationItemsContainer.innerHTML = '';
+
   // 判定結果の表示
   judgmentResult.textContent = isCorrect ? '✨ せいかい！ ✨' : '❌ まちがい！';
   judgmentResult.className = isCorrect ? 'judgment-result correct' : 'judgment-result incorrect';
-  
-  // 解説内容の表示
-  const item = gameState.currentQuestionData;
-  explanationIcon.textContent = item.emoji;
-  explanationIcon.setAttribute('aria-label', item.name);
-  adjustTextItem(explanationIcon, item.emoji);
-  explanationName.textContent = item.name;
-  explanationSeason.textContent = `季節：${item.season}`;
-  explanationDescription.textContent = item.description;
 
-  // 季節に応じた色付け
   const seasonClass = {
     '春': 'spring-text',
     '夏': 'summer-text',
     '秋': 'autumn-text',
     '冬': 'winter-text'
   };
-  explanationSeason.className = `explanation-season ${seasonClass[item.season] || ''}`;
-  
+
+  const items = gameState.currentQuestionData.items || [gameState.currentQuestionData];
+
+  items.forEach(item => {
+    const explanationContent = document.createElement('div');
+    explanationContent.className = 'explanation-content';
+
+    const icon = document.createElement('div');
+    icon.className = 'explanation-icon';
+    const iconContent = item.emoji || item.name;
+    icon.textContent = iconContent;
+    icon.setAttribute('aria-label', item.name);
+    adjustTextItem(icon, iconContent);
+
+    const textWrapper = document.createElement('div');
+    textWrapper.className = 'explanation-text';
+
+    if (item.title) {
+      const label = document.createElement('p');
+      label.className = 'explanation-label';
+      label.textContent = item.title;
+      textWrapper.appendChild(label);
+    }
+
+    const nameEl = document.createElement('h3');
+    nameEl.className = 'explanation-name';
+    nameEl.textContent = item.name;
+
+    const seasonEl = document.createElement('p');
+    seasonEl.className = `explanation-season ${seasonClass[item.season] || ''}`;
+    seasonEl.textContent = `季節：${item.season}`;
+
+    const descriptionEl = document.createElement('p');
+    descriptionEl.className = 'explanation-description';
+    descriptionEl.textContent = item.description;
+
+    textWrapper.appendChild(nameEl);
+    textWrapper.appendChild(seasonEl);
+    textWrapper.appendChild(descriptionEl);
+
+    explanationContent.appendChild(icon);
+    explanationContent.appendChild(textWrapper);
+
+    explanationItemsContainer.appendChild(explanationContent);
+  });
+
   showScreen('explanation');
 }
 
