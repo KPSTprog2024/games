@@ -1,52 +1,53 @@
 // 学習データ
 const learningData = {
   spring: [
-    { name: "さくら", season: "春", description: "ピンクや白い花が咲く木。4月ごろに咲いて、花見で有名です。", emoji: "🌸" },
-    { name: "チューリップ", season: "春", description: "かわいい形の花。赤、黄色、ピンクなど色々な色があります。", emoji: "🌷" },
-    { name: "たんぽぽ", season: "春", description: "黄色い小さな花。綿毛になって風で飛んでいきます。", emoji: "🌻" },
-    { name: "ひな祭り", season: "春", description: "3月3日の女の子のお祭り。お雛様を飾ります。", emoji: "🎎" },
-    { name: "入学式", season: "春", description: "4月に小学校に入る式。新しい生活の始まりです。", emoji: "ランドセル" },
-    { name: "いちご", season: "春", description: "甘くて赤い果物。春においしくなります。", emoji: "🍓" },
-    { name: "つばめ", season: "春", description: "春に日本にやってくる鳥。巣を作って子育てします。", emoji: "つばめ" },
-    { name: "ちょう", season: "春", description: "カラフルな羽の虫。花の蜜を吸います。", emoji: "🦋" },
-    { name: "たけのこ", season: "春", description: "竹の赤ちゃん。春にょきにょき伸びます。", emoji: "たけのこ" },
-    { name: "菜の花", season: "春", description: "黄色い小さな花がたくさん咲きます。春の野原で見かけます。", emoji: "なのはな" }
+    { name: "さくら", season: "春", description: "ピンクや白の花。あたたかくなるころにさきます。", emoji: "🌸", category: "おはな" },
+    { name: "チューリップ", season: "春", description: "色とりどりのかわいい花。春にたくさんさきます。", emoji: "🌷", category: "おはな" },
+    { name: "たんぽぽ", season: "春", description: "黄色い花。わたげになって風にのります。", emoji: "🌼", category: "おはな" },
+    { name: "ひなまつり", season: "春", description: "3がつ3にちの女の子のおまつり。おひなさまをかざります。", emoji: "🎎", category: "ぎょうじ" },
+    { name: "にゅうがくしき", season: "春", description: "あたらしいがっこうへいく日。わくわくのスタートです。", emoji: "🎒", category: "ぎょうじ" },
+    { name: "いちご", season: "春", description: "あかくてあまいくだもの。春においしくなります。", emoji: "🍓", category: "たべもの" },
+    { name: "つばめ", season: "春", description: "あたたかくなるとにほんにくる鳥。おうちをつくります。", emoji: "🐦", category: "どうぶつ" },
+    { name: "ちょう", season: "春", description: "カラフルなはねの虫。お花のミツをすいます。", emoji: "🦋", category: "どうぶつ" },
+    { name: "たけのこ", season: "春", description: "たけのあかちゃん。にょきっと土からでてきます。", emoji: "🌱", category: "たべもの" },
+    { name: "なのはな", season: "春", description: "黄色の小さな花がいっぱい。春ののはらでさきます。", emoji: "💛", category: "おはな" }
   ],
   summer: [
-    { name: "ひまわり", season: "夏", description: "大きな黄色い花。太陽の方を向いて咲きます。", emoji: "🌻" },
-    { name: "あさがお", season: "夏", description: "朝に咲くラッパの形の花。色々な色があります。", emoji: "あさがお" },
-    { name: "七夕", season: "夏", description: "7月7日の星のお祭り。短冊に願いを書きます。", emoji: "🎋" },
-    { name: "夏祭り", season: "夏", description: "夏の楽しいお祭り。花火や屋台があります。", emoji: "🎆" },
-    { name: "すいか", season: "夏", description: "緑の皮で中が赤い果物。夏にとても甘くなります。", emoji: "🍉" },
-    { name: "かぶとむし", season: "夏", description: "角がある強い虫。夏の夜に活動します。", emoji: "かぶとむし" },
-    { name: "せみ", season: "夏", description: "夏に「ミーンミーン」と鳴く虫。木にとまっています。", emoji: "せみ" },
-    { name: "プール", season: "夏", description: "夏に水遊びをする場所。泳いで涼しくなります。", emoji: "🏊" },
-    { name: "かき氷", season: "夏", description: "氷を削った冷たいおやつ。シロップをかけて食べます。", emoji: "かきごおり" },
-    { name: "とまと", season: "夏", description: "赤くて丸い野菜。夏にたくさん採れます。", emoji: "🍅" }
+    { name: "ひまわり", season: "夏", description: "大きなきいろの花。おひさまのほうをむきます。", emoji: "🌻", category: "おはな" },
+    { name: "あさがお", season: "夏", description: "あさにさくラッパのような花。いろいろな色があります。", emoji: "🌺", category: "おはな" },
+    { name: "たなばた", season: "夏", description: "ほしにねがいをかく日。ささにかざります。", emoji: "🎋", category: "ぎょうじ" },
+    { name: "なつまつり", season: "夏", description: "やたいとおんどり。はなびがキラキラひかります。", emoji: "🎆", category: "ぎょうじ" },
+    { name: "すいか", season: "夏", description: "みずみずしいあまいくだもの。つめたくしておいしいよ。", emoji: "🍉", category: "たべもの" },
+    { name: "かぶとむし", season: "夏", description: "つのがかっこいい虫。よるにうごきます。", emoji: "🪲", category: "どうぶつ" },
+    { name: "せみ", season: "夏", description: "「ミーンミーン」となく虫。夏の木にとまっています。", emoji: "🪰", category: "どうぶつ" },
+    { name: "プール", season: "夏", description: "みずあそびのばしょ。つめたい水でひんやり。", emoji: "🏊", category: "あそび" },
+    { name: "かきごおり", season: "夏", description: "こおりをけずったひんやりおやつ。シロップをかけます。", emoji: "🍧", category: "たべもの" },
+    { name: "とまと", season: "夏", description: "あかくてまるいやさい。サラダにぴったり。", emoji: "🍅", category: "たべもの" }
   ],
   autumn: [
-    { name: "コスモス", season: "秋", description: "ピンクや白い可愛い花。秋の野原に咲きます。", emoji: "コスモス" },
-    { name: "もみじ", season: "秋", description: "葉っぱが赤や黄色に変わる木。とてもきれいです。", emoji: "🍁" },
-    { name: "月見", season: "秋", description: "秋の満月を見るお祭り。お団子を食べます。", emoji: "🌕" },
-    { name: "運動会", season: "秋", description: "秋に行う体を動かす行事。かけっこなどをします。", emoji: "🏃" },
-    { name: "りんご", season: "秋", description: "赤くて甘い果物。秋においしくなります。", emoji: "🍎" },
-    { name: "かき", season: "秋", description: "オレンジ色の甘い果物。秋の味覚です。", emoji: "かき" },
-    { name: "どんぐり", season: "秋", description: "木の実。落ちているのを拾って遊べます。", emoji: "どんぐり" },
-    { name: "稲刈り", season: "秋", description: "お米を収穫すること。秋の大切な作業です。", emoji: "🌾" },
-    { name: "くり", season: "秋", description: "とげとげの殻に入った甘い木の実です。", emoji: "🌰" }
+    { name: "コスモス", season: "秋", description: "ほそいはねのような花。秋のそらにゆれます。", emoji: "🌼", category: "おはな" },
+    { name: "もみじ", season: "秋", description: "はっぱがあかやきいろにへんしん。やまがカラフル。", emoji: "🍁", category: "おはな" },
+    { name: "おつきみ", season: "秋", description: "まんまるのおつきをみる日。おだんごをたべます。", emoji: "🌕", category: "ぎょうじ" },
+    { name: "うんどうかい", season: "秋", description: "かけっこやダンスをする日。みんなでおうえんします。", emoji: "🤸", category: "あそび" },
+    { name: "りんご", season: "秋", description: "シャキッとしたあまいくだもの。りんごのきからとれます。", emoji: "🍎", category: "たべもの" },
+    { name: "かき", season: "秋", description: "オレンジいろのくだもの。あまくてやわらかいです。", emoji: "🟠", category: "たべもの" },
+    { name: "どんぐり", season: "秋", description: "きのしたにおちている木の実。ひろってあそべます。", emoji: "🌰", category: "たべもの" },
+    { name: "いねかり", season: "秋", description: "おこめをとるしゅんかん。たんぼがきんいろです。", emoji: "🌾", category: "ぎょうじ" },
+    { name: "くり", season: "秋", description: "とげとげのなかにあるまるい木の実。ほくほくです。", emoji: "🌰", category: "たべもの" }
   ],
   winter: [
-    { name: "つばき", season: "冬", description: "寒い冬に咲く赤い花。つやつやした葉っぱが特徴です。", emoji: "つばき" },
-    { name: "うめ", season: "冬", description: "寒い時期に咲く香りのよい花。春の始まりを告げます。", emoji: "うめ" },
-    { name: "クリスマス", season: "冬", description: "12月25日のお祝い。プレゼントをもらいます。", emoji: "🎄" },
-    { name: "お正月", season: "冬", description: "1年の始まりのお祝い。お年玉をもらいます。", emoji: "🎍" },
-    { name: "雪だるま", season: "冬", description: "雪で作る人形。冬の楽しい遊びです。", emoji: "⛄" },
-    { name: "みかん", season: "冬", description: "冬に食べる甘い果物。ビタミンがたっぷりです。", emoji: "🍊" },
-    { name: "マフラー", season: "冬", description: "首に巻く暖かい布。寒い日に使います。", emoji: "マフラー" },
-    { name: "節分", season: "冬", description: "2月3日の行事。豆をまいて鬼を追い払います。", emoji: "👹" },
-    { name: "スキー", season: "冬", description: "雪の上を滑るスポーツ。冬の楽しい遊びです。", emoji: "🎿" }
+    { name: "つばき", season: "冬", description: "さむい日にさくあかい花。つやつやのはっぱです。", emoji: "🌺", category: "おはな" },
+    { name: "うめ", season: "冬", description: "ひんやりした空気でいいにおいの花。はるのあしおとです。", emoji: "🌸", category: "おはな" },
+    { name: "クリスマス", season: "冬", description: "きらきらかざりとプレゼントの日。サンタさんがくるかも。", emoji: "🎄", category: "ぎょうじ" },
+    { name: "おしょうがつ", season: "冬", description: "1ねんのはじまりのおいわい。かぞくでおもちをたべます。", emoji: "🎍", category: "ぎょうじ" },
+    { name: "雪だるま", season: "冬", description: "ゆきでつくるまるい人。マフラーをつけたりします。", emoji: "⛄", category: "あそび" },
+    { name: "みかん", season: "冬", description: "こたつでたべるあまいくだもの。皮がむきやすいよ。", emoji: "🍊", category: "たべもの" },
+    { name: "マフラー", season: "冬", description: "くびにまくあったかいぬの。かぜひかないように。", emoji: "🧣", category: "あそび" },
+    { name: "せつぶん", season: "冬", description: "まめをまいて「おにはそと！」とかけ声をします。", emoji: "👹", category: "ぎょうじ" },
+    { name: "スキー", season: "冬", description: "ゆきのうえをすべるスポーツ。ビューンとすべります。", emoji: "🎿", category: "あそび" }
   ]
 };
+
 
 // 季節ごとのアイコン候補
 const seasonEmojiOptions = {
@@ -226,9 +227,8 @@ function generateNameQuizQuestion() {
   nameIconEl.setAttribute('aria-label', correctItem.name);
   adjustTextItem(nameIconEl, correctItem.emoji);
   
-  // カテゴリを決定
-  const categories = ['もの', 'はな', 'くだもの', 'ぎょうじ'];
-  const category = categories[Math.floor(Math.random() * categories.length)];
+  // カテゴリを決定（データにあるものを使う）
+  const category = correctItem.category || 'もの';
   document.getElementById('name-quiz-category').textContent = category;
   
   // 選択肢を生成
