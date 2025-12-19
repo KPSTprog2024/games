@@ -1071,10 +1071,17 @@ body {
   background-color: rgba(244, 67, 54, 0.1);
 }
 
+.explanation-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
 .explanation-content {
   display: flex;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 0;
   padding: 15px;
   border-radius: var(--border-radius);
   background-color: rgba(255, 255, 255, 0.7);
@@ -1102,6 +1109,13 @@ body {
 .explanation-text {
   text-align: left;
   flex: 1;
+}
+
+.explanation-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--color-text);
+  margin-bottom: 6px;
 }
 
 .explanation-name {
