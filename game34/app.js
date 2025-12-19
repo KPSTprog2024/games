@@ -70,6 +70,8 @@ let currentGeometry = null;
 let drawTask = null;
 let lastRandomSignature = '';
 let panelCollapsed = false;
+let pendingRender = null;
+let pendingRenderHandle = null;
 
 function jsonClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -798,7 +800,7 @@ function renderMiniMap(geometry) {
   miniCtx.stroke();
 }
 
-function scheduleRender(reason = 'state', reuse = false) {
+function performRender(reason = 'state', reuse = false) {
   if (drawTask && drawTask.frame) {
     cancelAnimationFrame(drawTask.frame);
   }
@@ -834,6 +836,24 @@ function scheduleRender(reason = 'state', reuse = false) {
       console.error(err);
       setStartButtonState('ready');
     });
+}
+
+function scheduleRender(reason = 'state', reuse = false) {
+  if (pendingRender) {
+    pendingRender.reason = reason;
+    pendingRender.reuse = pendingRender.reuse && reuse;
+    return;
+  }
+
+  pendingRender = { reason, reuse };
+  if (pendingRenderHandle) return;
+
+  pendingRenderHandle = requestAnimationFrame(() => {
+    const task = pendingRender;
+    pendingRender = null;
+    pendingRenderHandle = null;
+    performRender(task.reason, task.reuse);
+  });
 }
 
 function setHoleIndex(index) {
