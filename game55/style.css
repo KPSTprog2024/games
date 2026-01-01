@@ -81,3 +81,46 @@ button:hover {
 .loading.hidden {
   display: none;
 }
+
+.message-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 2, 8, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 3;
+}
+
+.message-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.message-card {
+  max-width: min(520px, 82vw);
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: rgba(20, 14, 8, 0.92);
+  border: 1px solid rgba(255, 232, 180, 0.6);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  line-height: 1.8;
+  color: #fff4dc;
+}
+
+.message-card h2 {
+  margin: 0 0 12px;
+  font-size: clamp(20px, 4vw, 28px);
+  letter-spacing: 0.08em;
+  text-shadow: 0 4px 12px rgba(255, 215, 128, 0.45);
+}
+
+.message-card p {
+  margin: 0;
+  font-size: clamp(14px, 2.6vw, 18px);
+  opacity: 0.9;
+}
