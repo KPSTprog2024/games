@@ -32,7 +32,7 @@ const palette = {
 const layout = {
   rows: 5,
   cols: 9,
-  gap: 14,
+  gap: 0,
   marginTop: 110,
   marginSide: 60,
 };
@@ -222,9 +222,6 @@ function drawBlocks() {
     ctx.shadowBlur = 16;
     ctx.fillRect(block.x, block.y, block.width, block.height);
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(block.x + 0.5, block.y + 0.5, block.width - 1, block.height - 1);
   }
 }
 
@@ -248,6 +245,29 @@ function drawParticles() {
     ctx.fill();
   }
   ctx.globalAlpha = 1;
+}
+
+function drawCelebration() {
+  if (!state.completed) return;
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(255, 228, 120, 0.85)';
+  ctx.shadowBlur = 28;
+  const gradient = ctx.createLinearGradient(centerX - 180, centerY - 40, centerX + 180, centerY + 40);
+  gradient.addColorStop(0, '#fff2b8');
+  gradient.addColorStop(0.5, '#ffe08a');
+  gradient.addColorStop(1, '#ffb3b3');
+  ctx.fillStyle = gradient;
+  ctx.font = '700 clamp(64px, 14vw, 140px) "BIZ UDPMincho", serif';
+  ctx.fillText('2026', centerX, centerY);
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = 'rgba(255, 245, 210, 0.9)';
+  ctx.font = '600 clamp(18px, 4vw, 30px) "BIZ UDPMincho", serif';
+  ctx.fillText('祝彩あふれる年へ', centerX, centerY + 70);
+  ctx.restore();
 }
 
 function drawGuidance() {
@@ -276,6 +296,7 @@ function loop(timestamp) {
   drawGuidance();
   drawBall();
   drawParticles();
+  drawCelebration();
 
   requestAnimationFrame(loop);
 }
