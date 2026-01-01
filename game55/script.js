@@ -1,6 +1,7 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const loadingEl = document.getElementById('loading');
+const messageOverlay = document.getElementById('message-overlay');
 
 const backgroundImage = new Image();
 backgroundImage.src = 'background.jpg.jpeg';
@@ -18,6 +19,7 @@ const state = {
   triggered: false,
   completed: false,
   ballVisible: true,
+  messageScheduled: false,
 };
 
 const palette = {
@@ -82,6 +84,9 @@ function resetBall() {
   state.triggered = false;
   state.completed = false;
   state.ballVisible = true;
+  state.messageScheduled = false;
+  messageOverlay.classList.remove('is-visible');
+  messageOverlay.setAttribute('aria-hidden', 'true');
 }
 
 function pickTarget() {
@@ -128,6 +133,14 @@ function updateParticles(dt) {
     p.y += p.vy * dt;
     return p.life > 0;
   });
+
+  if (state.completed && !state.messageScheduled && state.particles.length === 0) {
+    state.messageScheduled = true;
+    setTimeout(() => {
+      messageOverlay.classList.add('is-visible');
+      messageOverlay.setAttribute('aria-hidden', 'false');
+    }, 1000);
+  }
 }
 
 function updateBall(dt) {
@@ -168,9 +181,6 @@ function hitBlock(block) {
   state.target = pickTarget();
   if (!state.completed && state.blocks.length === 0) {
     state.completed = true;
-    setTimeout(() => {
-      alert('あけましておめでとうございます。21世紀を楽しみましょう。今年もよろしくです。');
-    }, 100);
   }
 }
 
