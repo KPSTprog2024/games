@@ -20,6 +20,7 @@ const state = {
   completed: false,
   ballVisible: true,
   messageScheduled: false,
+  celebrationBlock: null,
 };
 
 const palette = {
@@ -85,6 +86,7 @@ function resetBall() {
   state.completed = false;
   state.ballVisible = true;
   state.messageScheduled = false;
+  state.celebrationBlock = null;
   messageOverlay.classList.remove('is-visible');
   messageOverlay.setAttribute('aria-hidden', 'true');
 }
@@ -170,6 +172,12 @@ function hitBlock(block) {
   state.triggered = true;
   const index = state.blocks.indexOf(block);
   if (index !== -1) {
+    state.celebrationBlock = {
+      x: block.x,
+      y: block.y,
+      width: block.width,
+      height: block.height,
+    };
     state.blocks.forEach((remainingBlock) => {
       const impactX = remainingBlock.x + remainingBlock.width / 2;
       const impactY = remainingBlock.y + remainingBlock.height / 2;
@@ -248,25 +256,36 @@ function drawParticles() {
 }
 
 function drawCelebration() {
-  if (!state.completed) return;
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2;
+  if (!state.completed || !state.celebrationBlock) return;
+  const { x, y, width, height } = state.celebrationBlock;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  const text = '2026';
+  const padding = 4;
+  const maxWidth = Math.max(width - padding * 2, 0);
+  const maxHeight = Math.max(height - padding * 2, 0);
+  const baseSize = 100;
+
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.shadowColor = 'rgba(255, 228, 120, 0.85)';
   ctx.shadowBlur = 28;
-  const gradient = ctx.createLinearGradient(centerX - 180, centerY - 40, centerX + 180, centerY + 40);
+  const gradient = ctx.createLinearGradient(centerX - width / 2, centerY, centerX + width / 2, centerY);
   gradient.addColorStop(0, '#fff2b8');
   gradient.addColorStop(0.5, '#ffe08a');
   gradient.addColorStop(1, '#ffb3b3');
   ctx.fillStyle = gradient;
-  ctx.font = '700 clamp(64px, 14vw, 140px) "BIZ UDPMincho", serif';
-  ctx.fillText('2026', centerX, centerY);
-  ctx.shadowBlur = 18;
-  ctx.fillStyle = 'rgba(255, 245, 210, 0.9)';
-  ctx.font = '600 clamp(18px, 4vw, 30px) "BIZ UDPMincho", serif';
-  ctx.fillText('祝彩あふれる年へ', centerX, centerY + 70);
+  ctx.font = `700 ${baseSize}px "BIZ UDPMincho", serif`;
+  const metrics = ctx.measureText(text);
+  const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent || baseSize;
+  const scale = Math.min(
+    maxWidth / Math.max(metrics.width, 1),
+    maxHeight / Math.max(textHeight, 1),
+  );
+  const fontSize = Math.max(Math.floor(baseSize * Math.min(scale, 1)), 1);
+  ctx.font = `700 ${fontSize}px "BIZ UDPMincho", serif`;
+  ctx.fillText(text, centerX, centerY);
   ctx.restore();
 }
 
