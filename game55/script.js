@@ -172,11 +172,25 @@ function hitBlock(block) {
   state.triggered = true;
   const index = state.blocks.indexOf(block);
   if (index !== -1) {
+    const bounds = state.blocks.reduce(
+      (acc, current) => ({
+        minX: Math.min(acc.minX, current.x),
+        minY: Math.min(acc.minY, current.y),
+        maxX: Math.max(acc.maxX, current.x + current.width),
+        maxY: Math.max(acc.maxY, current.y + current.height),
+      }),
+      {
+        minX: block.x,
+        minY: block.y,
+        maxX: block.x + block.width,
+        maxY: block.y + block.height,
+      },
+    );
     state.celebrationBlock = {
-      x: block.x,
-      y: block.y,
-      width: block.width,
-      height: block.height,
+      x: bounds.minX,
+      y: bounds.minY,
+      width: bounds.maxX - bounds.minX,
+      height: bounds.maxY - bounds.minY,
     };
     state.blocks.forEach((remainingBlock) => {
       const impactX = remainingBlock.x + remainingBlock.width / 2;
@@ -264,7 +278,7 @@ function drawCelebration() {
   const padding = 4;
   const maxWidth = Math.max(width - padding * 2, 0);
   const maxHeight = Math.max(height - padding * 2, 0);
-  const baseSize = 100;
+  const baseSize = 800;
 
   ctx.save();
   ctx.textAlign = 'center';
