@@ -5,7 +5,7 @@ const restartButton = document.getElementById('restart');
 const loadingEl = document.getElementById('loading');
 
 const backgroundImage = new Image();
-backgroundImage.src = 'background.jpg';
+backgroundImage.src = 'background.jpg.jpeg';
 
 let backgroundAvailable = false;
 
