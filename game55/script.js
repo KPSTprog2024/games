@@ -1,7 +1,5 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const blockCountEl = document.getElementById('blockCount');
-const restartButton = document.getElementById('restart');
 const loadingEl = document.getElementById('loading');
 
 const backgroundImage = new Image();
@@ -16,6 +14,10 @@ const state = {
   target: null,
   lastTime: 0,
   ready: false,
+  started: false,
+  triggered: false,
+  completed: false,
+  ballVisible: true,
 };
 
 const palette = {
@@ -67,7 +69,6 @@ function setupBlocks() {
   }
 
   state.blocks = blocks;
-  updateBlockCount();
   state.target = pickTarget();
 }
 
@@ -77,6 +78,10 @@ function resetBall() {
   state.ball.vx = 0;
   state.ball.vy = -1;
   state.target = pickTarget();
+  state.started = false;
+  state.triggered = false;
+  state.completed = false;
+  state.ballVisible = true;
 }
 
 function pickTarget() {
@@ -95,10 +100,6 @@ function pickTarget() {
     }
   }
   return closest;
-}
-
-function updateBlockCount() {
-  blockCountEl.textContent = `Blocks: ${state.blocks.length}`;
 }
 
 function spawnParticles(x, y) {
@@ -130,7 +131,7 @@ function updateParticles(dt) {
 }
 
 function updateBall(dt) {
-  if (!state.target) return;
+  if (!state.started || !state.target || !state.ballVisible) return;
   const targetX = state.target.x + state.target.width / 2;
   const targetY = state.target.y + state.target.height / 2;
   const dx = targetX - state.ball.x;
@@ -152,15 +153,25 @@ function updateBall(dt) {
 }
 
 function hitBlock(block) {
+  if (state.triggered) return;
+  state.triggered = true;
   const index = state.blocks.indexOf(block);
   if (index !== -1) {
-    const impactX = block.x + block.width / 2;
-    const impactY = block.y + block.height / 2;
-    state.blocks.splice(index, 1);
-    spawnParticles(impactX, impactY);
-    updateBlockCount();
+    state.blocks.forEach((remainingBlock) => {
+      const impactX = remainingBlock.x + remainingBlock.width / 2;
+      const impactY = remainingBlock.y + remainingBlock.height / 2;
+      spawnParticles(impactX, impactY);
+    });
+    state.blocks = [];
+    state.ballVisible = false;
   }
   state.target = pickTarget();
+  if (!state.completed && state.blocks.length === 0) {
+    state.completed = true;
+    setTimeout(() => {
+      alert('あけましておめでとうございます。21世紀を楽しみましょう。今年もよろしくです。');
+    }, 100);
+  }
 }
 
 function drawBackground() {
@@ -208,6 +219,7 @@ function drawBlocks() {
 }
 
 function drawBall() {
+  if (!state.ballVisible) return;
   ctx.beginPath();
   ctx.fillStyle = '#fff3b0';
   ctx.shadowColor = 'rgba(255, 235, 170, 0.9)';
@@ -229,7 +241,7 @@ function drawParticles() {
 }
 
 function drawGuidance() {
-  if (!state.target) return;
+  if (!state.target || !state.ballVisible) return;
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
   ctx.setLineDash([6, 8]);
   ctx.beginPath();
@@ -278,9 +290,9 @@ backgroundImage.addEventListener('error', () => {
   start();
 });
 
-restartButton.addEventListener('click', () => {
-  setupBlocks();
-  resetBall();
+canvas.addEventListener('pointerdown', () => {
+  if (!state.ready || state.started || state.completed) return;
+  state.started = true;
 });
 
 window.addEventListener('resize', resizeCanvas);
