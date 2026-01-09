@@ -163,7 +163,7 @@
         <div class="presets">
             <button class="btn-preset" onclick="setP(60, 20)">HARD(60/20)</button>
             <button class="btn-preset" onclick="setP(30, 10)">NORMAL(30/10)</button>
-            <button class="btn-preset" onclick="setP(30, 30)">RESET</button>
+            <button class="btn-preset" onclick="setP(30, 30, 8)">RESET</button>
         </div>
 
         <button id="start-btn">GAME START!</button>
@@ -182,24 +182,27 @@
         let config = { train: 30, rest: 30, cycles: 8 };
         let currentCycle = 1, isTraining = true, timeLeft, timerId = null;
         let wakeLock = null;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioCtx = null;
         const synth = window.speechSynthesis;
 
         function adj(type, delta) {
             config[type] = Math.max((type === 'cycles' ? 1 : 10), config[type] + delta);
             document.getElementById(`val-${type}`).textContent = config[type];
         }
-        function setP(t, r) {
-            config.train = t; config.rest = r;
+        function setP(t, r, c = config.cycles) {
+            config.train = t; config.rest = r; config.cycles = c;
             document.getElementById('val-train').textContent = t;
             document.getElementById('val-rest').textContent = r;
+            document.getElementById('val-cycles').textContent = config.cycles;
         }
         async function requestWakeLock() {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
         }
         function playPiron() {
+            if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // レトロな矩形波に変更しても面白いかも
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.1);
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
@@ -210,10 +213,20 @@
             const uttr = new SpeechSynthesisUtterance(text);
             uttr.lang = 'en-US'; uttr.rate = 1.3; synth.speak(uttr);
         }
+        function getCountdownWord(value) {
+            const words = { 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two', 1: 'One' };
+            return words[value] || value.toString();
+        }
         function startTimer() {
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('timer-screen').style.display = 'block';
-            audioCtx.resume(); requestWakeLock(); initSession();
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            audioCtx.resume();
+            requestWakeLock();
+            synth.cancel();
+            initSession();
         }
         function initSession() {
             isTraining = true; currentCycle = 1; timeLeft = config.train;
@@ -222,7 +235,7 @@
         function tick() {
             timeLeft--;
             if (timeLeft <= 5 && timeLeft > 0) {
-                speak(timeLeft.toString());
+                speak(getCountdownWord(timeLeft));
                 document.body.classList.add('flash');
                 setTimeout(() => document.body.classList.remove('flash'), 150);
             }
