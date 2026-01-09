@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FC Interval Timer</title>
+    <style>
+        /* --- FC風デザイン定義 --- */
+        :root {
+            --fc-red: #8b1b0f;      /* 本体えんじ色 */
+            --fc-beige: #f0e6d2;    /* 本体ベージュ */
+            --fc-black: #000000;    /* 画面黒 */
+            --fc-white: #f8d878;    /* 文字色（少し黄色み） */
+            --dot-green: #50b718;   /* トレーニング緑 */
+            --dot-blue: #40e0d0;    /* 休憩水色 */
+            --shadow-color: rgba(0,0,0,0.6);
+        }
+
+        /* ブラウン管風の走査線エフェクト */
+        body::after {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                transparent 0px,
+                transparent 2px,
+                rgba(0, 0, 0, 0.2) 3px,
+                rgba(0, 0, 0, 0.2) 4px
+            );
+            pointer-events: none; z-index: 99;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            /* ドット文字風に見せるフォント指定 */
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--fc-black);
+            color: var(--fc-white);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden;
+            /* テキストにドット風の影をつける */
+            text-shadow: 2px 2px 0px var(--fc-black);
+            border: 8px solid var(--fc-red); /* 外枠を本体色に */
+            box-sizing: border-box;
+            image-rendering: pixelated; /* 画像処理をドット優先に */
+        }
+
+        /* 共通のドット風ボックススタイル */
+        .nes-container {
+            background: var(--fc-black);
+            border: 4px solid var(--fc-white);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 4px 4px 0px var(--shadow-color);
+        }
+
+        /* --- 設定画面 --- */
+        #setup-screen {
+            width: 95%; max-width: 450px; text-align: center;
+            border: 4px solid var(--fc-red); background: var(--fc-beige); color: var(--fc-black);
+            padding: 20px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        h2 {
+            background: var(--fc-red); color: var(--fc-beige);
+            padding: 10px; margin: -20px -20px 20px -20px; border-bottom: 4px solid var(--fc-black);
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--fc-black); color: var(--fc-white);
+            padding: 10px; border: 4px solid var(--fc-black); margin-bottom: 10px;
+        }
+        .label { font-size: 1rem; font-weight: bold; flex: 1; text-align: left; }
+        .control { display: flex; align-items: center; gap: 10px; }
+        .val {
+            font-size: 1.5rem; font-weight: 800; min-width: 70px;
+            background: #222; padding: 5px; border: 2px solid var(--fc-white);
+        }
+
+        /* ドット風ボタン */
+        button {
+            font-family: inherit; border: none; cursor: pointer;
+            background: var(--fc-red); color: var(--fc-beige);
+            border-top: 4px solid #c0392b; border-left: 4px solid #c0392b;
+            border-bottom: 4px solid #5a100a; border-right: 4px solid #5a100a;
+            box-shadow: 3px 3px 0px var(--shadow-color);
+            font-weight: bold; text-shadow: 1px 1px 0px var(--fc-black);
+        }
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--shadow-color);
+            background: #a93226;
+        }
+        .btn-round { width: 40px; height: 40px; font-size: 1.5rem; }
+        .presets { display: flex; gap: 10px; margin: 20px 0; justify-content: center; }
+        .btn-preset { padding: 10px 10px; font-size: 0.9rem; background: #333; color: var(--fc-white); border-color: #555; }
+        #start-btn {
+            width: 100%; padding: 15px; font-size: 1.8rem; margin-top: 10px;
+            background: var(--dot-green); color: var(--fc-black); border-color: #2ecc71;
+        }
+
+        /* --- タイマー画面 --- */
+        #timer-screen { display: none; text-align: center; width: 100%; height: 100%; }
+        .screen-content {
+            height: 100%; display: flex; flex-direction: column; justify-content: center;
+            border: 8px solid var(--fc-black); background: var(--fc-black);
+        }
+        #status-label {
+            font-size: 3rem; font-weight: 900; margin-bottom: 20px;
+            text-transform: uppercase; letter-spacing: 5px;
+            background: var(--fc-black); padding: 10px; border: 4px solid currentColor;
+        }
+        #time-display {
+            font-size: 40vw; font-weight: 900; line-height: 1;
+            text-shadow: 5px 5px 0px var(--fc-black);
+        }
+        #round-display { font-size: 2rem; margin-top: 30px; font-weight: bold; letter-spacing: 2px; }
+
+        /* --- 演出 --- */
+        /* 背景色の変化もレトロな原色で */
+        body.training-mode { background-color: var(--dot-green) !important; color: var(--fc-black) !important; }
+        body.training-mode #status-label { color: var(--dot-green); background: var(--fc-black); border-color: var(--fc-black); }
+        body.training-mode button { border-color: var(--fc-black); }
+
+        body.rest-mode { background-color: var(--dot-blue) !important; color: var(--fc-black) !important; }
+        body.rest-mode #status-label { color: var(--dot-blue); background: var(--fc-black); border-color: var(--fc-black); }
+
+        /* フラッシュは白黒反転 */
+        .flash { background-color: var(--fc-white) !important; color: var(--fc-black) !important; }
+        .flash #time-display { text-shadow: none; }
+    </style>
+</head>
+<body class="training-mode"> <div id="setup-screen">
+        <h2>GAME CONFIG</h2>
+
+        <div class="setting-row">
+            <div class="label">TRAINING TIME</div>
+            <div class="control">
+                <button class="btn-round" onclick="adj('train', -10)">-</button>
+                <div class="val" id="val-train">30</div>
+                <button class="btn-round" onclick="adj('train', 10)">+</button>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="label">REST TIME</div>
+            <div class="control">
+                <button class="btn-round" onclick="adj('rest', -10)">-</button>
+                <div class="val" id="val-rest">30</div>
+                <button class="btn-round" onclick="adj('rest', 10)">+</button>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <div class="label">STAGES (CYCLES)</div>
+            <div class="control">
+                <button class="btn-round" onclick="adj('cycles', -1)">-</button>
+                <div class="val" id="val-cycles">8</div>
+                <button class="btn-round" onclick="adj('cycles', 1)">+</button>
+            </div>
+        </div>
+
+        <div class="presets">
+            <button class="btn-preset" onclick="setP(60, 20)">HARD(60/20)</button>
+            <button class="btn-preset" onclick="setP(30, 10)">NORMAL(30/10)</button>
+            <button class="btn-preset" onclick="setP(30, 30)">RESET</button>
+        </div>
+
+        <button id="start-btn">GAME START!</button>
+    </div>
+
+    <div id="timer-screen">
+        <div class="screen-content">
+            <div id="status-label">READY?</div>
+            <div id="time-display">00</div>
+            <div id="round-display">STAGE 1 / 8</div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScriptロジックは前回と同じ
+        let config = { train: 30, rest: 30, cycles: 8 };
+        let currentCycle = 1, isTraining = true, timeLeft, timerId = null;
+        let wakeLock = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const synth = window.speechSynthesis;
+
+        function adj(type, delta) {
+            config[type] = Math.max((type === 'cycles' ? 1 : 10), config[type] + delta);
+            document.getElementById(`val-${type}`).textContent = config[type];
+        }
+        function setP(t, r) {
+            config.train = t; config.rest = r;
+            document.getElementById('val-train').textContent = t;
+            document.getElementById('val-rest').textContent = r;
+        }
+        async function requestWakeLock() {
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e){}
+        }
+        function playPiron() {
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // レトロな矩形波に変更しても面白いかも
+            osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+        function speak(text) {
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'en-US'; uttr.rate = 1.3; synth.speak(uttr);
+        }
+        function startTimer() {
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('timer-screen').style.display = 'block';
+            audioCtx.resume(); requestWakeLock(); initSession();
+        }
+        function initSession() {
+            isTraining = true; currentCycle = 1; timeLeft = config.train;
+            updateUI(); playPiron(); timerId = setInterval(tick, 1000);
+        }
+        function tick() {
+            timeLeft--;
+            if (timeLeft <= 5 && timeLeft > 0) {
+                speak(timeLeft.toString());
+                document.body.classList.add('flash');
+                setTimeout(() => document.body.classList.remove('flash'), 150);
+            }
+            if (timeLeft < 0) {
+                if (isTraining) { isTraining = false; timeLeft = config.rest; }
+                else {
+                    currentCycle++;
+                    if (currentCycle > config.cycles) return finish();
+                    isTraining = true; timeLeft = config.train;
+                }
+                playPiron();
+            }
+            updateUI();
+        }
+        function updateUI() {
+            document.getElementById('time-display').textContent = timeLeft;
+            document.getElementById('round-display').textContent = `STAGE ${currentCycle} / ${config.cycles}`;
+            // CSSクラスで背景色を切り替え
+            document.body.classList.remove('training-mode', 'rest-mode');
+            document.body.classList.add(isTraining ? 'training-mode' : 'rest-mode');
+            document.getElementById('status-label').textContent = isTraining ? 'TRAINING' : 'REST TIME';
+        }
+        function finish() {
+            clearInterval(timerId); if (wakeLock) wakeLock.release();
+            speak("Game Over");
+            setTimeout(() => { alert("ALL STAGES CLEARED!"); location.reload(); }, 500);
+        }
+        document.getElementById('start-btn').addEventListener('click', startTimer);
+        // 初期ロード時の背景色リセット
+        document.body.classList.remove('training-mode');
+    </script>
+</body>
+</html>
