@@ -116,6 +116,10 @@
             line-height: 1;
             letter-spacing: 0.08em;
             text-shadow: 5px 5px 0px var(--fc-black);
+            font-variant-numeric: tabular-nums;
+            padding: 0.05em 0.15em;
+            border: 6px solid currentColor;
+            display: inline-block;
         }
         #round-display {
             font-size: clamp(2.5rem, 12vw, 8rem);
@@ -225,6 +229,12 @@
             const words = { 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two', 1: 'One' };
             return words[value] || value.toString();
         }
+        function formatTime(value) {
+            const safeValue = Math.max(0, value);
+            const minutes = Math.floor(safeValue / 60);
+            const seconds = safeValue % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
         function startTimer() {
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('timer-screen').style.display = 'block';
@@ -259,8 +269,8 @@
             updateUI();
         }
         function updateUI() {
-            document.getElementById('time-display').textContent = timeLeft;
-            document.getElementById('round-display').textContent = `STAGE ${currentCycle} / ${config.cycles}`;
+            document.getElementById('time-display').textContent = formatTime(timeLeft);
+            document.getElementById('round-display').textContent = `SET ${currentCycle} / ${config.cycles}`;
             // CSSクラスで背景色を切り替え
             document.body.classList.remove('training-mode', 'rest-mode');
             document.body.classList.add(isTraining ? 'training-mode' : 'rest-mode');
