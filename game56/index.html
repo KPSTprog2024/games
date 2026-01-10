@@ -112,15 +112,18 @@
             background: var(--fc-black); padding: 10px; border: 4px solid currentColor;
         }
         #time-display {
-            font-size: clamp(6rem, 28vw, 18rem);
+            font-size: clamp(5rem, 24vw, 14rem);
             font-weight: 900;
             line-height: 1;
             letter-spacing: 0.04em;
             text-shadow: 5px 5px 0px var(--fc-black);
             font-variant-numeric: tabular-nums;
-            padding: 0.05em 0.15em;
+            padding: 0.05em 0.12em;
             border: 6px solid currentColor;
             display: inline-block;
+            box-sizing: border-box;
+            max-width: 100%;
+            white-space: nowrap;
         }
         #round-display {
             font-size: clamp(2.5rem, 12vw, 8rem);
