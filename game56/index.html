@@ -261,6 +261,9 @@
                 document.body.classList.add('flash');
                 setTimeout(() => document.body.classList.remove('flash'), 150);
             }
+            if (timeLeft === 0) {
+                speak('Zero');
+            }
             if (timeLeft < 0) {
                 if (isTraining) { isTraining = false; timeLeft = config.rest; }
                 else {
