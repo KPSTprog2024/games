@@ -124,6 +124,7 @@
             box-sizing: border-box;
             max-width: 100%;
             white-space: nowrap;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
         }
         #round-display {
             font-size: clamp(2.5rem, 12vw, 8rem);
@@ -143,7 +144,11 @@
 
         /* フラッシュは白黒反転 */
         .flash { background-color: var(--fc-white) !important; color: var(--fc-black) !important; }
-        .flash #time-display { text-shadow: none; }
+        .flash #time-display {
+            text-shadow: none;
+            transform: scale(1.06);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.45);
+        }
     </style>
 </head>
 <body class="training-mode"> <div id="setup-screen">
@@ -225,13 +230,19 @@
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
-        function speak(text) {
+        function speak(text, interrupt = false) {
+            if (interrupt) synth.cancel();
             const uttr = new SpeechSynthesisUtterance(text);
             uttr.lang = 'en-US'; uttr.rate = 1.3; synth.speak(uttr);
         }
         function getCountdownWord(value) {
-            const words = { 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two', 1: 'One' };
+            const words = { 5: 'Five', 4: 'Four', 3: 'Three', 2: 'Two', 1: 'One', 0: 'Zero!' };
             return words[value] || value.toString();
+        }
+        function triggerCountdownEffects(value) {
+            speak(getCountdownWord(value), true);
+            document.body.classList.add('flash');
+            setTimeout(() => document.body.classList.remove('flash'), 250);
         }
         function formatTime(value) {
             const safeValue = Math.max(0, value);
@@ -256,13 +267,8 @@
         }
         function tick() {
             timeLeft--;
-            if (timeLeft <= 5 && timeLeft > 0) {
-                speak(getCountdownWord(timeLeft));
-                document.body.classList.add('flash');
-                setTimeout(() => document.body.classList.remove('flash'), 150);
-            }
-            if (timeLeft === 0) {
-                speak('Zero');
+            if (timeLeft <= 5 && timeLeft >= 0) {
+                triggerCountdownEffects(timeLeft);
             }
             if (timeLeft < 0) {
                 if (isTraining) { isTraining = false; timeLeft = config.rest; }
