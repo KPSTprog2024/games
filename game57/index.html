@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>88years - 人生の時計</title>
+    <!-- Google Fonts: 手書き感のあるフォント -->
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@300;400;500&family=Yomogi&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --paper-bg: #fdfaf1;
+            --ink-blue: #1a2a44;
+            --ink-sepia: #4e342e;
+            --ink-alert: #a63d40;
+            --line-color: rgba(78, 52, 46, 0.1);
+        }
+
+        body {
+            background-color: var(--paper-bg);
+            background-image: 
+                linear-gradient(var(--line-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line-color) 1px, transparent 1px);
+            background-size: 25px 25px;
+            color: var(--ink-blue);
+            font-family: 'Kiwi Maru', serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(2px);
+            padding: 30px 20px;
+            border-radius: 2px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .handwritten {
+            font-family: 'Yomogi', cursive;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+            color: var(--ink-sepia);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="date"] {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--ink-sepia);
+            width: 100%;
+            padding: 5px;
+            color: var(--ink-blue);
+            font-family: 'Kiwi Maru', serif;
+        }
+
+        .btn {
+            background: var(--ink-sepia);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 20px;
+            font-family: 'Yomogi', cursive;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            border-bottom: 1px dashed var(--ink-sepia);
+            padding: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+
+        .health-stat {
+            color: var(--ink-alert);
+            border-bottom-color: var(--ink-alert);
+        }
+
+        .slider-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(78, 52, 46, 0.05);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--ink-sepia);
+        }
+
+        .bar-container {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+
+        .bar-outer {
+            width: 100%;
+            height: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-inner {
+            height: 100%;
+            background: var(--ink-sepia);
+            transition: width 0.3s ease-out, background-color 0.3s;
+            border-radius: 5px;
+        }
+
+        .health-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--ink-alert);
+            opacity: 0.4;
+            z-index: 5;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            opacity: 0.4;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="settings-trigger" class="settings-btn handwritten" onclick="showSetup()">設定</div>
+    <h1 class="handwritten">88years</h1>
+
+    <!-- Setup View -->
+    <div id="setup-view" class="hidden">
+        <p class="mb-6 text-sm text-center">情報を設定してください。<br>データは端末内にのみ保存されます。</p>
+        <div class="input-group">
+            <label class="text-xs">あなたの誕生日</label>
+            <input type="date" id="input-my-birth" value="1980-05-26">
+        </div>
+        <div class="input-group">
+            <label class="text-xs">第一子の誕生日（任意）</label>
+            <input type="date" id="input-child1-birth">
+        </div>
+        <div class="input-group">
+            <label class="text-xs">第二子の誕生日（任意）</label>
+            <input type="date" id="input-child2-birth">
+        </div>
+        <button class="btn" onclick="saveSettings()">はじめる</button>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="hidden">
+        <!-- Dual Countdown Section -->
+        <div class="grid grid-cols-2 gap-x-4 mb-2">
+            <div class="text-[10px] uppercase tracking-wider text-center opacity-50">健康寿命まで (72.5歳)</div>
+            <div class="text-[10px] uppercase tracking-wider text-center opacity-50">目標寿命まで (88歳)</div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card health-stat">
+                <span class="stat-label">残りの誕生日</span>
+                <span id="h-birthdays" class="stat-value">--</span><span class="text-xs ml-1">回</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">残りの誕生日</span>
+                <span id="t-birthdays" class="stat-value">--</span><span class="text-xs ml-1">回</span>
+            </div>
+            <div class="stat-card health-stat">
+                <span class="stat-label">残りの日曜日</span>
+                <span id="h-sundays" class="stat-value">--</span><span class="text-xs ml-1">回</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">残りの日曜日</span>
+                <span id="t-sundays" class="stat-value">--</span><span class="text-xs ml-1">回</span>
+            </div>
+            <div class="stat-card health-stat">
+                <span class="stat-label">残りの日数</span>
+                <span id="h-days" class="stat-value">--</span><span class="text-xs ml-1">日</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">残りの日数</span>
+                <span id="t-days" class="stat-value">--</span><span class="text-xs ml-1">日</span>
+            </div>
+        </div>
+
+        <!-- Simulator -->
+        <div class="slider-container">
+            <div class="flex justify-between text-[10px] mb-2">
+                <span id="label-current-age">--歳</span>
+                <span>88歳</span>
+            </div>
+            <input type="range" id="age-slider" min="0" max="88" step="0.1">
+            <div class="text-center mt-3">
+                <span class="text-sm">シミュレーション: </span>
+                <span id="display-age" class="text-xl font-bold">--</span>歳
+                <div id="health-warning" class="text-[10px] text-red-600 font-bold hidden mt-1">健康寿命を超えています</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-area mt-6">
+            <div class="bar-container">
+                <div class="bar-label"><span>あなた</span><span id="age-self">--歳</span></div>
+                <div class="bar-outer">
+                    <div id="bar-self" class="bar-inner"></div>
+                    <div class="health-marker" style="left: 82.4%"></div> <!-- 72.5 / 88 -->
+                </div>
+            </div>
+            <div id="chart-child1" class="bar-container hidden">
+                <div class="bar-label"><span>上の子</span><span id="age-child1">--歳</span></div>
+                <div class="bar-outer"><div id="bar-child1" class="bar-inner" style="background: #5d4037;"></div></div>
+            </div>
+            <div id="chart-child2" class="bar-container hidden">
+                <div class="bar-label"><span>下の子</span><span id="age-child2">--歳</span></div>
+                <div class="bar-outer"><div id="bar-child2" class="bar-inner" style="background: #8d6e63;"></div></div>
+            </div>
+        </div>
+
+        <p class="mt-10 text-center text-[11px] opacity-60 handwritten italic leading-relaxed">
+            72.5歳までの時間は「自由」のために。<br>
+            88歳までの時間は「余韻」のために。
+        </p>
+    </div>
+</div>
+
+<script>
+    const TARGET_AGE = 88;
+    const HEALTH_AGE = 72.5;
+    let userData = null;
+
+    function init() {
+        const saved = localStorage.getItem('88years_data');
+        if (saved) {
+            userData = JSON.parse(saved);
+            showDashboard();
+        } else {
+            showSetup();
+        }
+    }
+
+    function showSetup() {
+        document.getElementById('setup-view').classList.remove('hidden');
+        document.getElementById('dashboard-view').classList.add('hidden');
+        document.getElementById('settings-trigger').classList.add('hidden');
+    }
+
+    function showDashboard() {
+        document.getElementById('setup-view').classList.add('hidden');
+        document.getElementById('dashboard-view').classList.remove('hidden');
+        document.getElementById('settings-trigger').classList.remove('hidden');
+        updateAll();
+    }
+
+    function saveSettings() {
+        const myBirth = document.getElementById('input-my-birth').value;
+        const child1Birth = document.getElementById('input-child1-birth').value;
+        const child2Birth = document.getElementById('input-child2-birth').value;
+        if (!myBirth) return alert("誕生日を入力してください");
+        userData = { myBirth, child1Birth, child2Birth };
+        localStorage.setItem('88years_data', JSON.stringify(userData));
+        showDashboard();
+    }
+
+    function getAge(birthDate, refDate = new Date()) {
+        const b = new Date(birthDate);
+        let age = refDate.getFullYear() - b.getFullYear();
+        const m = refDate.getMonth() - b.getMonth();
+        if (m < 0 || (m === 0 && refDate.getDate() < b.getDate())) age--;
+        return age;
+    }
+
+    function getRemaining(targetAgeValue) {
+        const now = new Date();
+        const birth = new Date(userData.myBirth);
+        const goal = new Date(birth.getTime());
+        goal.setFullYear(birth.getFullYear() + Math.floor(targetAgeValue));
+        goal.setMonth(birth.getMonth() + (targetAgeValue % 1 * 12));
+
+        if (goal < now) return { days: 0, sundays: 0, birthdays: 0 };
+
+        const days = Math.ceil((goal - now) / (86400000));
+
+        let sundays = 0;
+        let d = new Date(now);
+        d.setDate(d.getDate() + (7 - d.getDay()) % 7);
+        while (d < goal) { sundays++; d.setDate(d.getDate() + 7); }
+
+        const currentAge = getAge(userData.myBirth);
+        const birthdays = Math.max(0, Math.floor(targetAgeValue) - currentAge);
+
+        return { days, sundays, birthdays };
+    }
+
+    function updateAll() {
+        if (!userData) return;
+        const currentAge = getAge(userData.myBirth);
+
+        // Update Stats
+        const health = getRemaining(HEALTH_AGE);
+        const target = getRemaining(TARGET_AGE);
+
+        document.getElementById('h-days').innerText = health.days.toLocaleString();
+        document.getElementById('h-sundays').innerText = health.sundays.toLocaleString();
+        document.getElementById('h-birthdays').innerText = health.birthdays.toLocaleString();
+
+        document.getElementById('t-days').innerText = target.days.toLocaleString();
+        document.getElementById('t-sundays').innerText = target.sundays.toLocaleString();
+        document.getElementById('t-birthdays').innerText = target.birthdays.toLocaleString();
+
+        document.getElementById('label-current-age').innerText = currentAge + "歳";
+
+        const slider = document.getElementById('age-slider');
+        slider.min = currentAge;
+        slider.value = currentAge;
+
+        document.getElementById('chart-child1').classList.toggle('hidden', !userData.child1Birth);
+        document.getElementById('chart-child2').classList.toggle('hidden', !userData.child2Birth);
+
+        updateSim(currentAge);
+    }
+
+    function updateSim(age) {
+        age = parseFloat(age);
+        document.getElementById('display-age').innerText = age.toFixed(1);
+        document.getElementById('age-self').innerText = Math.floor(age) + "歳";
+
+        const barSelf = document.getElementById('bar-self');
+        barSelf.style.width = (age / TARGET_AGE * 100) + "%";
+
+        const isPastHealth = age >= HEALTH_AGE;
+        document.getElementById('health-warning').classList.toggle('hidden', !isPastHealth);
+        barSelf.style.backgroundColor = isPastHealth ? 'var(--ink-alert)' : 'var(--ink-sepia)';
+
+        const birthDate = new Date(userData.myBirth);
+        const targetDate = new Date(birthDate.getTime());
+        targetDate.setFullYear(birthDate.getFullYear() + Math.floor(age));
+
+        if (userData.child1Birth) {
+            const cAge = getAge(userData.child1Birth, targetDate);
+            document.getElementById('age-child1').innerText = Math.max(0, cAge) + "歳";
+            document.getElementById('bar-child1').style.width = (Math.max(0, cAge) / TARGET_AGE * 100) + "%";
+        }
+        if (userData.child2Birth) {
+            const cAge = getAge(userData.child2Birth, targetDate);
+            document.getElementById('age-child2').innerText = Math.max(0, cAge) + "歳";
+            document.getElementById('bar-child2').style.width = (Math.max(0, cAge) / TARGET_AGE * 100) + "%";
+        }
+    }
+
+    document.getElementById('age-slider').addEventListener('input', (e) => updateSim(e.target.value));
+    window.onload = init;
+</script>
+
+</body>
+</html>
