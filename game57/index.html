@@ -263,9 +263,8 @@
             </div>
         </div>
 
-        <p class="mt-10 text-center text-[11px] opacity-60 handwritten italic leading-relaxed">
-            72.5歳までの時間は「自由」のために。<br>
-            88歳までの時間は「余韻」のために。
+        <p class="mt-10 text-center text-[11px] opacity-60 handwritten italic leading-relaxed" id="random-message">
+            --
         </p>
     </div>
 </div>
@@ -273,6 +272,58 @@
 <script>
     const TARGET_AGE = 88;
     const HEALTH_AGE = 72.5;
+    const RANDOM_MESSAGES = [
+        "今日という日は、残りの人生で一番若い日。",
+        "幸せを「いつか」に先送りしないで。",
+        "最高の準備は、今日を全力で楽しむこと。",
+        "立ち止まって空を見上げる、その5秒に価値がある。",
+        "「今度」という言葉は、しばしば「二度とない」を意味する。",
+        "未来の自分への最大の贈り物は、今日の充実。",
+        "忙しさは、本当に大切なものを見えなくさせる。",
+        "予定のない午後こそ、人生の贅沢。",
+        "昨日は履歴書、明日は希望、今日は現金。",
+        "深呼吸ひとつで、人生の景色は変わる。",
+        "子どもが手を繋いでくれる時間は、驚くほど短い。",
+        "抱っこできる回数には、必ず終わりがある。",
+        "親ができる最高の教育は、自分が幸せに生きること。",
+        "子どもの笑顔は、未来から届く手紙。",
+        "「おかえり」と言える幸せを、当たり前と思わない。",
+        "家族との時間は、消費されるのではなく、蓄積される。",
+        "子どもが追いかけてくれる今のうちに、たくさん遊ぼう。",
+        "何気ない夕食の風景が、一生の宝物になる。",
+        "自分の年齢は、家族と共に歩んだ勲章。",
+        "完璧な親より、機嫌のいい親でいよう。",
+        "あと何回、満開の桜を見られるだろう。",
+        "時間は、誰もが平等に持っている唯一の資産。",
+        "人生は短くない。ただ、浪費する時間が多すぎるのだ。",
+        "「いつかやりたい」は「今やる」のサイン。",
+        "命には限りがある。だからこそ、命は輝く。",
+        "カウントダウンは、終わりへの恐怖ではなく、今への感謝。",
+        "砂時計の砂は、私たちが話している間にも落ちている。",
+        "1日24時間は、86,400秒のプレゼント。",
+        "人生という旅のチケットは、片道切符。",
+        "残りの日曜日の数を知ることは、自由への第一歩。",
+        "体は、魂が一生住み続ける唯一の家。",
+        "健康な時間は、お金で買えない最高級のチケット。",
+        "72.5歳までの「自由」をどう使い切るか。",
+        "メンテナンスを怠らない。自分も、大切な道具も。",
+        "睡眠は、明日への投資。",
+        "歩けるうちに、行きたい場所へ。話せるうちに、伝えたい言葉を。",
+        "心の健康は、小さな「好き」の積み重ね。",
+        "88歳の自分が、今の自分に感謝するような選択を。",
+        "休息は、怠慢ではなく技術である。",
+        "笑う門には、健康も福もやってくる。",
+        "人生の正解は、あとで振り返った時に自分が決める。",
+        "他人の時計で生きるのをやめよう。",
+        "失敗とは、何もしないことの別名。",
+        "小さな一歩が、数年後の大きな距離になる。",
+        "執着を捨てると、手の中にあるものがよく見える。",
+        "穏やかな心は、どんな嵐もやり過ごす。",
+        "人生に「遅すぎる」という文字はない。",
+        "自分の価値は、持っているものではなく、与えたもので決まる。",
+        "88年間の物語、あなたは今どの章を書いていますか？",
+        "素晴らしい一日に、なりますように。"
+    ];
     let userData = null;
 
     function init() {
@@ -295,6 +346,7 @@
         document.getElementById('setup-view').classList.add('hidden');
         document.getElementById('dashboard-view').classList.remove('hidden');
         document.getElementById('settings-trigger').classList.remove('hidden');
+        setRandomMessage();
         updateAll();
     }
 
@@ -391,6 +443,14 @@
             const cAge = getAge(userData.child2Birth, targetDate);
             document.getElementById('age-child2').innerText = Math.max(0, cAge) + "歳";
             document.getElementById('bar-child2').style.width = (Math.max(0, cAge) / TARGET_AGE * 100) + "%";
+        }
+    }
+
+    function setRandomMessage() {
+        const target = document.getElementById('random-message');
+        const message = RANDOM_MESSAGES[Math.floor(Math.random() * RANDOM_MESSAGES.length)];
+        if (target) {
+            target.textContent = message;
         }
     }
 
