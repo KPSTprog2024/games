@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Retro Chrono Precision</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-paper: #F2E8D5;
+            --clock-ivory: #F7F3E9;
+            --brass-dark: #7D5D18;
+            --brass-med: #B8860B;
+            --brass-light: #E5C76B;
+            --charcoal: #2C3E50;
+            --accent-red: #8B0000;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: var(--bg-paper);
+            color: var(--charcoal);
+            margin: 0; padding: 0; overflow: hidden;
+            height: 100dvh; display: flex; justify-content: center;
+            touch-action: none;
+        }
+
+        .app-container {
+            width: 100%; max-width: 430px; height: 100%;
+            display: flex; flex-direction: column;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            box-sizing: border-box; justify-content: space-between;
+        }
+
+        header { text-align: center; padding: 15px 0 5px; }
+        .brand-sub { font-size: 0.6rem; letter-spacing: 0.3em; opacity: 0.5; font-weight: 700; }
+        .brand-main { font-size: 1rem; letter-spacing: 0.15em; font-weight: 700; }
+
+        /* --- Clock Section --- */
+        .clock-system {
+            position: relative;
+            width: 270px; height: 270px;
+            margin: 0 auto;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* 実際に回転する外枠（ベゼル） */
+        .rotating-bezel {
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--brass-dark), var(--brass-light), var(--brass-med),
+                var(--brass-dark), var(--brass-light), var(--brass-med), var(--brass-dark)
+            );
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 1;
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); /* ジャンプ時のアニメーション */
+        }
+        
+        /* ドラッグ中はアニメーションをオフにして遅延をなくす */
+        .rotating-bezel.dragging { transition: none; }
+
+        .bezel-dot {
+            position: absolute; top: 6px; left: 50%;
+            width: 10px; height: 10px;
+            background: white; border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .fixed-face {
+            position: absolute;
+            width: 84%; height: 84%;
+            background-color: var(--clock-ivory);
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        #progressCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .mark {
+            position: absolute; width: 2px; height: 8px;
+            background: var(--charcoal); left: 50%; opacity: 0.3;
+        }
+
+        .hand {
+            position: absolute; bottom: 50%; left: 50%;
+            transform-origin: bottom center; z-index: 20;
+            background: var(--charcoal); border-radius: 1px;
+        }
+        .hand-second { width: 2px; height: 42%; }
+        .hand-center {
+            width: 12px; height: 12px;
+            background: var(--brass-dark); border-radius: 50%;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 30;
+        }
+
+        .digital-now {
+            position: absolute; top: 65%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem; font-weight: 700;
+        }
+        .digital-now.overtime { color: var(--accent-red); }
+
+        /* --- Precision Setting Panel --- */
+        .setting-panel {
+            background: #1a1a1a;
+            border: 2px solid var(--brass-med);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .snap-btn {
+            width: 55px; height: 50px;
+            background: linear-gradient(180deg, #444, #111);
+            border-radius: 8px;
+            color: var(--brass-light);
+            font-weight: 700; font-size: 0.8rem;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 1px solid #000;
+            box-shadow: 0 3px 0 #000;
+        }
+        .snap-btn span { font-size: 0.6rem; opacity: 0.6; }
+        .snap-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+
+        .target-view { text-align: center; }
+        .target-label { font-size: 0.6rem; color: var(--brass-med); font-weight: 700; text-transform: uppercase; }
+        .target-digits { font-family: monospace; font-size: 2rem; color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,0.4); line-height: 1; }
+
+        /* --- Action Buttons --- */
+        .action-area {
+            display: flex; justify-content: center; gap: 20px; padding-bottom: 25px;
+        }
+
+        .btn-pill {
+            width: 120px; padding: 18px 0; border-radius: 60px;
+            font-weight: 700; text-transform: uppercase; font-size: 0.9rem;
+            transition: all 0.1s; box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+        }
+        .btn-start { background: var(--charcoal); color: white; }
+        .btn-reset { background: #CCC; color: var(--charcoal); }
+        .btn-pill:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+
+        #flashLayer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--brass-light); opacity: 0; pointer-events: none; z-index: 100;
+        }
+        .animate-flash { animation: flashEffect 0.5s ease-out 3; }
+        @keyframes flashEffect { 0%, 100% { opacity: 0; } 50% { opacity: 0.4; } }
+
+        .instruction { font-size: 0.6rem; text-align: center; opacity: 0.5; margin-top: 5px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div id="flashLayer"></div>
+
+<div class="app-container">
+    <header>
+        <div class="brand-sub">ANTIQUE LABORATORY</div>
+        <div class="brand-main">CHRONO SETTER PRO</div>
+    </header>
+
+    <div class="clock-system">
+        <div class="rotating-bezel" id="bezel">
+            <div class="bezel-dot"></div>
+            <!-- 装飾用の溝 -->
+            <div style="position:absolute; top:50%; left:8px; width:4px; height:4px; background:rgba(0,0,0,0.3); border-radius:50%;"></div>
+            <div style="position:absolute; top:50%; right:8px; width:4px; height:4px; background:rgba(0,0,0,0.3); border-radius:50%;"></div>
+        </div>
+        
+        <div class="fixed-face" id="clockFace">
+            <canvas id="progressCanvas"></canvas>
+            <div id="marksContainer"></div>
+            <div id="digitalNow" class="digital-now">00:00</div>
+            <div id="secondHand" class="hand hand-second"></div>
+            <div class="hand-center"></div>
+        </div>
+    </div>
+
+    <div class="setting-panel-area">
+        <div class="setting-panel">
+            <button class="snap-btn" id="minusBtn">
+                -10<span>snap</span>
+            </button>
+            <div class="target-view">
+                <div class="target-label">Target Goal</div>
+                <div id="targetDisplay" class="target-digits">01:00</div>
+            </div>
+            <button class="snap-btn" id="plusBtn">
+                +10<span>snap</span>
+            </button>
+        </div>
+        <div class="instruction">TAP OR DRAG BEZEL TO SET TIME</div>
+    </div>
+
+    <div class="action-area">
+        <button id="resetBtn" class="btn-pill btn-reset">Reset</button>
+        <button id="startBtn" class="btn-pill btn-start">Start</button>
+    </div>
+</div>
+
+<script>
+    const state = {
+        mode: 'IDLE',
+        targetMs: 60000,
+        elapsedMs: 0,
+        startTime: 0,
+        lastAngle: 0,
+        bezelRotation: 0,
+        isDragging: false
+    };
+
+    const el = {
+        bezel: document.getElementById('bezel'),
+        digitalNow: document.getElementById('digitalNow'),
+        targetDisplay: document.getElementById('targetDisplay'),
+        secondHand: document.getElementById('secondHand'),
+        progressCanvas: document.getElementById('progressCanvas'),
+        marksContainer: document.getElementById('marksContainer'),
+        startBtn: document.getElementById('startBtn'),
+        resetBtn: document.getElementById('resetBtn'),
+        plusBtn: document.getElementById('plusBtn'),
+        minusBtn: document.getElementById('minusBtn'),
+        flashLayer: document.getElementById('flashLayer')
+    };
+
+    const ctx = el.progressCanvas.getContext('2d');
+
+    function init() {
+        createClockMarks();
+        handleResize();
+        setupEvents();
+        updateUI();
+        requestAnimationFrame(loop);
+    }
+
+    function createClockMarks() {
+        for (let i = 0; i < 60; i++) {
+            const m = document.createElement('div');
+            m.className = 'mark';
+            if (i % 5 === 0) { m.style.height = '14px'; m.style.width = '3px'; m.style.opacity = '1'; }
+            m.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+            el.marksContainer.appendChild(m);
+        }
+    }
+
+    function handleResize() {
+        const rect = document.getElementById('clockFace').getBoundingClientRect();
+        el.progressCanvas.width = rect.width * devicePixelRatio;
+        el.progressCanvas.height = rect.height * devicePixelRatio;
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+        document.querySelectorAll('.mark').forEach(m => {
+            m.style.transformOrigin = `50% ${rect.width/2}px`;
+        });
+    }
+
+    function setupEvents() {
+        el.startBtn.onclick = () => {
+            if (state.mode === 'IDLE') {
+                if (state.targetMs <= 0) return;
+                state.mode = 'RUNNING';
+                state.startTime = performance.now() - state.elapsedMs;
+                el.startBtn.innerText = 'Stop';
+                el.startBtn.style.background = '#8B0000';
+            } else {
+                state.mode = 'IDLE';
+                el.startBtn.innerText = 'Start';
+                el.startBtn.style.background = '#2C3E50';
+            }
+        };
+
+        el.resetBtn.onclick = () => {
+            state.mode = 'IDLE';
+            state.elapsedMs = 0;
+            state.startTime = 0;
+            el.startBtn.innerText = 'Start';
+            el.startBtn.style.background = '#2C3E50';
+            el.digitalNow.classList.remove('overtime');
+            updateUI();
+        };
+
+        // スマート・スナップ・ボタンのロジック
+        el.plusBtn.onclick = () => {
+            const currentSeconds = state.targetMs / 1000;
+            let nextSeconds;
+            // 10秒の倍数でない場合は、次の10秒の倍数へ切り上げ
+            if (currentSeconds % 10 !== 0) {
+                nextSeconds = Math.floor(currentSeconds / 10 + 1) * 10;
+            } else {
+                nextSeconds = currentSeconds + 10;
+            }
+            adjustTargetTo(nextSeconds * 1000);
+        };
+
+        el.minusBtn.onclick = () => {
+            const currentSeconds = state.targetMs / 1000;
+            let nextSeconds;
+            // 10秒の倍数でない場合は、前の10秒の倍数へ切り下げ
+            if (currentSeconds % 10 !== 0) {
+                nextSeconds = Math.ceil(currentSeconds / 10 - 1) * 10;
+            } else {
+                nextSeconds = currentSeconds - 10;
+            }
+            adjustTargetTo(Math.max(0, nextSeconds * 1000));
+        };
+
+        // Bezel Interaction
+        const getAngle = (e) => {
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = el.bezel.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            return Math.atan2(touch.clientY - cy, touch.clientX - cx);
+        };
+
+        const onStart = (e) => {
+            if (state.mode !== 'IDLE') return;
+            state.isDragging = true;
+            el.bezel.classList.add('dragging');
+            state.lastAngle = getAngle(e);
+        };
+
+        const onMove = (e) => {
+            if (!state.isDragging) return;
+            const currentAngle = getAngle(e);
+            let diff = currentAngle - state.lastAngle;
+            if (diff > Math.PI) diff -= Math.PI * 2;
+            if (diff < -Math.PI) diff += Math.PI * 2;
+
+            const diffDeg = diff * (180 / Math.PI);
+            state.bezelRotation += diffDeg;
+            el.bezel.style.transform = `rotate(${state.bezelRotation}deg)`;
+
+            const timeChange = (diffDeg / 6) * 1000;
+            state.targetMs = Math.max(0, state.targetMs + timeChange);
+            state.lastAngle = currentAngle;
+            updateUI();
+        };
+
+        const onEnd = () => {
+            state.isDragging = false;
+            el.bezel.classList.remove('dragging');
+        };
+
+        // タップでその位置へジャンプ
+        el.bezel.onclick = (e) => {
+            if (state.isDragging || state.mode !== 'IDLE') return;
+            const angle = getAngle(e);
+            // -PI to PI -> 0 to 2PIに変換し、12時位置( -PI/2 )を起点にする
+            let normAngle = angle + Math.PI / 2;
+            if (normAngle < 0) normAngle += Math.PI * 2;
+            
+            // 角度から秒数を算出
+            const seconds = (normAngle / (Math.PI * 2)) * 60;
+            adjustTargetTo(seconds * 1000);
+        };
+
+        el.bezel.addEventListener('mousedown', onStart);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
+        el.bezel.addEventListener('touchstart', onStart, {passive: false});
+        window.addEventListener('touchmove', (e) => { if(state.isDragging) e.preventDefault(); onMove(e); }, {passive:false});
+        window.addEventListener('touchend', onEnd);
+    }
+
+    // 特定のミリ秒数にターゲットを合わせ、ベゼルの見た目も同期させる
+    function adjustTargetTo(ms) {
+        state.targetMs = ms;
+        // ベゼルの回転角を時間に合わせる (1秒 = 6度)
+        const totalSeconds = ms / 1000;
+        state.bezelRotation = totalSeconds * 6;
+        el.bezel.style.transform = `rotate(${state.bezelRotation}deg)`;
+        updateUI();
+    }
+
+    function formatTime(ms) {
+        const absMs = Math.round(Math.abs(ms) / 1000) * 1000; // 秒単位に丸める
+        const totalSec = Math.floor(absMs / 1000);
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function loop(now) {
+        if (state.mode === 'RUNNING' || state.mode === 'OVERTIME') {
+            state.elapsedMs = now - state.startTime;
+            if (state.mode === 'RUNNING' && state.elapsedMs >= state.targetMs) {
+                state.mode = 'OVERTIME';
+                el.flashLayer.classList.add('animate-flash');
+                setTimeout(() => el.flashLayer.classList.remove('animate-flash'), 1500);
+            }
+        }
+        updateUI();
+        requestAnimationFrame(loop);
+    }
+
+    function updateUI() {
+        const sec = (state.elapsedMs / 1000) % 60;
+        el.secondHand.style.transform = `translateX(-50%) rotate(${sec * 6}deg)`;
+
+        if (state.mode === 'OVERTIME') {
+            el.digitalNow.innerText = "+" + formatTime(state.elapsedMs - state.targetMs);
+            el.digitalNow.classList.add('overtime');
+        } else {
+            el.digitalNow.innerText = formatTime(state.elapsedMs);
+            el.digitalNow.classList.remove('overtime');
+        }
+
+        el.targetDisplay.innerText = formatTime(state.targetMs);
+        drawProgress();
+    }
+
+    function drawProgress() {
+        const r = el.progressCanvas.width / (2 * devicePixelRatio);
+        ctx.clearRect(0, 0, r * 2, r * 2);
+        const remaining = state.targetMs - state.elapsedMs;
+        if (remaining > 0 && remaining <= 60000) {
+            ctx.beginPath();
+            ctx.moveTo(r, r);
+            ctx.arc(r, r, r, -Math.PI / 2, -Math.PI / 2 + (remaining / 60000) * Math.PI * 2, false);
+            ctx.fillStyle = 'rgba(184, 134, 11, 0.25)';
+            ctx.fill();
+        }
+    }
+
+    window.onload = init;
+    window.onresize = handleResize;
+</script>
+</body>
+</html>
