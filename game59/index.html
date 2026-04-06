@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>幾何学アート（ストリングアート）生成</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>幾何学アート・ストリングアート生成</h1>
+    <p>線を重ねて、曲線が浮かび上がる瞬間を楽しもう</p>
+  </header>
+
+  <main id="canvas-container">
+    <canvas id="art-canvas" aria-label="幾何学アート描画キャンバス"></canvas>
+  </main>
+
+  <section id="controls" aria-label="描画コントロールパネル">
+    <div class="control-row">
+      <label for="divisions">分割数 <span id="divisions-value">20</span></label>
+      <input id="divisions" type="range" min="4" max="120" value="20" step="1">
+    </div>
+
+    <div class="control-grid colors">
+      <label class="picker">
+        <span>線の色</span>
+        <input id="line-color" type="color" value="#2f6df6">
+      </label>
+      <label class="picker">
+        <span>背景色</span>
+        <input id="bg-color" type="color" value="#f8fbff">
+      </label>
+    </div>
+
+    <div class="control-grid">
+      <label>
+        図形
+        <select id="shape">
+          <option value="square">正方形</option>
+          <option value="triangle">正三角形</option>
+          <option value="hexagon">正六角形</option>
+          <option value="circle">円</option>
+        </select>
+      </label>
+      <label>
+        軸セット
+        <select id="axis-mode">
+          <option value="adjacent">隣接辺</option>
+          <option value="skip">1つ飛ばし</option>
+          <option value="cross">交差</option>
+          <option value="all">全組み合わせ</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <label class="toggle">
+        <input id="op-art" type="checkbox">
+        <span>オプ・アートモード</span>
+      </label>
+    </div>
+
+    <div class="button-row">
+      <button id="play-toggle" type="button">▶ 再生</button>
+      <button id="reset" type="button">↺ リセット</button>
+      <button id="random" type="button">🎲 ランダム</button>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>
