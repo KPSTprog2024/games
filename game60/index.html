@@ -8,34 +8,34 @@
 </head>
 <body>
   <main class="app">
-    <header class="panel">
-      <h1>反射神経バトル</h1>
-      <p>画面が「タップ！」になったら、上と下のプレイヤーで同時対戦。先に3点取った方が勝ち！</p>
-    </header>
+    <button id="topBtn" class="tap-zone top" type="button">上プレイヤー タップ</button>
 
-    <section class="panel score-panel" aria-live="polite">
-      <div class="score-item">
-        <span class="label">上プレイヤー</span>
-        <strong id="scoreTop">0</strong>
-      </div>
-      <div class="status" id="status">スタートを押して開始</div>
-      <div class="score-item">
-        <span class="label">下プレイヤー</span>
-        <strong id="scoreBottom">0</strong>
-      </div>
+    <section class="center-ui">
+      <header class="panel">
+        <h1>反射神経バトル</h1>
+        <p>画面が「タップ！」になったら、上と下のプレイヤーで同時対戦。先に3点取った方が勝ち！</p>
+      </header>
+
+      <section class="panel score-panel" aria-live="polite">
+        <div class="score-item">
+          <span class="label">上プレイヤー</span>
+          <strong id="scoreTop">0</strong>
+        </div>
+        <div class="status" id="status">スタートを押して開始</div>
+        <div class="score-item">
+          <span class="label">下プレイヤー</span>
+          <strong id="scoreBottom">0</strong>
+        </div>
+      </section>
+
+      <section class="controls panel">
+        <button id="startBtn" class="btn primary" type="button">スタート</button>
+        <button id="nextBtn" class="btn" type="button" disabled>次のラウンド</button>
+        <button id="resetBtn" class="btn" type="button">リセット</button>
+      </section>
     </section>
 
-    <section class="battle-area" id="battleArea">
-      <button id="topBtn" class="tap-zone top" type="button">上プレイヤー タップ</button>
-      <button id="bottomBtn" class="tap-zone bottom" type="button">下プレイヤー タップ</button>
-      <div class="overlay" id="overlay">待機中…</div>
-    </section>
-
-    <section class="controls panel">
-      <button id="startBtn" class="btn primary" type="button">スタート</button>
-      <button id="nextBtn" class="btn" type="button" disabled>次のラウンド</button>
-      <button id="resetBtn" class="btn" type="button">リセット</button>
-    </section>
+    <button id="bottomBtn" class="tap-zone bottom" type="button">下プレイヤー タップ</button>
   </main>
 
   <script src="app.js"></script>

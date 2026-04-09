@@ -6,14 +6,14 @@ const state = {
   phase: 'idle', // idle | waiting | go | roundOver | gameOver
   goTime: 0,
   timeoutId: null,
-  round: 0
+  round: 0,
+  toneTop: 'red',
+  toneBottom: 'red'
 };
 
 const ui = {
-  battleArea: document.getElementById('battleArea'),
   topBtn: document.getElementById('topBtn'),
   bottomBtn: document.getElementById('bottomBtn'),
-  overlay: document.getElementById('overlay'),
   status: document.getElementById('status'),
   scoreTop: document.getElementById('scoreTop'),
   scoreBottom: document.getElementById('scoreBottom'),
@@ -29,20 +29,22 @@ function clearTimer() {
   }
 }
 
+function applyTone(button, tone) {
+  button.classList.remove('state-red', 'state-green', 'state-orange', 'state-gray');
+  button.classList.add(`state-${tone}`);
+}
+
 function render() {
   ui.scoreTop.textContent = String(state.scoreTop);
   ui.scoreBottom.textContent = String(state.scoreBottom);
 
-  ui.battleArea.classList.remove('waiting', 'go', 'finished');
-  if (state.phase === 'waiting') ui.battleArea.classList.add('waiting');
-  if (state.phase === 'go') ui.battleArea.classList.add('go');
-  if (state.phase === 'gameOver') ui.battleArea.classList.add('finished');
+  applyTone(ui.topBtn, state.toneTop);
+  applyTone(ui.bottomBtn, state.toneBottom);
 
   ui.nextBtn.disabled = !(state.phase === 'roundOver' || state.phase === 'idle');
 }
 
-function setMessage(overlayText, statusText) {
-  ui.overlay.textContent = overlayText;
+function setStatus(statusText) {
   ui.status.textContent = statusText;
 }
 
@@ -50,23 +52,35 @@ function startRound() {
   clearTimer();
   state.round += 1;
   state.phase = 'waiting';
-  setMessage('まだ押さないで！', `第${state.round}ラウンド 準備中`);
+  state.toneTop = 'red';
+  state.toneBottom = 'red';
+  setStatus(`第${state.round}ラウンド：まだ押さないで！`);
   render();
 
   const wait = Math.floor(Math.random() * 2500) + 1500;
   state.timeoutId = setTimeout(() => {
     state.phase = 'go';
     state.goTime = performance.now();
-    setMessage('タップ！', '早く押した方に1点');
+    state.toneTop = 'green';
+    state.toneBottom = 'green';
+    setStatus('タップ！早く押した方に1点');
     render();
   }, wait);
 }
 
-function endRound(winner) {
+function endRound(winner, cause = 'react', actor = null) {
   clearTimer();
 
   if (winner === 'top') state.scoreTop += 1;
   if (winner === 'bottom') state.scoreBottom += 1;
+
+  if (cause === 'react') {
+    state.toneTop = winner === 'top' ? 'green' : 'gray';
+    state.toneBottom = winner === 'bottom' ? 'green' : 'gray';
+  } else if (cause === 'foul') {
+    state.toneTop = actor === 'top' ? 'orange' : 'green';
+    state.toneBottom = actor === 'bottom' ? 'orange' : 'green';
+  }
 
   const winTop = state.scoreTop >= WIN_SCORE;
   const winBottom = state.scoreBottom >= WIN_SCORE;
@@ -74,11 +88,11 @@ function endRound(winner) {
   if (winTop || winBottom) {
     state.phase = 'gameOver';
     const champ = winTop ? '上プレイヤー' : '下プレイヤー';
-    setMessage('ゲーム終了', `${champ}の勝ち！`);
+    setStatus(`ゲーム終了：${champ}の勝ち！`);
   } else {
     state.phase = 'roundOver';
     const roundWinner = winner === 'top' ? '上プレイヤー' : '下プレイヤー';
-    setMessage(`${roundWinner} 1点！`, '次のラウンドへ進んでください');
+    setStatus(`${roundWinner} 1点！「次のラウンド」を押してください`);
   }
 
   render();
@@ -88,20 +102,19 @@ function handlePress(player) {
   if (state.phase === 'idle') return;
 
   if (state.phase === 'waiting') {
-    // フライングは相手に1点
     const winner = player === 'top' ? 'bottom' : 'top';
-    endRound(winner);
+    endRound(winner, 'foul', player);
     const fouler = player === 'top' ? '上プレイヤー' : '下プレイヤー';
-    ui.status.textContent = `${fouler}のフライング！相手に1点`;
+    ui.status.textContent = `${fouler}のフライング！惜しかったのでオレンジ表示`;
     return;
   }
 
   if (state.phase !== 'go') return;
 
   const reaction = Math.round(performance.now() - state.goTime);
-  endRound(player);
+  endRound(player, 'react');
   const winnerLabel = player === 'top' ? '上プレイヤー' : '下プレイヤー';
-  ui.status.textContent = `${winnerLabel}が${reaction}msで獲得！`;
+  ui.status.textContent = `${winnerLabel}が${reaction}msで獲得！押し負けはグレー表示`;
 }
 
 function resetGame() {
@@ -110,7 +123,9 @@ function resetGame() {
   state.scoreBottom = 0;
   state.phase = 'idle';
   state.round = 0;
-  setMessage('待機中…', 'スタートを押して開始');
+  state.toneTop = 'red';
+  state.toneBottom = 'red';
+  setStatus('スタートを押して開始（待機色は赤 / 押せる時は緑）');
   render();
 }
 
