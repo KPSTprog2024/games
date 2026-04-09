@@ -5,9 +5,10 @@
   --muted: #66708a;
   --line: #d8e0f3;
   --primary: #2f6df6;
-  --ready: #f6c343;
-  --go: #18a16a;
-  --danger: #e45757;
+  --danger-red: #e45757;
+  --ready-green: #18a16a;
+  --near-orange: #f08a32;
+  --lose-gray: #8f96a8;
 }
 
 * { box-sizing: border-box; }
@@ -25,9 +26,15 @@ body {
   margin: 0 auto;
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: 1fr auto 1fr;
   gap: 10px;
   padding: max(10px, env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+}
+
+.center-ui {
+  display: grid;
+  gap: 10px;
+  align-content: center;
 }
 
 .panel {
@@ -75,49 +82,27 @@ p {
   text-align: center;
 }
 
-.battle-area {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  min-height: 380px;
-  background: #dbe4fa;
-}
-
 .tap-zone {
+  width: 100%;
+  min-height: 180px;
   border: none;
-  font-size: 1.05rem;
+  border-radius: 16px;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #fff;
   touch-action: manipulation;
+  box-shadow: 0 4px 16px rgba(11, 20, 45, 0.14);
+  transition: background-color .15s ease;
 }
 
-.tap-zone.top { background: #5078de; }
-.tap-zone.bottom { background: #7350de; }
+.tap-zone.state-red { background: var(--danger-red); }
+.tap-zone.state-green { background: var(--ready-green); }
+.tap-zone.state-orange { background: var(--near-orange); }
+.tap-zone.state-gray { background: var(--lose-gray); }
 
 .tap-zone:active {
-  filter: brightness(0.9);
+  filter: brightness(0.92);
 }
-
-.overlay {
-  position: absolute;
-  inset: 50% 12px auto;
-  transform: translateY(-50%);
-  background: rgba(11, 20, 45, 0.78);
-  color: #fff;
-  border-radius: 999px;
-  padding: 10px 14px;
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: .02em;
-  pointer-events: none;
-}
-
-.battle-area.waiting .overlay { background: rgba(246, 195, 67, 0.9); color: #402d00; }
-.battle-area.go .overlay { background: rgba(24, 161, 106, 0.92); }
-.battle-area.finished .overlay { background: rgba(228, 87, 87, 0.92); }
 
 .controls {
   display: grid;
