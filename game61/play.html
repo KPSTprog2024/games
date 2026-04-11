@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>反射神経対戦ミニアプリ</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app" id="game-app" aria-label="反射神経対戦ミニアプリ">
+      <section class="player-zone player-zone--top" aria-label="上側プレイヤー ♦️">
+        <header class="player-header">
+          <span class="player-label">♦️</span>
+          <span class="player-score" id="score-diamond">0</span>
+        </header>
+        <div class="choices" id="choices-diamond"></div>
+      </section>
+
+      <section class="center-zone" aria-live="polite">
+        <p class="round-label" id="round-label">Round 1</p>
+        <div class="topic" id="topic-shape" aria-label="お題"></div>
+        <div class="status-panel" id="status-panel"></div>
+      </section>
+
+      <section class="player-zone player-zone--bottom" aria-label="下側プレイヤー ❤️">
+        <div class="choices" id="choices-heart"></div>
+        <header class="player-header player-header--bottom">
+          <span class="player-label">❤️</span>
+          <span class="player-score" id="score-heart">0</span>
+        </header>
+      </section>
+    </main>
+
+    <template id="choice-button-template">
+      <button class="choice-btn" type="button"></button>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>

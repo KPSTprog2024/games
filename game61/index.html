@@ -7,41 +7,11 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="start-screen" id="start-screen" aria-label="ゲームトップページ">
+    <main class="start-screen" aria-label="ゲームトップページ">
       <p class="start-screen__eyebrow">game61</p>
       <h1>反射神経対戦ミニアプリ</h1>
       <p>お題と違う「色」かつ違う「図形」を先にタップ！ 3点先取で勝利です。</p>
-      <button class="control-btn start-btn" id="start-btn" type="button">スタート</button>
+      <a class="control-btn start-btn" href="./play.html">スタート</a>
     </main>
-
-    <main class="app" id="game-app" aria-label="反射神経対戦ミニアプリ" hidden>
-      <section class="player-zone player-zone--top" aria-label="上側プレイヤー ♦️">
-        <header class="player-header">
-          <span class="player-label">♦️</span>
-          <span class="player-score" id="score-diamond">0</span>
-        </header>
-        <div class="choices" id="choices-diamond"></div>
-      </section>
-
-      <section class="center-zone" aria-live="polite">
-        <p class="round-label" id="round-label">Round 1</p>
-        <div class="topic" id="topic-shape" aria-label="お題"></div>
-        <div class="status-panel" id="status-panel"></div>
-      </section>
-
-      <section class="player-zone player-zone--bottom" aria-label="下側プレイヤー ❤️">
-        <div class="choices" id="choices-heart"></div>
-        <header class="player-header player-header--bottom">
-          <span class="player-label">❤️</span>
-          <span class="player-score" id="score-heart">0</span>
-        </header>
-      </section>
-    </main>
-
-    <template id="choice-button-template">
-      <button class="choice-btn" type="button"></button>
-    </template>
-
-    <script src="script.js"></script>
   </body>
 </html>

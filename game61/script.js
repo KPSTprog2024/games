@@ -27,7 +27,6 @@ const COMBINATIONS = createCombinations();
 // State
 // =========================
 const state = {
-  isStarted: false,
   roundNumber: 0,
   scores: {
     [PLAYER.DIAMOND]: 0,
@@ -69,9 +68,6 @@ const state = {
 // DOM refs
 // =========================
 const ui = {
-  startScreen: document.getElementById('start-screen'),
-  startButton: document.getElementById('start-btn'),
-  app: document.getElementById('game-app'),
   scoreDiamond: document.getElementById('score-diamond'),
   scoreHeart: document.getElementById('score-heart'),
   roundLabel: document.getElementById('round-label'),
@@ -88,21 +84,12 @@ const ui = {
 init();
 
 function init() {
-  ui.startButton.addEventListener('click', () => {
-    state.isStarted = true;
-    showGameScreen();
-    startNewGame();
-  });
+  startNewGame();
 }
 
 // =========================
 // Core round flow
 // =========================
-
-function showGameScreen() {
-  ui.startScreen.hidden = true;
-  ui.app.hidden = false;
-}
 
 function startNewGame() {
   clearRoundTimers();
@@ -131,7 +118,7 @@ function startNextRound() {
 
   renderScore();
   renderRoundLabel();
-  renderChoices();
+  renderChoices(true);
   startRoundCountdown();
 }
 
@@ -162,6 +149,7 @@ function beginRoundInput() {
   state.isCountingDown = false;
 
   renderTopic();
+  renderChoices(false);
 
   state.roundTimers.guard = window.setTimeout(() => {
     state.acceptingInput = true;
@@ -291,12 +279,12 @@ function renderTopic() {
   ui.topicShape.appendChild(buildShapeElement(state.currentTopic));
 }
 
-function renderChoices() {
-  renderPlayerChoices(ui.diamondChoices, PLAYER.DIAMOND);
-  renderPlayerChoices(ui.heartChoices, PLAYER.HEART);
+function renderChoices(hiddenUntilStart = false) {
+  renderPlayerChoices(ui.diamondChoices, PLAYER.DIAMOND, hiddenUntilStart);
+  renderPlayerChoices(ui.heartChoices, PLAYER.HEART, hiddenUntilStart);
 }
 
-function renderPlayerChoices(container, player) {
+function renderPlayerChoices(container, player, hiddenUntilStart) {
   container.innerHTML = '';
 
   state.currentChoices.forEach((choice, index) => {
@@ -306,7 +294,11 @@ function renderPlayerChoices(container, player) {
     btn.dataset.player = player;
     btn.dataset.index = String(index);
     btn.setAttribute('aria-label', `${PLAYER_SYMBOL[player]} の候補 ${index + 1}`);
-    btn.appendChild(buildShapeElement(choice));
+    if (hiddenUntilStart) {
+      btn.setAttribute('aria-label', `${PLAYER_SYMBOL[player]} の候補（カウントダウン中）`);
+    } else {
+      btn.appendChild(buildShapeElement(choice));
+    }
 
     btn.addEventListener('click', () => handlePlayerPress(player, index));
 

@@ -218,6 +218,7 @@ body {
 }
 
 .control-btn {
+  display: inline-block;
   width: 100%;
   padding: 10px 12px;
   border: none;
@@ -226,6 +227,8 @@ body {
   color: #1f1f1f;
   font-weight: 700;
   font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
 }
 
 .history {
