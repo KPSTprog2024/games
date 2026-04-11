@@ -8,34 +8,41 @@
 </head>
 <body>
   <main class="app">
-    <button id="topBtn" class="tap-zone top" type="button">上プレイヤー タップ</button>
+    <button id="topBtn" class="tap-zone top" type="button">上エリアをタップ</button>
 
     <section class="center-ui">
-      <header class="panel">
+      <header id="introPanel" class="panel intro-panel">
         <h1>反射神経バトル</h1>
-        <p>画面が「タップ！」になったら、上と下のプレイヤーで同時対戦。先に3点取った方が勝ち！</p>
+        <p>「タップ！」になったらすぐ押して先に3点先取。ラウンドごとに上下を交代して遊べます。</p>
       </header>
 
       <section class="panel score-panel" aria-live="polite">
         <div class="score-item">
-          <span class="label">上プレイヤー</span>
-          <strong id="scoreTop">0</strong>
+          <span class="label">🍎</span>
+          <strong id="scoreApple">0</strong>
         </div>
-        <div class="status" id="status">スタートを押して開始</div>
+        <div class="status-block">
+          <div class="status" id="status">スタートで開始</div>
+          <div class="position-hint" id="positionHint">上: 🍎 / 下: 🍌</div>
+        </div>
         <div class="score-item">
-          <span class="label">下プレイヤー</span>
-          <strong id="scoreBottom">0</strong>
+          <span class="label">🍌</span>
+          <strong id="scoreBanana">0</strong>
         </div>
+      </section>
+
+      <section class="panel history-panel">
+        <ul id="historyList" class="history-list" aria-live="polite"></ul>
       </section>
 
       <section class="controls panel">
         <button id="startBtn" class="btn primary" type="button">スタート</button>
-        <button id="nextBtn" class="btn" type="button" disabled>次のラウンド</button>
-        <button id="resetBtn" class="btn" type="button">リセット</button>
+        <button id="nextBtn" class="btn primary next-btn" type="button" disabled>次のラウンド</button>
+        <button id="resetBtn" class="btn subtle" type="button">リセット</button>
       </section>
     </section>
 
-    <button id="bottomBtn" class="tap-zone bottom" type="button">下プレイヤー タップ</button>
+    <button id="bottomBtn" class="tap-zone bottom" type="button">下エリアをタップ</button>
   </main>
 
   <script src="app.js"></script>
