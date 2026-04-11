@@ -7,7 +7,14 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app" aria-label="反射神経対戦ミニアプリ">
+    <main class="start-screen" id="start-screen" aria-label="ゲームトップページ">
+      <p class="start-screen__eyebrow">game61</p>
+      <h1>反射神経対戦ミニアプリ</h1>
+      <p>お題と違う「色」かつ違う「図形」を先にタップ！ 3点先取で勝利です。</p>
+      <button class="control-btn start-btn" id="start-btn" type="button">スタート</button>
+    </main>
+
+    <main class="app" id="game-app" aria-label="反射神経対戦ミニアプリ" hidden>
       <section class="player-zone player-zone--top" aria-label="上側プレイヤー ♦️">
         <header class="player-header">
           <span class="player-label">♦️</span>
@@ -32,9 +39,7 @@
     </main>
 
     <template id="choice-button-template">
-      <button class="choice-btn" type="button">
-        <span class="shape"></span>
-      </button>
+      <button class="choice-btn" type="button"></button>
     </template>
 
     <script src="script.js"></script>
