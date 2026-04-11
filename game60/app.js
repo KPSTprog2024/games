@@ -13,8 +13,8 @@ const state = {
   round: 0,
   toneTop: 'red',
   toneBottom: 'red',
-  topPlayer: 'apple',
-  bottomPlayer: 'banana',
+  topPlayer: 'banana',
+  bottomPlayer: 'apple',
   history: []
 };
 
@@ -193,10 +193,6 @@ function handlePress(position) {
   endRound(winner, 'react', null, reaction);
 }
 
-function swapPositions() {
-  [state.topPlayer, state.bottomPlayer] = [state.bottomPlayer, state.topPlayer];
-}
-
 function resetGame() {
   clearTimer();
   state.score.apple = 0;
@@ -205,8 +201,8 @@ function resetGame() {
   state.round = 0;
   state.toneTop = 'red';
   state.toneBottom = 'red';
-  state.topPlayer = 'apple';
-  state.bottomPlayer = 'banana';
+  state.topPlayer = 'banana';
+  state.bottomPlayer = 'apple';
   state.history = [];
   setStatus('スタートで開始');
   render();
@@ -230,8 +226,8 @@ ui.startBtn.addEventListener('click', () => {
       state.score.banana = 0;
       state.round = 0;
       state.history = [];
-      state.topPlayer = 'apple';
-      state.bottomPlayer = 'banana';
+      state.topPlayer = 'banana';
+      state.bottomPlayer = 'apple';
     }
     startRound();
   }
@@ -239,7 +235,6 @@ ui.startBtn.addEventListener('click', () => {
 
 ui.nextBtn.addEventListener('click', () => {
   if (state.phase === 'roundOver') {
-    swapPositions();
     startRound();
   }
 });
