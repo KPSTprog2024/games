@@ -1,22 +1,32 @@
 const WIN_SCORE = 3;
 
+const PLAYER = {
+  apple: '🍎',
+  banana: '🍌'
+};
+
 const state = {
-  scoreTop: 0,
-  scoreBottom: 0,
+  score: { apple: 0, banana: 0 },
   phase: 'idle', // idle | waiting | go | roundOver | gameOver
   goTime: 0,
   timeoutId: null,
   round: 0,
   toneTop: 'red',
-  toneBottom: 'red'
+  toneBottom: 'red',
+  topPlayer: 'apple',
+  bottomPlayer: 'banana',
+  history: []
 };
 
 const ui = {
   topBtn: document.getElementById('topBtn'),
   bottomBtn: document.getElementById('bottomBtn'),
   status: document.getElementById('status'),
-  scoreTop: document.getElementById('scoreTop'),
-  scoreBottom: document.getElementById('scoreBottom'),
+  scoreApple: document.getElementById('scoreApple'),
+  scoreBanana: document.getElementById('scoreBanana'),
+  positionHint: document.getElementById('positionHint'),
+  historyList: document.getElementById('historyList'),
+  introPanel: document.getElementById('introPanel'),
   startBtn: document.getElementById('startBtn'),
   nextBtn: document.getElementById('nextBtn'),
   resetBtn: document.getElementById('resetBtn')
@@ -34,18 +44,60 @@ function applyTone(button, tone) {
   button.classList.add(`state-${tone}`);
 }
 
-function render() {
-  ui.scoreTop.textContent = String(state.scoreTop);
-  ui.scoreBottom.textContent = String(state.scoreBottom);
+function playerIcon(key) {
+  return PLAYER[key];
+}
 
-  applyTone(ui.topBtn, state.toneTop);
-  applyTone(ui.bottomBtn, state.toneBottom);
+function formatMs(value) {
+  return Number.isFinite(value) ? `${value}ms` : '--';
+}
 
-  ui.nextBtn.disabled = !(state.phase === 'roundOver' || state.phase === 'idle');
+function updateHistory() {
+  ui.historyList.innerHTML = '';
+
+  if (state.history.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'empty';
+    li.textContent = '履歴なし';
+    ui.historyList.appendChild(li);
+    return;
+  }
+
+  state.history.forEach((item) => {
+    const li = document.createElement('li');
+    const winner = item.winner ? playerIcon(item.winner) : 'なし';
+    const detail = `R${item.round} 🍎 ${item.apple} / 🍌 ${item.banana} → ${winner}`;
+    li.textContent = detail;
+    ui.historyList.appendChild(li);
+  });
+
+  ui.historyList.scrollTop = ui.historyList.scrollHeight;
 }
 
 function setStatus(statusText) {
   ui.status.textContent = statusText;
+}
+
+function setPhaseUi() {
+  const isIdle = state.phase === 'idle';
+  const isRoundOver = state.phase === 'roundOver';
+  const isGameOver = state.phase === 'gameOver';
+
+  ui.introPanel.classList.toggle('hidden', !isIdle);
+  ui.startBtn.classList.toggle('hidden', !isIdle && !isGameOver);
+  ui.nextBtn.classList.toggle('hidden', !isRoundOver);
+  ui.nextBtn.disabled = !isRoundOver;
+}
+
+function render() {
+  ui.scoreApple.textContent = String(state.score.apple);
+  ui.scoreBanana.textContent = String(state.score.banana);
+  ui.positionHint.textContent = `上: ${playerIcon(state.topPlayer)} / 下: ${playerIcon(state.bottomPlayer)}`;
+
+  applyTone(ui.topBtn, state.toneTop);
+  applyTone(ui.bottomBtn, state.toneBottom);
+  updateHistory();
+  setPhaseUi();
 }
 
 function startRound() {
@@ -54,7 +106,7 @@ function startRound() {
   state.phase = 'waiting';
   state.toneTop = 'red';
   state.toneBottom = 'red';
-  setStatus(`第${state.round}ラウンド：まだ押さないで！`);
+  setStatus(`R${state.round} 準備`);
   render();
 
   const wait = Math.floor(Math.random() * 2500) + 1500;
@@ -63,76 +115,107 @@ function startRound() {
     state.goTime = performance.now();
     state.toneTop = 'green';
     state.toneBottom = 'green';
-    setStatus('タップ！早く押した方に1点');
+    setStatus('タップ！');
     render();
   }, wait);
 }
 
-function endRound(winner, cause = 'react', actor = null) {
+function addHistory(entry) {
+  state.history.push({
+    round: state.round,
+    apple: entry.apple,
+    banana: entry.banana,
+    winner: entry.winner
+  });
+}
+
+function endRound(winner, cause = 'react', actor = null, reaction = null) {
   clearTimer();
 
-  if (winner === 'top') state.scoreTop += 1;
-  if (winner === 'bottom') state.scoreBottom += 1;
-
-  if (cause === 'react') {
-    state.toneTop = winner === 'top' ? 'green' : 'gray';
-    state.toneBottom = winner === 'bottom' ? 'green' : 'gray';
-  } else if (cause === 'foul') {
-    state.toneTop = actor === 'top' ? 'orange' : 'green';
-    state.toneBottom = actor === 'bottom' ? 'orange' : 'green';
+  if (winner) {
+    state.score[winner] += 1;
   }
 
-  const winTop = state.scoreTop >= WIN_SCORE;
-  const winBottom = state.scoreBottom >= WIN_SCORE;
+  if (cause === 'react') {
+    state.toneTop = state.topPlayer === winner ? 'green' : 'gray';
+    state.toneBottom = state.bottomPlayer === winner ? 'green' : 'gray';
 
-  if (winTop || winBottom) {
+    addHistory({
+      apple: winner === 'apple' ? formatMs(reaction) : '--',
+      banana: winner === 'banana' ? formatMs(reaction) : '--',
+      winner
+    });
+
+    setStatus(`${playerIcon(winner)}の勝ち！ ${reaction}ms`);
+  } else {
+    const foulerKey = actor === 'top' ? state.topPlayer : state.bottomPlayer;
+    const winnerKey = winner;
+
+    state.toneTop = actor === 'top' ? 'orange' : 'green';
+    state.toneBottom = actor === 'bottom' ? 'orange' : 'green';
+
+    addHistory({
+      apple: foulerKey === 'apple' ? 'false start' : '--',
+      banana: foulerKey === 'banana' ? 'false start' : '--',
+      winner: winnerKey
+    });
+
+    setStatus('フライング');
+  }
+
+  const winApple = state.score.apple >= WIN_SCORE;
+  const winBanana = state.score.banana >= WIN_SCORE;
+
+  if (winApple || winBanana) {
     state.phase = 'gameOver';
-    const champ = winTop ? '上プレイヤー' : '下プレイヤー';
-    setStatus(`ゲーム終了：${champ}の勝ち！`);
+    const champ = winApple ? 'apple' : 'banana';
+    setStatus(`${playerIcon(champ)}の勝ち！`);
   } else {
     state.phase = 'roundOver';
-    const roundWinner = winner === 'top' ? '上プレイヤー' : '下プレイヤー';
-    setStatus(`${roundWinner} 1点！「次のラウンド」を押してください`);
   }
 
   render();
 }
 
-function handlePress(player) {
-  if (state.phase === 'idle') return;
+function handlePress(position) {
+  if (state.phase === 'idle' || state.phase === 'roundOver' || state.phase === 'gameOver') return;
 
   if (state.phase === 'waiting') {
-    const winner = player === 'top' ? 'bottom' : 'top';
-    endRound(winner, 'foul', player);
-    const fouler = player === 'top' ? '上プレイヤー' : '下プレイヤー';
-    ui.status.textContent = `${fouler}のフライング！惜しかったのでオレンジ表示`;
+    const winner = position === 'top' ? state.bottomPlayer : state.topPlayer;
+    endRound(winner, 'foul', position);
     return;
   }
 
   if (state.phase !== 'go') return;
 
   const reaction = Math.round(performance.now() - state.goTime);
-  endRound(player, 'react');
-  const winnerLabel = player === 'top' ? '上プレイヤー' : '下プレイヤー';
-  ui.status.textContent = `${winnerLabel}が${reaction}msで獲得！押し負けはグレー表示`;
+  const winner = position === 'top' ? state.topPlayer : state.bottomPlayer;
+  endRound(winner, 'react', null, reaction);
+}
+
+function swapPositions() {
+  [state.topPlayer, state.bottomPlayer] = [state.bottomPlayer, state.topPlayer];
 }
 
 function resetGame() {
   clearTimer();
-  state.scoreTop = 0;
-  state.scoreBottom = 0;
+  state.score.apple = 0;
+  state.score.banana = 0;
   state.phase = 'idle';
   state.round = 0;
   state.toneTop = 'red';
   state.toneBottom = 'red';
-  setStatus('スタートを押して開始（待機色は赤 / 押せる時は緑）');
+  state.topPlayer = 'apple';
+  state.bottomPlayer = 'banana';
+  state.history = [];
+  setStatus('スタートで開始');
   render();
 }
 
-function bindPress(target, player) {
+function bindPress(target, position) {
   const onPress = (event) => {
     event.preventDefault();
-    handlePress(player);
+    handlePress(position);
   };
 
   target.addEventListener('pointerdown', onPress);
@@ -143,16 +226,20 @@ function bindPress(target, player) {
 ui.startBtn.addEventListener('click', () => {
   if (state.phase === 'idle' || state.phase === 'gameOver') {
     if (state.phase === 'gameOver') {
-      state.scoreTop = 0;
-      state.scoreBottom = 0;
+      state.score.apple = 0;
+      state.score.banana = 0;
       state.round = 0;
+      state.history = [];
+      state.topPlayer = 'apple';
+      state.bottomPlayer = 'banana';
     }
     startRound();
   }
 });
 
 ui.nextBtn.addEventListener('click', () => {
-  if (state.phase === 'roundOver' || state.phase === 'idle') {
+  if (state.phase === 'roundOver') {
+    swapPositions();
     startRound();
   }
 });
