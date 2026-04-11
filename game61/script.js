@@ -6,6 +6,7 @@
 const WIN_SCORE = 3;
 const INPUT_GUARD_MS = 100;
 const POST_DECISION_CAPTURE_MS = 100;
+const COUNTDOWN_STEP_MS = 700;
 
 const COLORS = ['red', 'blue', 'green'];
 const SHAPES = ['circle', 'triangle', 'square'];
@@ -58,8 +59,10 @@ const state = {
   roundHistory: [],
   roundTimers: {
     guard: null,
-    finish: null
-  }
+    finish: null,
+    countdown: null
+  },
+  isCountingDown: false
 };
 
 // =========================
@@ -87,8 +90,7 @@ init();
 function init() {
   ui.startButton.addEventListener('click', () => {
     state.isStarted = true;
-    ui.startScreen.hidden = true;
-    ui.app.hidden = false;
+    showGameScreen();
     startNewGame();
   });
 }
@@ -96,6 +98,12 @@ function init() {
 // =========================
 // Core round flow
 // =========================
+
+function showGameScreen() {
+  ui.startScreen.hidden = true;
+  ui.app.hidden = false;
+}
+
 function startNewGame() {
   clearRoundTimers();
 
@@ -120,7 +128,40 @@ function startNextRound() {
   state.winnerOfRound = null;
 
   resetRoundInputState();
-  renderAll();
+
+  renderScore();
+  renderRoundLabel();
+  renderChoices();
+  startRoundCountdown();
+}
+
+function startRoundCountdown() {
+  const countdownValues = ['3', '2', '1'];
+  let index = 0;
+
+  state.isCountingDown = true;
+
+  const tick = () => {
+    const value = countdownValues[index];
+    renderCountdown(value);
+
+    if (index === countdownValues.length - 1) {
+      state.roundTimers.countdown = window.setTimeout(beginRoundInput, COUNTDOWN_STEP_MS);
+      return;
+    }
+
+    index += 1;
+    state.roundTimers.countdown = window.setTimeout(tick, COUNTDOWN_STEP_MS);
+  };
+
+  tick();
+}
+
+function beginRoundInput() {
+  state.roundTimers.countdown = null;
+  state.isCountingDown = false;
+
+  renderTopic();
 
   state.roundTimers.guard = window.setTimeout(() => {
     state.acceptingInput = true;
@@ -273,8 +314,17 @@ function renderPlayerChoices(container, player) {
   });
 }
 
+
+function renderCountdown(value) {
+  ui.topicShape.innerHTML = `<p class="countdown-number" aria-label="カウントダウン ${value}">${value}</p>`;
+  ui.statusPanel.innerHTML = `
+    <p class="status-title">まもなく開始</p>
+    <div>${value}...</div>
+  `;
+}
+
 function renderStatusWaiting() {
-  if (state.roundSettled || state.gameEnded) {
+  if (state.roundSettled || state.gameEnded || state.isCountingDown) {
     return;
   }
 
@@ -423,5 +473,10 @@ function clearRoundTimers() {
   if (state.roundTimers.finish !== null) {
     window.clearTimeout(state.roundTimers.finish);
     state.roundTimers.finish = null;
+  }
+
+  if (state.roundTimers.countdown !== null) {
+    window.clearTimeout(state.roundTimers.countdown);
+    state.roundTimers.countdown = null;
   }
 }
