@@ -30,6 +30,31 @@ body {
   min-height: 100vh;
 }
 
+.start-screen {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.start-screen h1,
+.start-screen p {
+  margin: 0;
+}
+
+.start-screen__eyebrow {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.start-btn {
+  margin-top: 8px;
+}
+
 .app {
   min-height: 100vh;
   display: grid;

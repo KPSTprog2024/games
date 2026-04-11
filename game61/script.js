@@ -26,6 +26,7 @@ const COMBINATIONS = createCombinations();
 // State
 // =========================
 const state = {
+  isStarted: false,
   roundNumber: 0,
   scores: {
     [PLAYER.DIAMOND]: 0,
@@ -38,6 +39,10 @@ const state = {
   gameEnded: false,
   reactionStartAt: 0,
   pressedAt: {
+    [PLAYER.DIAMOND]: null,
+    [PLAYER.HEART]: null
+  },
+  pressedChoiceIndex: {
     [PLAYER.DIAMOND]: null,
     [PLAYER.HEART]: null
   },
@@ -61,6 +66,9 @@ const state = {
 // DOM refs
 // =========================
 const ui = {
+  startScreen: document.getElementById('start-screen'),
+  startButton: document.getElementById('start-btn'),
+  app: document.getElementById('game-app'),
   scoreDiamond: document.getElementById('score-diamond'),
   scoreHeart: document.getElementById('score-heart'),
   roundLabel: document.getElementById('round-label'),
@@ -74,7 +82,16 @@ const ui = {
 // =========================
 // Init
 // =========================
-startNewGame();
+init();
+
+function init() {
+  ui.startButton.addEventListener('click', () => {
+    state.isStarted = true;
+    ui.startScreen.hidden = true;
+    ui.app.hidden = false;
+    startNewGame();
+  });
+}
 
 // =========================
 // Core round flow
@@ -144,6 +161,7 @@ function handlePlayerPress(player, choiceIndex) {
   }
 
   state.pressedAt[player] = now;
+  state.pressedChoiceIndex[player] = choiceIndex;
   state.reactionsMs[player] = Math.max(0, Math.round(now - state.reactionStartAt));
 
   const selected = state.currentChoices[choiceIndex];
@@ -174,13 +192,6 @@ function settleRoundByFirstInput(firstPlayer, firstIsCorrect) {
 function finishRound() {
   state.acceptingInput = false;
 
-  if (state.correctness[PLAYER.DIAMOND] === null) {
-    state.correctness[PLAYER.DIAMOND] = null;
-  }
-  if (state.correctness[PLAYER.HEART] === null) {
-    state.correctness[PLAYER.HEART] = null;
-  }
-
   saveRoundHistory();
 
   if (state.scores[PLAYER.DIAMOND] >= WIN_SCORE || state.scores[PLAYER.HEART] >= WIN_SCORE) {
@@ -206,6 +217,8 @@ function saveRoundHistory() {
 function resetRoundInputState() {
   state.pressedAt[PLAYER.DIAMOND] = null;
   state.pressedAt[PLAYER.HEART] = null;
+  state.pressedChoiceIndex[PLAYER.DIAMOND] = null;
+  state.pressedChoiceIndex[PLAYER.HEART] = null;
   state.reactionsMs[PLAYER.DIAMOND] = null;
   state.reactionsMs[PLAYER.HEART] = null;
   state.correctness[PLAYER.DIAMOND] = null;
@@ -336,23 +349,25 @@ function paintChoiceFeedback() {
     buttons.forEach((btn, index) => {
       btn.classList.toggle('is-correct', state.currentChoices[index].isCorrect);
 
-      const pressed = state.correctness[player] !== null && Number(btn.dataset.index) === pressedChoiceIndex(player);
+      const pressedIndex = pressedChoiceIndex(player);
+      const pressed = pressedIndex !== null && Number(btn.dataset.index) === pressedIndex;
       btn.classList.toggle('is-pressed', pressed);
-
-      if (pressed) {
-        btn.classList.toggle('is-wrong', state.correctness[player] === false);
-      }
+      btn.classList.toggle('is-wrong', pressed && state.correctness[player] === false);
     });
   });
 }
 
-function pressedChoiceIndex(player) {
-  if (state.correctness[player] === null) {
-    return -1;
-  }
+function markPressedVisual(player, choiceIndex) {
+  const container = player === PLAYER.DIAMOND ? ui.diamondChoices : ui.heartChoices;
+  const button = container.querySelector(`.choice-btn[data-index="${choiceIndex}"]`);
 
-  const isCorrect = state.correctness[player];
-  return state.currentChoices.findIndex((choice) => choice.isCorrect === isCorrect);
+  if (button) {
+    button.classList.add('is-pressed');
+  }
+}
+
+function pressedChoiceIndex(player) {
+  return state.pressedChoiceIndex[player];
 }
 
 // =========================
