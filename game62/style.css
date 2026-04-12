@@ -1,0 +1,143 @@
+:root {
+  --bg: #071220;
+  --panel: #0f1d32;
+  --text: #f2f4f8;
+  --accent: #38e0a7;
+  --danger: #ff5c7a;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+#app {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: calc(8px + var(--safe-top)) 8px calc(8px + var(--safe-bottom));
+  gap: 8px;
+}
+
+.hud {
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 8px;
+  font-size: 13px;
+  align-items: center;
+}
+
+.small-btn {
+  grid-column: 3;
+  justify-self: end;
+  border: 1px solid #3f5f8b;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--text);
+  background: #183052;
+  font-weight: 600;
+}
+
+.game-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-canvas {
+  width: min(96vw, 420px);
+  height: min(58dvh, 620px);
+  image-rendering: pixelated;
+  border: 2px solid #27466f;
+  border-radius: 10px;
+  background: #09101a;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(70px, 1fr));
+  grid-template-rows: repeat(2, minmax(52px, 1fr));
+  max-width: 420px;
+  margin: 0 auto;
+  gap: 8px;
+  width: 100%;
+}
+
+.dir {
+  border: 1px solid #44668f;
+  border-radius: 12px;
+  background: #163255;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.dir:active {
+  transform: scale(0.98);
+  background: #244d7f;
+}
+
+.up { grid-column: 2; grid-row: 1; }
+.left { grid-column: 1; grid-row: 2; }
+.right { grid-column: 3; grid-row: 2; }
+.down { grid-column: 2; grid-row: 2; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.hidden { display: none; }
+
+.modal-card {
+  width: min(92vw, 360px);
+  background: #101f37;
+  border-radius: 14px;
+  border: 1px solid #42648f;
+  padding: 18px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #041021;
+  background: var(--accent);
+}
+
+.modal-actions button.secondary {
+  background: #94a4bd;
+}
