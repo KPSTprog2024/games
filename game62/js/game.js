@@ -27,6 +27,8 @@ export class Game {
     this.state = GAME_STATES.BOOT;
     this.lastTs = 0;
     this.stageIndex = 0;
+    this.enemyCount = CONFIG.difficulty.initialEnemies;
+    this.enemySpeed = CONFIG.difficulty.initialEnemySpeed;
     this.score = 0;
     this.highScore = Number(localStorage.getItem(STORAGE_KEYS.HIGH_SCORE) || 0);
     this.lives = CONFIG.game.initialLives;
@@ -134,13 +136,15 @@ export class Game {
 
   showTitle() {
     this.state = GAME_STATES.TITLE;
-    this.ui.showModal('Area Trace 62', `High Score: ${this.highScore}`, [
+    this.ui.showModal('Jintori', `High Score: ${this.highScore}`, [
       { label: 'Start Game', onClick: () => this.startNewGame() },
     ]);
   }
 
   startNewGame() {
     this.stageIndex = 0;
+    this.enemyCount = CONFIG.difficulty.initialEnemies;
+    this.enemySpeed = CONFIG.difficulty.initialEnemySpeed;
     this.score = 0;
     this.lives = CONFIG.game.initialLives;
     this.startStage();
@@ -151,9 +155,8 @@ export class Game {
     this.trail.clear(this.field);
     this.player.resetPosition();
 
-    const stage = CONFIG.stages[this.stageIndex];
-    const spawns = createEnemySpawns(this.field, stage.enemies);
-    this.enemies = spawns.map((s) => new Enemy(this.field, stage.speed, this.cellSize, s));
+    const spawns = createEnemySpawns(this.field, this.enemyCount);
+    this.enemies = spawns.map((s) => new Enemy(this.field, this.enemySpeed, this.cellSize, s));
 
     this.state = GAME_STATES.READY;
     this.syncHud();
@@ -206,26 +209,27 @@ export class Game {
   }
 
   checkStageClear() {
-    const stage = CONFIG.stages[this.stageIndex];
     const fill = this.field.getFillRate();
-    const target = stage.targetFillRate ?? CONFIG.game.targetFillRate;
+    const target = CONFIG.game.targetFillRate;
 
     if (fill >= target) {
       this.state = GAME_STATES.STAGE_CLEAR;
       this.score += CONFIG.scoring.stageClearBonus + this.lives * CONFIG.scoring.lifeBonus;
       this.audio.playClear();
       this.syncHud();
-
-      if (this.stageIndex >= CONFIG.stages.length - 1) {
-        this.ui.showModal('All Clear!', '全ステージクリア！', [
-          { label: 'Title', onClick: () => this.showTitle() },
-          { label: 'Replay', secondary: true, onClick: () => this.startNewGame() },
-        ]);
+      const clearedStageNumber = this.stageIndex + 1;
+      if (clearedStageNumber % 2 === 1) {
+        this.enemySpeed = Math.min(
+          CONFIG.difficulty.maxEnemySpeed,
+          this.enemySpeed + CONFIG.difficulty.speedUpPerOddClear,
+        );
       } else {
-        this.ui.showModal('Stage Clear!', '次のステージへ進みます。', [
-          { label: 'Next', onClick: () => { this.stageIndex += 1; this.startStage(); } },
-        ]);
+        this.enemyCount += CONFIG.difficulty.enemyIncreasePerEvenClear;
       }
+
+      this.ui.showModal('Stage Clear!', '次のステージへ進みます。', [
+        { label: 'Next', onClick: () => { this.stageIndex += 1; this.startStage(); } },
+      ]);
     }
   }
 
@@ -244,13 +248,12 @@ export class Game {
   }
 
   syncHud() {
-    const stage = CONFIG.stages[this.stageIndex] ?? CONFIG.stages[CONFIG.stages.length - 1];
     this.ui.updateHud({
       stage: this.stageIndex + 1,
       score: this.score,
       lives: this.lives,
       filled: this.field.getFillRate(),
-      target: stage.targetFillRate ?? CONFIG.game.targetFillRate,
+      target: CONFIG.game.targetFillRate,
     });
   }
 }

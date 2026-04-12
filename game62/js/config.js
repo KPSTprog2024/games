@@ -30,18 +30,18 @@ export const CONFIG = {
     initialLives: 3,
     missInvincibleMs: 800,
   },
+  difficulty: {
+    initialEnemies: 1,
+    initialEnemySpeed: 52,
+    speedUpPerOddClear: 10,
+    enemyIncreasePerEvenClear: 1,
+    maxEnemySpeed: 180,
+  },
   scoring: {
     capturePerCell: 8,
     stageClearBonus: 1200,
     lifeBonus: 400,
   },
-  stages: [
-    { enemies: 1, speed: 48, targetFillRate: 0.75 },
-    { enemies: 1, speed: 64, targetFillRate: 0.75 },
-    { enemies: 2, speed: 58, targetFillRate: 0.75 },
-    { enemies: 2, speed: 72, targetFillRate: 0.75 },
-    { enemies: 2, speed: 88, targetFillRate: 0.8 },
-  ],
   colors: {
     uncaptured: '#0a1423',
     captured: '#1f7a6f',
