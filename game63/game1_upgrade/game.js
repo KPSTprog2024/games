@@ -44,7 +44,12 @@ function startSession(mode, gridSize, displayTime) {
         dynamicDisplayTime: displayTime,
         winStreak: 0,
         loseStreak: 0,
-        adjustmentMessage: ''
+        adjustmentMessage: '',
+        reviewQueue: [],
+        reviewStats: {
+            total: 0,
+            success: 0
+        }
     };
     return SESSION_STATE.currentSession;
 }
@@ -84,6 +89,7 @@ function saveSessionToLocalStorage(session) {
         gridSize: session.gridSize,
         initialDisplayTime: session.displayTime,
         stats: session.stats,
+        reviewStats: session.reviewStats,
         events: session.events
     });
     localStorage.setItem(GAME_METRICS_KEY, JSON.stringify(saved));
@@ -99,6 +105,46 @@ function endSession() {
     });
     session.endedAt = new Date().toISOString();
     saveSessionToLocalStorage(session);
+}
+
+function cloneRoundPlan(plan) {
+    return JSON.parse(JSON.stringify(plan));
+}
+
+function createRoundPlanFromGrid(grid, gameMode, roundId) {
+    return {
+        sourceRoundId: roundId,
+        gameMode,
+        targets: grid
+            .filter((cell) => (gameMode === 'number' ? cell.number !== null : cell.color !== null))
+            .map((cell) => ({
+                row: cell.row,
+                col: cell.col,
+                number: cell.number,
+                color: cell.color,
+                colorName: cell.colorName
+            }))
+    };
+}
+
+function enqueueReviewRound(roundPlan) {
+    const session = getSession();
+    if (!session || !roundPlan?.targets?.length) return;
+    session.reviewQueue.push({
+        dueInRounds: Phaser.Math.Between(1, 3),
+        roundPlan: cloneRoundPlan(roundPlan)
+    });
+}
+
+function popDueReviewRound(currentMode) {
+    const session = getSession();
+    if (!session || session.reviewQueue.length === 0) return null;
+    session.reviewQueue.forEach((item) => {
+        item.dueInRounds -= 1;
+    });
+    const dueIndex = session.reviewQueue.findIndex((item) => item.dueInRounds <= 0 && item.roundPlan.gameMode === currentMode);
+    if (dueIndex === -1) return null;
+    return session.reviewQueue.splice(dueIndex, 1)[0].roundPlan;
 }
 
 function getHintText(grid) {
@@ -270,6 +316,23 @@ class SelectionScene extends Phaser.Scene {
             align: 'center',
             wordWrap: { width: width * 0.9 }
         }).setOrigin(0.5, 0.5);
+
+        const savedSessions = JSON.parse(localStorage.getItem(GAME_METRICS_KEY) || '[]');
+        const latestSession = savedSessions[savedSessions.length - 1];
+        if (latestSession?.reviewStats?.total > 0) {
+            const recapFontSize = calculateResponsiveSize(this, 0.032);
+            this.add.text(
+                width / 2,
+                height * 0.16,
+                `きょうは ${latestSession.reviewStats.success}/${latestSession.reviewStats.total} もん おもいだせたよ`,
+                {
+                    fontSize: `${recapFontSize}px`,
+                    fill: '#000',
+                    align: 'center',
+                    wordWrap: { width: width * 0.9 }
+                }
+            ).setOrigin(0.5, 0.5);
+        }
 
         // ボタン設定
         const buttonWidth = width * 0.25;
@@ -495,10 +558,19 @@ class GameScene extends BaseScene {
         this.clickedTargets = 0;
         this.chunkHighlights = [];
         this.roundId = `round-${Date.now()}`;
+        this.isReviewRound = false;
+        this.reviewSourceRoundId = null;
+        this.roundPlan = null;
     }
 
     create() {
         const { width, height } = this.scale;
+        const dueReview = popDueReviewRound(this.gameMode);
+        if (dueReview) {
+            this.roundPlan = dueReview;
+            this.isReviewRound = true;
+            this.reviewSourceRoundId = dueReview.sourceRoundId;
+        }
         const session = getSession();
         if (session) {
             session.dynamicLevel = this.level;
@@ -506,7 +578,9 @@ class GameScene extends BaseScene {
             recordEvent('round_start', {
                 level: this.level,
                 mode: this.gameMode,
-                roundId: this.roundId
+                roundId: this.roundId,
+                sourceRoundId: this.reviewSourceRoundId,
+                result: this.isReviewRound ? 'review' : 'normal'
             });
         }
 
@@ -516,6 +590,14 @@ class GameScene extends BaseScene {
             fontSize: `${levelFontSize}px`,
             fill: '#000'
         }).setOrigin(0, 0);
+
+        if (this.isReviewRound) {
+            this.add.text(width / 2, height * 0.12, 'おもいだし ちゃれんじ', {
+                fontSize: `${levelFontSize}px`,
+                fill: '#000',
+                align: 'center'
+            }).setOrigin(0.5, 0.5);
+        }
 
         // グリッドの描画
         this.drawGrid();
@@ -539,31 +621,42 @@ class GameScene extends BaseScene {
     }
 
     placeNumbers() {
-        const totalNumbers = this.level + 2;
+        const usingPlan = this.isReviewRound && this.roundPlan?.targets?.length > 0;
+        const totalNumbers = usingPlan ? this.roundPlan.targets.length : this.level + 2;
         if (totalNumbers > this.gridSize * this.gridSize) {
             alert('れべるがたかすぎます！ げーむをしゅうりょうします。');
             this.scene.start('SelectionScene');
             return;
         }
 
-        // 1からtotalNumbersまでの数字を生成
-        this.numbers = [];
-        for (let i = 1; i <= totalNumbers; i++) {
-            this.numbers.push(i);
+        if (usingPlan) {
+            this.numbers = this.roundPlan.targets.map((target) => target.number).sort((a, b) => a - b);
+            this.roundPlan.targets.forEach((target) => {
+                const cell = this.grid.find((gridCell) => gridCell.row === target.row && gridCell.col === target.col);
+                if (cell) cell.number = target.number;
+            });
+        } else {
+            // 1からtotalNumbersまでの数字を生成
+            this.numbers = [];
+            for (let i = 1; i <= totalNumbers; i++) {
+                this.numbers.push(i);
+            }
+
+            // 数字の配置場所をランダムに選択
+            const availableIndices = Phaser.Utils.Array.NumberArray(0, this.grid.length - 1);
+            Phaser.Utils.Array.Shuffle(availableIndices);
+
+            this.numbers.forEach((num, index) => {
+                const gridIndex = availableIndices[index];
+                const cell = this.grid[gridIndex];
+                cell.number = num;
+            });
         }
 
-        // 数字の配置場所をランダムに選択
-        const availableIndices = Phaser.Utils.Array.NumberArray(0, this.grid.length - 1);
-        Phaser.Utils.Array.Shuffle(availableIndices);
-
-        this.numbers.forEach((num, index) => {
-            const gridIndex = availableIndices[index];
-            const cell = this.grid[gridIndex];
-            cell.number = num;
-
+        this.grid.filter((cell) => cell.number !== null).forEach((cell) => {
             // 数字のテキストオブジェクトを作成
             const numberFontSize = calculateResponsiveSize(this, 0.06);
-            const numberText = this.add.text(cell.x, cell.y, num, {
+            const numberText = this.add.text(cell.x, cell.y, cell.number, {
                 fontSize: `${numberFontSize}px`,
                 fill: '#fff',
                 backgroundColor: Phaser.Display.Color.IntegerToColor(COLORS.danger).rgba,
@@ -577,33 +670,45 @@ class GameScene extends BaseScene {
     }
 
     placeColors() {
-        const totalColors = this.level + 2;
+        const usingPlan = this.isReviewRound && this.roundPlan?.targets?.length > 0;
+        const totalColors = usingPlan ? this.roundPlan.targets.length : this.level + 2;
         if (totalColors > this.gridSize * this.gridSize) {
             alert('れべるがたかすぎます！ げーむをしゅうりょうします。');
             this.scene.start('SelectionScene');
             return;
         }
 
-        const chunkPool = Phaser.Utils.Array.Shuffle([...MEMORY_CHUNK_COLORS]);
-        const chunkTypes = chunkPool.slice(0, Math.min(3, totalColors));
-        const selectedColors = [];
-        for (let i = 0; i < totalColors; i++) {
-            selectedColors.push(chunkTypes[i % chunkTypes.length]);
+        if (usingPlan) {
+            this.roundPlan.targets.forEach((target) => {
+                const cell = this.grid.find((gridCell) => gridCell.row === target.row && gridCell.col === target.col);
+                if (!cell) return;
+                cell.color = target.color;
+                cell.colorName = target.colorName;
+            });
+        } else {
+            const chunkPool = Phaser.Utils.Array.Shuffle([...MEMORY_CHUNK_COLORS]);
+            const chunkTypes = chunkPool.slice(0, Math.min(3, totalColors));
+            const selectedColors = [];
+            for (let i = 0; i < totalColors; i++) {
+                selectedColors.push(chunkTypes[i % chunkTypes.length]);
+            }
+            Phaser.Utils.Array.Shuffle(selectedColors);
+
+            // 色の配置場所をランダムに選択
+            const availableIndices = Phaser.Utils.Array.NumberArray(0, this.grid.length - 1);
+            Phaser.Utils.Array.Shuffle(availableIndices);
+
+            selectedColors.forEach((chunk, index) => {
+                const gridIndex = availableIndices[index];
+                const cell = this.grid[gridIndex];
+                cell.color = chunk.color;
+                cell.colorName = chunk.label;
+            });
         }
-        Phaser.Utils.Array.Shuffle(selectedColors);
 
-        // 色の配置場所をランダムに選択
-        const availableIndices = Phaser.Utils.Array.NumberArray(0, this.grid.length - 1);
-        Phaser.Utils.Array.Shuffle(availableIndices);
-
-        selectedColors.forEach((chunk, index) => {
-            const gridIndex = availableIndices[index];
-            const cell = this.grid[gridIndex];
-            cell.color = chunk.color;
-            cell.colorName = chunk.label;
-
+        this.grid.filter((cell) => cell.color !== null).forEach((cell) => {
             // 色ブロックのオブジェクトを作成（初期は表示）
-            const colorBlock = this.add.rectangle(cell.x, cell.y, cell.width * 0.8, cell.height * 0.8, chunk.color)
+            const colorBlock = this.add.rectangle(cell.x, cell.y, cell.width * 0.8, cell.height * 0.8, cell.color)
                 .setOrigin(0.5, 0.5)
                 .setInteractive()
                 .setAlpha(1); // 初期は表示
@@ -612,7 +717,7 @@ class GameScene extends BaseScene {
 
         this.drawChunkHighlights();
 
-        this.totalTargets = selectedColors.length;
+        this.totalTargets = this.grid.filter((cell) => cell.color !== null).length;
     }
 
     drawChunkHighlights() {
@@ -677,6 +782,14 @@ class GameScene extends BaseScene {
         session.dynamicLevel = nextLevel;
         session.dynamicDisplayTime = nextDisplayTime;
         session.adjustmentMessage = adjustmentMessage;
+        if (this.isReviewRound) {
+            session.reviewStats.total += 1;
+            if (isSuccess) {
+                session.reviewStats.success += 1;
+            }
+        } else if (isSuccess) {
+            enqueueReviewRound(createRoundPlanFromGrid(this.grid, this.gameMode, this.roundId));
+        }
 
         if (adjustmentMessage) {
             recordEvent('difficulty_adjusted', {
@@ -749,7 +862,8 @@ class GameScene extends BaseScene {
                             gridSize: this.gridSize,
                             gameMode: this.gameMode,
                             grid: this.grid,
-                            adjustmentMessage: adjustment.adjustmentMessage
+                            adjustmentMessage: adjustment.adjustmentMessage,
+                            isReviewRound: this.isReviewRound
                         });
                     }, [], this);
                 }
@@ -837,7 +951,8 @@ class GameScene extends BaseScene {
                         gridSize: this.gridSize,
                         gameMode: this.gameMode,
                         grid: this.grid,
-                        adjustmentMessage: adjustment.adjustmentMessage
+                        adjustmentMessage: adjustment.adjustmentMessage,
+                        isReviewRound: this.isReviewRound
                     });
                 }, [], this);
             }
@@ -906,6 +1021,7 @@ class ClearScene extends BaseScene {
         super.init(data);
         this.grid = data.grid; // グリッドデータを受け取る
         this.adjustmentMessage = data.adjustmentMessage || '';
+        this.isReviewRound = data.isReviewRound || false;
         this.messages = [
             'すごい！',
             'よくできた！',
@@ -963,6 +1079,15 @@ class ClearScene extends BaseScene {
             align: 'center',
             wordWrap: { width: width * 0.9 }
         }).setOrigin(0.5, 0.5);
+
+        if (this.isReviewRound) {
+            const reviewFontSize = calculateResponsiveSize(this, 0.04);
+            this.add.text(width / 2, height * 0.42, 'おもいだし せいこう！', {
+                fontSize: `${reviewFontSize}px`,
+                fill: '#000',
+                align: 'center'
+            }).setOrigin(0.5, 0.5);
+        }
 
         if (this.adjustmentMessage) {
             const adjustFontSize = calculateResponsiveSize(this, 0.04);
