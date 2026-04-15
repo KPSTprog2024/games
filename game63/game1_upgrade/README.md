@@ -32,6 +32,13 @@
 - 表示フェーズでリズムガイド（`rhythm_guide_played`）を再生し、`rhythmStats.roundsWithGuide` を保存します。
 - 色モードでは順序タッチを導入し、順番違いは `recall_fail.result = "wrong_order"` で記録されます。
 
+## Sprint 3 調整（PROMPT-0008）メモ
+
+- 色モードの順番ミスは即失敗ではなく、`order_retry_stage`（stage_1 / stage_2）で段階ヒントを出して再挑戦できます。
+- 3回目の順番ミスで `recall_fail.result = "wrong_order"` として失敗扱いになります。
+- 2連敗で緩和が発動した場合、`tempo_suggested` イベントを保存し、設定画面に「ゆっくりてんぽ」推奨文が表示されます。
+- セッション保存データに `orderStats`（完遂率用）と `supportStats.tempoSuggestedCount` が追加されます。
+
 ## 注意
 
 - 今後の改修は原則この `game63/game1_upgrade/` を基準に行い、`game1` 本体は変更しない。

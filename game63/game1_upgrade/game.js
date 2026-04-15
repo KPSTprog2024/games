@@ -57,6 +57,15 @@ function startSession(mode, gridSize, displayTime, tempo) {
         reviewStats: {
             total: 0,
             success: 0
+        },
+        orderStats: {
+            attempted: 0,
+            completed: 0,
+            failed: 0,
+            recoveredAfterHint: 0
+        },
+        supportStats: {
+            tempoSuggestedCount: 0
         }
     };
     return SESSION_STATE.currentSession;
@@ -101,6 +110,8 @@ function saveSessionToLocalStorage(session) {
         stats: session.stats,
         rhythmStats: session.rhythmStats,
         reviewStats: session.reviewStats,
+        orderStats: session.orderStats,
+        supportStats: session.supportStats,
         events: session.events
     });
     localStorage.setItem(GAME_METRICS_KEY, JSON.stringify(saved));
@@ -359,6 +370,35 @@ class SelectionScene extends Phaser.Scene {
                 }
             ).setOrigin(0.5, 0.5);
         }
+        if (latestSession?.orderStats?.attempted > 0) {
+            const orderRate = Math.round((latestSession.orderStats.completed / latestSession.orderStats.attempted) * 100);
+            const orderRecapFontSize = calculateResponsiveSize(this, 0.028);
+            this.add.text(
+                width / 2,
+                height * 0.235,
+                `じゅんばん かんすいりつ ${orderRate}%`,
+                {
+                    fontSize: `${orderRecapFontSize}px`,
+                    fill: '#000',
+                    align: 'center',
+                    wordWrap: { width: width * 0.9 }
+                }
+            ).setOrigin(0.5, 0.5);
+        }
+        if (latestSession?.supportStats?.tempoSuggestedCount > 0) {
+            const supportRecapFontSize = calculateResponsiveSize(this, 0.026);
+            this.add.text(
+                width / 2,
+                height * 0.265,
+                'れんぱいしたら ゆっくりてんぽを つかってみよう',
+                {
+                    fontSize: `${supportRecapFontSize}px`,
+                    fill: '#000',
+                    align: 'center',
+                    wordWrap: { width: width * 0.9 }
+                }
+            ).setOrigin(0.5, 0.5);
+        }
 
         // ボタン設定
         const buttonWidth = width * 0.25;
@@ -609,6 +649,8 @@ class GameScene extends BaseScene {
         this.reviewSourceRoundId = null;
         this.roundPlan = null;
         this.recallSequence = [];
+        this.orderMistakeCount = 0;
+        this.orderAssistUsed = false;
     }
 
     create() {
@@ -650,6 +692,19 @@ class GameScene extends BaseScene {
                 fill: '#000',
                 align: 'center'
             }).setOrigin(0.5, 0.5);
+        }
+        this.orderHintText = this.add.text(width / 2, height * 0.9, '', {
+            fontSize: `${calculateResponsiveSize(this, 0.034)}px`,
+            fill: '#000',
+            align: 'center',
+            wordWrap: { width: width * 0.9 }
+        }).setOrigin(0.5, 0.5).setVisible(false);
+        this.orderGuideRing = this.add.circle(0, 0, 10)
+            .setStrokeStyle(6, 0xffd43b, 0.9)
+            .setFillStyle(0xffd43b, 0.12)
+            .setVisible(false);
+        if (session && this.gameMode === 'color') {
+            session.orderStats.attempted += 1;
         }
 
         // グリッドの描画
@@ -911,8 +966,46 @@ class GameScene extends BaseScene {
                 roundId: this.roundId,
                 result: adjustmentMessage
             });
+            if (adjustmentMessage.includes('やさしく')) {
+                session.supportStats.tempoSuggestedCount += 1;
+                recordEvent('tempo_suggested', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    tempo: this.tempo,
+                    roundId: this.roundId,
+                    result: 'slow_recommended'
+                });
+            }
         }
         return { nextLevel, nextDisplayTime, adjustmentMessage };
+    }
+
+    showOrderSupport(stage, expectedStep) {
+        if (!this.orderHintText) return;
+        if (stage === 1) {
+            this.orderHintText.setText('じゅんばんを おもいだして もういちど').setVisible(true);
+            return;
+        }
+
+        this.orderAssistUsed = true;
+        this.orderHintText.setText('ひかる ます から たっちしよう').setVisible(true);
+        const expectedCell = expectedStep
+            ? this.grid.find((cell) => cell.row === expectedStep.row && cell.col === expectedStep.col)
+            : null;
+        if (!expectedCell || !this.orderGuideRing) return;
+        this.orderGuideRing
+            .setVisible(true)
+            .setPosition(expectedCell.x, expectedCell.y)
+            .setRadius(expectedCell.width * 0.36)
+            .setScale(1)
+            .setAlpha(0.95);
+        this.tweens.add({
+            targets: this.orderGuideRing,
+            scale: { from: 1, to: 1.35 },
+            alpha: { from: 0.95, to: 0.2 },
+            yoyo: true,
+            duration: 380
+        });
     }
 
     handleGridClick(row, col) {
@@ -1042,6 +1135,17 @@ class GameScene extends BaseScene {
             const expectedStep = this.recallSequence[this.clickedTargets];
             const isRightOrder = expectedStep && expectedStep.row === row && expectedStep.col === col;
             if (!isRightOrder) {
+                this.orderMistakeCount += 1;
+                recordEvent('order_retry_stage', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: `stage_${this.orderMistakeCount}`,
+                    roundId: this.roundId
+                });
+                if (this.orderMistakeCount <= 2) {
+                    this.showOrderSupport(this.orderMistakeCount, expectedStep);
+                    return;
+                }
                 recordEvent('recall_fail', {
                     level: this.level,
                     mode: this.gameMode,
@@ -1049,6 +1153,10 @@ class GameScene extends BaseScene {
                     roundId: this.roundId
                 });
                 const adjustment = this.resolveRoundResult(false);
+                const session = getSession();
+                if (session) {
+                    session.orderStats.failed += 1;
+                }
                 this.wrongCells.push({ row, col });
                 this.scene.start('RetryScene', {
                     displayTime: adjustment.nextDisplayTime,
@@ -1086,6 +1194,13 @@ class GameScene extends BaseScene {
                     roundId: this.roundId
                 });
                 const adjustment = this.resolveRoundResult(true);
+                const session = getSession();
+                if (session) {
+                    session.orderStats.completed += 1;
+                    if (this.orderAssistUsed || this.orderMistakeCount > 0) {
+                        session.orderStats.recoveredAfterHint += 1;
+                    }
+                }
                 this.time.delayedCall(500, () => {
                     this.scene.start('ClearScene', {
                         displayTime: adjustment.nextDisplayTime,
