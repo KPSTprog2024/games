@@ -13,6 +13,108 @@ const COLORS = {
     selectedHover: 0xFB8C00   // 選択されたボタンのホバー時の色
 };
 
+const MEMORY_CHUNK_COLORS = [
+    { color: 0xff6b6b, label: 'あか' },
+    { color: 0x4dabf7, label: 'あお' },
+    { color: 0xffd43b, label: 'きいろ' },
+    { color: 0x69db7c, label: 'みどり' }
+];
+
+const GAME_METRICS_KEY = 'game1_memory_sessions_v1';
+
+const SESSION_STATE = {
+    currentSession: null
+};
+
+function startSession(mode, gridSize, displayTime) {
+    const sessionId = `session-${Date.now()}`;
+    SESSION_STATE.currentSession = {
+        sessionId,
+        mode,
+        gridSize,
+        displayTime,
+        startedAt: new Date().toISOString(),
+        events: [],
+        stats: {
+            roundsPlayed: 0,
+            successCount: 0,
+            failCount: 0
+        },
+        dynamicLevel: 1,
+        dynamicDisplayTime: displayTime,
+        winStreak: 0,
+        loseStreak: 0,
+        adjustmentMessage: ''
+    };
+    return SESSION_STATE.currentSession;
+}
+
+function getSession() {
+    return SESSION_STATE.currentSession;
+}
+
+function recordEvent(eventName, payload = {}) {
+    const session = getSession();
+    if (!session) return;
+    const event = {
+        event: eventName,
+        timestamp: new Date().toISOString(),
+        level: payload.level ?? session.dynamicLevel,
+        mode: payload.mode ?? session.mode,
+        result: payload.result ?? null,
+        round_id: payload.roundId ?? null,
+        source_round_id: payload.sourceRoundId ?? null
+    };
+    Object.keys(event).forEach((key) => {
+        if (event[key] === null || event[key] === undefined) {
+            delete event[key];
+        }
+    });
+    session.events.push(event);
+}
+
+function saveSessionToLocalStorage(session) {
+    if (!session) return;
+    const saved = JSON.parse(localStorage.getItem(GAME_METRICS_KEY) || '[]');
+    saved.push({
+        sessionId: session.sessionId,
+        startedAt: session.startedAt,
+        endedAt: new Date().toISOString(),
+        mode: session.mode,
+        gridSize: session.gridSize,
+        initialDisplayTime: session.displayTime,
+        stats: session.stats,
+        events: session.events
+    });
+    localStorage.setItem(GAME_METRICS_KEY, JSON.stringify(saved));
+}
+
+function endSession() {
+    const session = getSession();
+    if (!session || session.endedAt) return;
+    recordEvent('session_end', {
+        level: session.dynamicLevel,
+        mode: session.mode,
+        result: session.stats.failCount > 0 ? 'mixed' : 'success'
+    });
+    session.endedAt = new Date().toISOString();
+    saveSessionToLocalStorage(session);
+}
+
+function getHintText(grid) {
+    const colorCountMap = {};
+    grid.forEach((cell) => {
+        if (cell.colorName) {
+            colorCountMap[cell.colorName] = (colorCountMap[cell.colorName] || 0) + 1;
+        }
+    });
+    const strongestColor = Object.entries(colorCountMap).sort((a, b) => b[1] - a[1])[0];
+    if (strongestColor) {
+        return `つぎは ${strongestColor[0]} のなかま から おぼえよう`;
+    }
+    return 'さいしょは 1つのいろ だけ みよう';
+}
+
 // フォントサイズとボタンサイズの調整関数
 function calculateResponsiveSize(scene, baseSize) {
     const { width, height } = scene.scale;
@@ -155,6 +257,10 @@ class SelectionScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.scale;
+        const existingSession = getSession();
+        if (existingSession && !existingSession.endedAt && existingSession.stats.roundsPlayed > 0) {
+            endSession();
+        }
 
         // タイトル
         const titleFontSize = calculateResponsiveSize(this, 0.06);
@@ -286,9 +392,10 @@ class SelectionScene extends Phaser.Scene {
             COLORS.successHover,
             () => {
                 if (startButton.getData('enabled')) {
+                    const session = startSession(this.selectedGameMode, this.selectedGridSize, this.selectedTime);
                     this.scene.start('CountdownScene', {
-                        displayTime: this.selectedTime,
-                        level: 1,
+                        displayTime: session.dynamicDisplayTime,
+                        level: session.dynamicLevel,
                         gridSize: this.selectedGridSize,
                         gameMode: this.selectedGameMode
                     });
@@ -386,10 +493,22 @@ class GameScene extends BaseScene {
         this.wrongCells = [];
         this.totalTargets = 0;
         this.clickedTargets = 0;
+        this.chunkHighlights = [];
+        this.roundId = `round-${Date.now()}`;
     }
 
     create() {
         const { width, height } = this.scale;
+        const session = getSession();
+        if (session) {
+            session.dynamicLevel = this.level;
+            session.dynamicDisplayTime = this.displayTime;
+            recordEvent('round_start', {
+                level: this.level,
+                mode: this.gameMode,
+                roundId: this.roundId
+            });
+        }
 
         // レベル表示
         const levelFontSize = calculateResponsiveSize(this, 0.04);
@@ -411,6 +530,11 @@ class GameScene extends BaseScene {
         // 一定時間後に表示を隠す
         this.time.delayedCall(this.displayTime, () => {
             this.hideElements();
+            recordEvent('memorize_phase_end', {
+                level: this.level,
+                mode: this.gameMode,
+                roundId: this.roundId
+            });
         }, [], this);
     }
 
@@ -460,41 +584,56 @@ class GameScene extends BaseScene {
             return;
         }
 
-        // 色のリスト
-        const colors = [
-            0xff5733, // あか
-            0x33ff57, // みどり
-            0x3357ff, // あお
-            0xff33a8, // ピンク
-            0xfff933, // きいろ
-            0x33fff5, // みずいろ
-            0x8e44ad, // むらさき
-            0xe67e22, // オレンジ
-            0x2ecc71, // ライム
-            0x3498db  // あかるいあお
-        ];
-
-        // 色の選択
-        const selectedColors = Phaser.Utils.Array.Shuffle(colors).slice(0, totalColors);
+        const chunkPool = Phaser.Utils.Array.Shuffle([...MEMORY_CHUNK_COLORS]);
+        const chunkTypes = chunkPool.slice(0, Math.min(3, totalColors));
+        const selectedColors = [];
+        for (let i = 0; i < totalColors; i++) {
+            selectedColors.push(chunkTypes[i % chunkTypes.length]);
+        }
+        Phaser.Utils.Array.Shuffle(selectedColors);
 
         // 色の配置場所をランダムに選択
         const availableIndices = Phaser.Utils.Array.NumberArray(0, this.grid.length - 1);
         Phaser.Utils.Array.Shuffle(availableIndices);
 
-        selectedColors.forEach((color, index) => {
+        selectedColors.forEach((chunk, index) => {
             const gridIndex = availableIndices[index];
             const cell = this.grid[gridIndex];
-            cell.color = color;
+            cell.color = chunk.color;
+            cell.colorName = chunk.label;
 
             // 色ブロックのオブジェクトを作成（初期は表示）
-            const colorBlock = this.add.rectangle(cell.x, cell.y, cell.width * 0.8, cell.height * 0.8, color)
+            const colorBlock = this.add.rectangle(cell.x, cell.y, cell.width * 0.8, cell.height * 0.8, chunk.color)
                 .setOrigin(0.5, 0.5)
                 .setInteractive()
                 .setAlpha(1); // 初期は表示
             cell.object = colorBlock;
         });
 
+        this.drawChunkHighlights();
+
         this.totalTargets = selectedColors.length;
+    }
+
+    drawChunkHighlights() {
+        const groupedCells = {};
+        this.grid.forEach((cell) => {
+            if (!cell.colorName) return;
+            if (!groupedCells[cell.colorName]) {
+                groupedCells[cell.colorName] = [];
+            }
+            groupedCells[cell.colorName].push(cell);
+        });
+
+        Object.values(groupedCells).forEach((cells) => {
+            if (cells.length <= 1) return;
+            cells.forEach((cell) => {
+                const ring = this.add.circle(cell.x, cell.y, cell.width * 0.42)
+                    .setStrokeStyle(4, 0xffffff, 0.8)
+                    .setFillStyle(0xffffff, 0.08);
+                this.chunkHighlights.push(ring);
+            });
+        });
     }
 
     hideElements() {
@@ -503,6 +642,51 @@ class GameScene extends BaseScene {
                 cell.object.setVisible(false);
             }
         });
+        this.chunkHighlights.forEach((highlight) => highlight.setVisible(false));
+    }
+
+    resolveRoundResult(isSuccess) {
+        const session = getSession();
+        if (!session) return { nextLevel: this.level, nextDisplayTime: this.displayTime, adjustmentMessage: '' };
+        session.stats.roundsPlayed += 1;
+        if (isSuccess) {
+            session.stats.successCount += 1;
+            session.winStreak += 1;
+            session.loseStreak = 0;
+        } else {
+            session.stats.failCount += 1;
+            session.loseStreak += 1;
+            session.winStreak = 0;
+        }
+
+        let nextLevel = this.level;
+        let nextDisplayTime = this.displayTime;
+        let adjustmentMessage = '';
+        if (session.loseStreak >= 2) {
+            nextLevel = Math.max(1, this.level - 1);
+            nextDisplayTime = Math.min(3000, this.displayTime + 500);
+            session.loseStreak = 0;
+            adjustmentMessage = 'ちょっと やさしくしたよ';
+        } else if (session.winStreak >= 2) {
+            nextLevel = this.level + 1;
+            nextDisplayTime = Math.max(500, this.displayTime - 200);
+            session.winStreak = 0;
+            adjustmentMessage = 'ちょっと つよくしたよ';
+        }
+
+        session.dynamicLevel = nextLevel;
+        session.dynamicDisplayTime = nextDisplayTime;
+        session.adjustmentMessage = adjustmentMessage;
+
+        if (adjustmentMessage) {
+            recordEvent('difficulty_adjusted', {
+                level: this.level,
+                mode: this.gameMode,
+                roundId: this.roundId,
+                result: adjustmentMessage
+            });
+        }
+        return { nextLevel, nextDisplayTime, adjustmentMessage };
     }
 
     handleGridClick(row, col) {
@@ -512,14 +696,23 @@ class GameScene extends BaseScene {
         if (this.gameMode === 'number') {
             // 数字モード
             if (clickedCell.number === null) {
+                recordEvent('recall_fail', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: 'fail',
+                    roundId: this.roundId
+                });
+                const adjustment = this.resolveRoundResult(false);
                 this.wrongCells.push({ row, col });
                 this.scene.start('RetryScene', {
-                    displayTime: this.displayTime,
-                    level: this.level,
+                    displayTime: adjustment.nextDisplayTime,
+                    level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
                     grid: this.grid,
-                    wrongCells: this.wrongCells
+                    wrongCells: this.wrongCells,
+                    hintText: getHintText(this.grid),
+                    adjustmentMessage: adjustment.adjustmentMessage
                 });
                 return;
             }
@@ -542,17 +735,32 @@ class GameScene extends BaseScene {
                 this.expectedNumber += 1;
 
                 if (this.expectedNumber > this.numbers.length) {
+                    recordEvent('recall_success', {
+                        level: this.level,
+                        mode: this.gameMode,
+                        result: 'success',
+                        roundId: this.roundId
+                    });
+                    const adjustment = this.resolveRoundResult(true);
                     this.time.delayedCall(500, () => {
                         this.scene.start('ClearScene', {
-                            displayTime: this.displayTime,
-                            level: this.level,
+                            displayTime: adjustment.nextDisplayTime,
+                            level: adjustment.nextLevel,
                             gridSize: this.gridSize,
                             gameMode: this.gameMode,
-                            grid: this.grid
+                            grid: this.grid,
+                            adjustmentMessage: adjustment.adjustmentMessage
                         });
                     }, [], this);
                 }
             } else {
+                recordEvent('recall_fail', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: 'fail',
+                    roundId: this.roundId
+                });
+                const adjustment = this.resolveRoundResult(false);
                 this.wrongCells.push({ row, col });
                 if (clickedCell.object) {
                     this.tweens.add({
@@ -564,25 +772,36 @@ class GameScene extends BaseScene {
                 }
 
                 this.scene.start('RetryScene', {
-                    displayTime: this.displayTime,
-                    level: this.level,
+                    displayTime: adjustment.nextDisplayTime,
+                    level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
                     grid: this.grid,
-                    wrongCells: this.wrongCells
+                    wrongCells: this.wrongCells,
+                    hintText: getHintText(this.grid),
+                    adjustmentMessage: adjustment.adjustmentMessage
                 });
             }
         } else if (this.gameMode === 'color') {
             // 色モード
             if (clickedCell.color === null) {
+                recordEvent('recall_fail', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: 'fail',
+                    roundId: this.roundId
+                });
+                const adjustment = this.resolveRoundResult(false);
                 this.wrongCells.push({ row, col });
                 this.scene.start('RetryScene', {
-                    displayTime: this.displayTime,
-                    level: this.level,
+                    displayTime: adjustment.nextDisplayTime,
+                    level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
                     grid: this.grid,
-                    wrongCells: this.wrongCells
+                    wrongCells: this.wrongCells,
+                    hintText: getHintText(this.grid),
+                    adjustmentMessage: adjustment.adjustmentMessage
                 });
                 return;
             }
@@ -604,13 +823,21 @@ class GameScene extends BaseScene {
             this.clickedTargets += 1;
 
             if (this.clickedTargets >= this.totalTargets) {
+                recordEvent('recall_success', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: 'success',
+                    roundId: this.roundId
+                });
+                const adjustment = this.resolveRoundResult(true);
                 this.time.delayedCall(500, () => {
                     this.scene.start('ClearScene', {
-                        displayTime: this.displayTime,
-                        level: this.level,
+                        displayTime: adjustment.nextDisplayTime,
+                        level: adjustment.nextLevel,
                         gridSize: this.gridSize,
                         gameMode: this.gameMode,
-                        grid: this.grid
+                        grid: this.grid,
+                        adjustmentMessage: adjustment.adjustmentMessage
                     });
                 }, [], this);
             }
@@ -678,6 +905,7 @@ class ClearScene extends BaseScene {
     init(data) {
         super.init(data);
         this.grid = data.grid; // グリッドデータを受け取る
+        this.adjustmentMessage = data.adjustmentMessage || '';
         this.messages = [
             'すごい！',
             'よくできた！',
@@ -736,6 +964,15 @@ class ClearScene extends BaseScene {
             wordWrap: { width: width * 0.9 }
         }).setOrigin(0.5, 0.5);
 
+        if (this.adjustmentMessage) {
+            const adjustFontSize = calculateResponsiveSize(this, 0.04);
+            this.add.text(width / 2, height * 0.45, this.adjustmentMessage, {
+                fontSize: `${adjustFontSize}px`,
+                fill: '#000',
+                align: 'center'
+            }).setOrigin(0.5, 0.5);
+        }
+
         // エフェクト（簡易的な花火）
         this.createParticleEffect();
 
@@ -768,7 +1005,7 @@ class ClearScene extends BaseScene {
         // 「つぎのれべる」ボタン
         const nextLevelButton = createCustomButton(
             this,
-            'つぎのれべる',
+            'つぎへ',
             width / 2 + buttonWidth / 2 + buttonSpacing / 2,
             buttonYPosition,
             buttonWidth,
@@ -778,7 +1015,7 @@ class ClearScene extends BaseScene {
             () => {
                 this.scene.start('CountdownScene', {
                     displayTime: this.displayTime,
-                    level: this.level + 1,
+                    level: this.level,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode
                 });
@@ -797,6 +1034,8 @@ class RetryScene extends BaseScene {
         super.init(data);
         this.grid = data.grid;
         this.wrongCells = data.wrongCells;
+        this.hintText = data.hintText || 'さいしょは 1つのいろ だけ みよう';
+        this.adjustmentMessage = data.adjustmentMessage || '';
     }
 
     create() {
@@ -810,6 +1049,27 @@ class RetryScene extends BaseScene {
             align: 'center',
             wordWrap: { width: width * 0.9 }
         }).setOrigin(0.5, 0.5);
+
+        const hintFontSize = calculateResponsiveSize(this, 0.04);
+        this.add.text(width / 2, height * 0.28, this.hintText, {
+            fontSize: `${hintFontSize}px`,
+            fill: '#000',
+            align: 'center',
+            wordWrap: { width: width * 0.9 }
+        }).setOrigin(0.5, 0.5);
+        recordEvent('hint_shown', {
+            level: this.level,
+            mode: this.gameMode,
+            result: this.hintText
+        });
+
+        if (this.adjustmentMessage) {
+            this.add.text(width / 2, height * 0.34, this.adjustmentMessage, {
+                fontSize: `${hintFontSize}px`,
+                fill: '#000',
+                align: 'center'
+            }).setOrigin(0.5, 0.5);
+        }
 
         // グリッドの描画
         this.drawGrid();
@@ -877,6 +1137,7 @@ class RetryScene extends BaseScene {
             COLORS.info,
             COLORS.infoHover,
             () => {
+                endSession();
                 this.scene.start('SelectionScene');
             }
         );
@@ -907,4 +1168,8 @@ const game = new Phaser.Game(config);
 // ウィンドウリサイズ時の対応
 window.addEventListener('resize', () => {
     game.scale.resize(window.innerWidth, window.innerHeight);
+});
+
+window.addEventListener('beforeunload', () => {
+    endSession();
 });
