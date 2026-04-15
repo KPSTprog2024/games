@@ -9,9 +9,9 @@
 ---
 
 ## LATEST POINTER
-- `LATEST_PROMPT_ID: PROMPT-0003`
+- `LATEST_PROMPT_ID: PROMPT-0005`
 - `UPDATED_AT: 2026-04-15`
-- `NOTE: 次回実行時は PROMPT-0003 を最初に読むこと。`
+- `NOTE: 次回実行時は PROMPT-0005 を最初に読むこと。`
 
 ---
 
@@ -83,3 +83,54 @@
   - 必要に応じて `outputs/08_SPRINT1_TASK_BREAKDOWN.md` へ追記
 - Next:
   - 実装完了後、PROMPT-0004 を追記し LATEST を更新する（計測結果と改善点を含める）。
+
+
+## PROMPT-0004
+- Prompt-ID: PROMPT-0004
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 1 MVP実装の検証結果を踏まえ、数値モードへのチャンク学習導線と継続率向上施策を追加する。
+- Scope:
+  - Sprint 1実装の受け入れ条件未達項目を補完する。
+  - セッション計測ログを要約し、保護者向けの1行フィードバックを追加する。
+  - P1「振り返り1タップ導線」を最小UIで導入する。
+- Constraints:
+  - 本質ループ（表示→非表示→再生）を変更しない。
+  - 5歳UI（ひらがな中心・短文）を維持する。
+  - 1プレイ1〜3分テンポを維持する。
+- DoD:
+  - 1) 受け入れ条件チェックで未達が0件になる。
+  - 2) `session_end` で成功率要約が確認できる。
+  - 3) 振り返り1タップ回答がイベント保存される。
+- Deliverables:
+  - 実装差分（コード）
+  - 検証メモ更新（Sprint 1チェック結果）
+  - 必要に応じて `outputs/08_SPRINT1_TASK_BREAKDOWN.md` へ追記
+- Next:
+  - Sprint 1完了報告として、Sprint 2（遅延再想起）着手用の PROMPT-0005 を追記する。
+
+
+## PROMPT-0005
+- Prompt-ID: PROMPT-0005
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 1実装資産を `game63` 配下で独立運用できるようにし、以後の改修を game1 本体から分離する。
+- Scope:
+  - `game63/game1_upgrade/` を基準実装として運用開始する。
+  - game63版で動作確認フロー（起動・イベント保存確認）を整備する。
+  - game1本体との差分管理ルールを明文化する。
+- Constraints:
+  - game1本体へは追加改修を行わない。
+  - 本質ループ（表示→非表示→再生）を維持する。
+  - 5歳UI（ひらがな中心・短文）を維持する。
+- DoD:
+  - 1) game63配下だけでSprint 1機能が動作する。
+  - 2) `GAME_METRICS_KEY` の保存確認手順が文書化される。
+  - 3) 次回担当者が game63 だけ読めば継続改修できる。
+- Deliverables:
+  - `game63/game1_upgrade/` 実装一式
+  - 必要に応じた検証メモ追記
+- Next:
+  - Sprint 2（遅延再想起）着手用の PROMPT-0006 を追記する。
