@@ -9,9 +9,9 @@
 ---
 
 ## LATEST POINTER
-- `LATEST_PROMPT_ID: PROMPT-0008`
+- `LATEST_PROMPT_ID: PROMPT-0009`
 - `UPDATED_AT: 2026-04-15`
-- `NOTE: 次回実行時は PROMPT-0008 を最初に読むこと。`
+- `NOTE: 次回実行時は PROMPT-0009 を最初に読むこと。`
 
 ---
 
@@ -212,3 +212,29 @@
   - 必要に応じて `game63/outputs/` にSprint 3検証メモを追加
 - Next:
   - Sprint 4（個別最適メニュー）検討用の PROMPT-0009 を追記する。
+
+---
+
+## PROMPT-0009
+- Prompt-ID: PROMPT-0009
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 1〜3で導入した機能の最終QAを実施し、過不足がなければ game63 版を「完成」としてクローズする。
+- Scope:
+  - `game63/game1_upgrade` の手動確認チェックリストを実行し、致命的不具合の有無を確認する。
+  - `localStorage` のイベント整合（`order_retry_stage`, `tempo_suggested`, `reviewStats`, `orderStats`）を点検する。
+  - 軽微改善のみ許可し、新規大型機能は追加しない。
+- Constraints:
+  - game1本体は変更しない。
+  - 本質ループ（表示→非表示→再生）を維持する。
+  - 5歳UI（ひらがな中心・短文）を維持する。
+- DoD:
+  - 1) 主要導線（設定→プレイ→成功/失敗→再挑戦）が崩れていない。
+  - 2) Sprint 2/3の計測イベントが1セッションで確認できる。
+  - 3) 問題なければ「完成」判定を記録し、次回は保守運用モードへ移行する。
+- Deliverables:
+  - QA結果メモ（`game63/outputs/` へ追記または新規）
+  - 必要時のみ最小修正コード
+- Next:
+  - 完成判定後は、機能追加スプリントを終了し、保守・微調整のみ受け付ける。
