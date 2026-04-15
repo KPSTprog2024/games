@@ -9,9 +9,9 @@
 ---
 
 ## LATEST POINTER
-- `LATEST_PROMPT_ID: PROMPT-0005`
+- `LATEST_PROMPT_ID: PROMPT-0006`
 - `UPDATED_AT: 2026-04-15`
-- `NOTE: 次回実行時は PROMPT-0005 を最初に読むこと。`
+- `NOTE: 次回実行時は PROMPT-0006 を最初に読むこと。`
 
 ---
 
@@ -134,3 +134,29 @@
   - 必要に応じた検証メモ追記
 - Next:
   - Sprint 2（遅延再想起）着手用の PROMPT-0006 を追記する。
+
+---
+
+## PROMPT-0006
+- Prompt-ID: PROMPT-0006
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 2（遅延再想起）MVPを `game63/game1_upgrade` に導入し、通常ラウンド成功問題の再来出題と結果要約を確認できる状態にする。
+- Scope:
+  - 1〜3ラウンド遅延の再来問題をセッション内で発火させる。
+  - 再来ラウンド識別（`round_start.result=review` と `source_round_id`）を計測イベントに残す。
+  - セッション終了後に「今日思い出せたもの」を1行で表示する。
+- Constraints:
+  - game1本体は変更しない。
+  - 本質ループ（表示→非表示→再生）を維持する。
+  - 5歳UI（ひらがな中心・短文）を維持する。
+- DoD:
+  - 1) 通常ラウンド成功後、1〜3ラウンド遅延で同配置の再来問題が出る。
+  - 2) 再来問題の成否がセッションデータで追跡できる。
+  - 3) 設定画面で再来問題の成功数要約が表示される。
+- Deliverables:
+  - `game63/game1_upgrade/game.js` の実装更新
+  - `game63/game1_upgrade/README.md` の確認手順更新
+- Next:
+  - Sprint 3（順序記憶×リズム補助）着手用の PROMPT-0007 を追記する。
