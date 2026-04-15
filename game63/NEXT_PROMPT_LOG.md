@@ -9,9 +9,9 @@
 ---
 
 ## LATEST POINTER
-- `LATEST_PROMPT_ID: PROMPT-0002`
+- `LATEST_PROMPT_ID: PROMPT-0003`
 - `UPDATED_AT: 2026-04-15`
-- `NOTE: 次回実行時は PROMPT-0002 を最初に読むこと。`
+- `NOTE: 次回実行時は PROMPT-0003 を最初に読むこと。`
 
 ---
 
@@ -55,3 +55,31 @@
 - Next:
   - Sprint 1実装後、PROMPT-0003 を追記し LATEST を更新する。
 
+
+
+## PROMPT-0003
+- Prompt-ID: PROMPT-0003
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 1（案1: チャンク化支援MVP）を実装し、最小計測込みで動作確認まで完了する。
+- Scope:
+  - `outputs/08_SPRINT1_TASK_BREAKDOWN.md` のP0をすべて実装
+  - 可能ならP1（振り返り1タップ導線）まで着手
+  - 計測イベントをローカル保存で検証可能にする
+- Constraints:
+  - 本質ループ（表示→非表示→再生）を変更しない
+  - 5歳UI（ひらがな中心・短文）
+  - 1プレイ1〜3分のテンポ維持
+- DoD:
+  - 1) 色チャンクハイライトが表示フェーズで機能
+  - 2) 失敗時ヒントが常時表示
+  - 3) 2連敗緩和/2連勝微増が発火
+  - 4) 必須7イベントが記録される
+  - 5) 受け入れ条件チェック結果を文書化
+- Deliverables:
+  - 実装差分（コード）
+  - 検証メモ（簡易で可）
+  - 必要に応じて `outputs/08_SPRINT1_TASK_BREAKDOWN.md` へ追記
+- Next:
+  - 実装完了後、PROMPT-0004 を追記し LATEST を更新する（計測結果と改善点を含める）。
