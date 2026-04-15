@@ -21,24 +21,32 @@ const MEMORY_CHUNK_COLORS = [
 ];
 
 const GAME_METRICS_KEY = 'game1_memory_sessions_v1';
+const TEMPO_SETTINGS = {
+    slow: { label: 'ゆっくり', beatMs: 700 },
+    normal: { label: 'ふつう', beatMs: 420 }
+};
 
 const SESSION_STATE = {
     currentSession: null
 };
 
-function startSession(mode, gridSize, displayTime) {
+function startSession(mode, gridSize, displayTime, tempo) {
     const sessionId = `session-${Date.now()}`;
     SESSION_STATE.currentSession = {
         sessionId,
         mode,
         gridSize,
         displayTime,
+        tempo,
         startedAt: new Date().toISOString(),
         events: [],
         stats: {
             roundsPlayed: 0,
             successCount: 0,
             failCount: 0
+        },
+        rhythmStats: {
+            roundsWithGuide: 0
         },
         dynamicLevel: 1,
         dynamicDisplayTime: displayTime,
@@ -66,6 +74,7 @@ function recordEvent(eventName, payload = {}) {
         timestamp: new Date().toISOString(),
         level: payload.level ?? session.dynamicLevel,
         mode: payload.mode ?? session.mode,
+        tempo: payload.tempo ?? session.tempo ?? 'normal',
         result: payload.result ?? null,
         round_id: payload.roundId ?? null,
         source_round_id: payload.sourceRoundId ?? null
@@ -88,7 +97,9 @@ function saveSessionToLocalStorage(session) {
         mode: session.mode,
         gridSize: session.gridSize,
         initialDisplayTime: session.displayTime,
+        tempo: session.tempo,
         stats: session.stats,
+        rhythmStats: session.rhythmStats,
         reviewStats: session.reviewStats,
         events: session.events
     });
@@ -246,6 +257,7 @@ class BaseScene extends Phaser.Scene {
         this.level = data.level || 1;
         this.gridSize = data.gridSize || 3;
         this.gameMode = data.gameMode || 'number';
+        this.tempo = data.tempo || 'normal';
     }
 
     drawGrid() {
@@ -333,6 +345,20 @@ class SelectionScene extends Phaser.Scene {
                 }
             ).setOrigin(0.5, 0.5);
         }
+        if (latestSession?.rhythmStats?.roundsWithGuide > 0) {
+            const rhythmRecapFontSize = calculateResponsiveSize(this, 0.028);
+            this.add.text(
+                width / 2,
+                height * 0.2,
+                `りずむで ${latestSession.rhythmStats.roundsWithGuide} らうんど れんしゅうしたよ`,
+                {
+                    fontSize: `${rhythmRecapFontSize}px`,
+                    fill: '#000',
+                    align: 'center',
+                    wordWrap: { width: width * 0.9 }
+                }
+            ).setOrigin(0.5, 0.5);
+        }
 
         // ボタン設定
         const buttonWidth = width * 0.25;
@@ -343,7 +369,7 @@ class SelectionScene extends Phaser.Scene {
         const options = [
             {
                 title: 'ひょうじじかんをえらんでね',
-                yPosition: 0.25,
+                yPosition: 0.24,
                 items: [
                     { label: '0.5びょう', value: 500 },
                     { label: '1びょう', value: 1000 },
@@ -363,7 +389,7 @@ class SelectionScene extends Phaser.Scene {
             },
             {
                 title: 'ぐりっどさいずをえらんでね',
-                yPosition: 0.45,
+                yPosition: 0.4,
                 items: [
                     { label: '3x3', value: 3 },
                     { label: '4x4', value: 4 },
@@ -383,7 +409,7 @@ class SelectionScene extends Phaser.Scene {
             },
             {
                 title: 'げーむもーどをえらんでね',
-                yPosition: 0.65,
+                yPosition: 0.56,
                 items: [
                     { label: 'すうじもーど', value: 'number' },
                     { label: 'いろもーど', value: 'color' }
@@ -392,6 +418,25 @@ class SelectionScene extends Phaser.Scene {
                 onSelect: (button, value) => {
                     this.selectedGameMode = value;
                     this.gameModeButtons.forEach(btn => {
+                        btn.selected = false;
+                        btn.emit('pointerout');
+                    });
+                    button.selected = true;
+                    button.emit('pointerout');
+                    this.events.emit('selectionChanged');
+                }
+            },
+            {
+                title: 'てんぽをえらんでね',
+                yPosition: 0.72,
+                items: [
+                    { label: 'ゆっくり', value: 'slow' },
+                    { label: 'ふつう', value: 'normal' }
+                ],
+                buttonsArray: 'tempoButtons',
+                onSelect: (button, value) => {
+                    this.selectedTempo = value;
+                    this.tempoButtons.forEach(btn => {
                         btn.selected = false;
                         btn.emit('pointerout');
                     });
@@ -448,19 +493,20 @@ class SelectionScene extends Phaser.Scene {
             this,
             'スタート',
             width / 2,
-            height * 0.85,
+            height * 0.9,
             startButtonWidth,
             startButtonHeight,
             COLORS.success,
             COLORS.successHover,
             () => {
                 if (startButton.getData('enabled')) {
-                    const session = startSession(this.selectedGameMode, this.selectedGridSize, this.selectedTime);
+                    const session = startSession(this.selectedGameMode, this.selectedGridSize, this.selectedTime, this.selectedTempo);
                     this.scene.start('CountdownScene', {
                         displayTime: session.dynamicDisplayTime,
                         level: session.dynamicLevel,
                         gridSize: this.selectedGridSize,
-                        gameMode: this.selectedGameMode
+                        gameMode: this.selectedGameMode,
+                        tempo: this.selectedTempo
                     });
                 }
             }
@@ -471,7 +517,7 @@ class SelectionScene extends Phaser.Scene {
 
         // スタートボタンのスタイル更新関数
         const updateStartButton = () => {
-            if (this.selectedTime && this.selectedGridSize && this.selectedGameMode) {
+            if (this.selectedTime && this.selectedGridSize && this.selectedGameMode && this.selectedTempo) {
                 startButton.setAlpha(1);
                 startButton.setData('enabled', true);
             } else {
@@ -536,7 +582,8 @@ class CountdownScene extends BaseScene {
                 displayTime: this.displayTime,
                 level: this.level,
                 gridSize: this.gridSize,
-                gameMode: this.gameMode
+                gameMode: this.gameMode,
+                tempo: this.tempo
             });
         }
     }
@@ -561,6 +608,7 @@ class GameScene extends BaseScene {
         this.isReviewRound = false;
         this.reviewSourceRoundId = null;
         this.roundPlan = null;
+        this.recallSequence = [];
     }
 
     create() {
@@ -578,6 +626,7 @@ class GameScene extends BaseScene {
             recordEvent('round_start', {
                 level: this.level,
                 mode: this.gameMode,
+                tempo: this.tempo,
                 roundId: this.roundId,
                 sourceRoundId: this.reviewSourceRoundId,
                 result: this.isReviewRound ? 'review' : 'normal'
@@ -587,6 +636,10 @@ class GameScene extends BaseScene {
         // レベル表示
         const levelFontSize = calculateResponsiveSize(this, 0.04);
         this.add.text(width * 0.05, height * 0.05, `れべる: ${this.level}`, {
+            fontSize: `${levelFontSize}px`,
+            fill: '#000'
+        }).setOrigin(0, 0);
+        this.add.text(width * 0.05, height * 0.1, `てんぽ: ${TEMPO_SETTINGS[this.tempo]?.label || 'ふつう'}`, {
             fontSize: `${levelFontSize}px`,
             fill: '#000'
         }).setOrigin(0, 0);
@@ -608,6 +661,8 @@ class GameScene extends BaseScene {
         } else if (this.gameMode === 'color') {
             this.placeColors();
         }
+        this.recallSequence = this.buildRecallSequence();
+        this.playRhythmGuide();
 
         // 一定時間後に表示を隠す
         this.time.delayedCall(this.displayTime, () => {
@@ -741,6 +796,64 @@ class GameScene extends BaseScene {
         });
     }
 
+    buildRecallSequence() {
+        if (this.gameMode === 'number') {
+            return this.grid
+                .filter((cell) => cell.number !== null)
+                .sort((a, b) => a.number - b.number)
+                .map((cell) => ({ row: cell.row, col: cell.col }));
+        }
+        return this.grid
+            .filter((cell) => cell.color !== null)
+            .sort((a, b) => (a.row - b.row) || (a.col - b.col))
+            .map((cell) => ({ row: cell.row, col: cell.col }));
+    }
+
+    playRhythmGuide() {
+        const beatMs = TEMPO_SETTINGS[this.tempo]?.beatMs || TEMPO_SETTINGS.normal.beatMs;
+        const maxSteps = Math.max(1, Math.floor((this.displayTime - 120) / beatMs));
+        const steps = this.recallSequence.slice(0, maxSteps);
+        if (steps.length === 0) return;
+
+        const pulse = this.add.circle(0, 0, 8, 0xffffff, 0.35).setVisible(false);
+        const rhythmText = this.add.text(this.scale.width / 2, this.scale.height * 0.16, 'ぽん ぽん', {
+            fontSize: `${calculateResponsiveSize(this, 0.04)}px`,
+            fill: '#000',
+            align: 'center'
+        }).setOrigin(0.5, 0.5);
+
+        steps.forEach((step, idx) => {
+            this.time.delayedCall(beatMs * idx, () => {
+                const cell = this.grid.find((item) => item.row === step.row && item.col === step.col);
+                if (!cell) return;
+                pulse.setVisible(true).setPosition(cell.x, cell.y).setRadius(cell.width * 0.25);
+                this.tweens.add({
+                    targets: pulse,
+                    alpha: { from: 0.4, to: 0.05 },
+                    scale: { from: 1, to: 1.7 },
+                    duration: Math.max(140, beatMs - 60)
+                });
+            }, [], this);
+        });
+
+        this.time.delayedCall(beatMs * steps.length, () => {
+            pulse.destroy();
+            rhythmText.destroy();
+        }, [], this);
+
+        const session = getSession();
+        if (session) {
+            session.rhythmStats.roundsWithGuide += 1;
+            recordEvent('rhythm_guide_played', {
+                level: this.level,
+                mode: this.gameMode,
+                tempo: this.tempo,
+                roundId: this.roundId,
+                result: `steps:${steps.length}`
+            });
+        }
+    }
+
     hideElements() {
         this.grid.forEach(cell => {
             if (cell.object) {
@@ -822,6 +935,7 @@ class GameScene extends BaseScene {
                     level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
+                    tempo: this.tempo,
                     grid: this.grid,
                     wrongCells: this.wrongCells,
                     hintText: getHintText(this.grid),
@@ -861,6 +975,7 @@ class GameScene extends BaseScene {
                             level: adjustment.nextLevel,
                             gridSize: this.gridSize,
                             gameMode: this.gameMode,
+                            tempo: this.tempo,
                             grid: this.grid,
                             adjustmentMessage: adjustment.adjustmentMessage,
                             isReviewRound: this.isReviewRound
@@ -890,6 +1005,7 @@ class GameScene extends BaseScene {
                     level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
+                    tempo: this.tempo,
                     grid: this.grid,
                     wrongCells: this.wrongCells,
                     hintText: getHintText(this.grid),
@@ -912,6 +1028,7 @@ class GameScene extends BaseScene {
                     level: adjustment.nextLevel,
                     gridSize: this.gridSize,
                     gameMode: this.gameMode,
+                    tempo: this.tempo,
                     grid: this.grid,
                     wrongCells: this.wrongCells,
                     hintText: getHintText(this.grid),
@@ -921,6 +1038,31 @@ class GameScene extends BaseScene {
             }
 
             if (clickedCell.clicked) return;
+
+            const expectedStep = this.recallSequence[this.clickedTargets];
+            const isRightOrder = expectedStep && expectedStep.row === row && expectedStep.col === col;
+            if (!isRightOrder) {
+                recordEvent('recall_fail', {
+                    level: this.level,
+                    mode: this.gameMode,
+                    result: 'wrong_order',
+                    roundId: this.roundId
+                });
+                const adjustment = this.resolveRoundResult(false);
+                this.wrongCells.push({ row, col });
+                this.scene.start('RetryScene', {
+                    displayTime: adjustment.nextDisplayTime,
+                    level: adjustment.nextLevel,
+                    gridSize: this.gridSize,
+                    gameMode: this.gameMode,
+                    tempo: this.tempo,
+                    grid: this.grid,
+                    wrongCells: this.wrongCells,
+                    hintText: 'りずむの じゅんで たっちしよう',
+                    adjustmentMessage: adjustment.adjustmentMessage
+                });
+                return;
+            }
 
             // 色モードではタッチが正しい場合に色ブロックを表示
             clickedCell.clicked = true;
@@ -950,6 +1092,7 @@ class GameScene extends BaseScene {
                         level: adjustment.nextLevel,
                         gridSize: this.gridSize,
                         gameMode: this.gameMode,
+                        tempo: this.tempo,
                         grid: this.grid,
                         adjustmentMessage: adjustment.adjustmentMessage,
                         isReviewRound: this.isReviewRound
@@ -1122,7 +1265,8 @@ class ClearScene extends BaseScene {
                     displayTime: this.displayTime,
                     level: this.level,
                     gridSize: this.gridSize,
-                    gameMode: this.gameMode
+                    gameMode: this.gameMode,
+                    tempo: this.tempo
                 });
             }
         );
@@ -1142,7 +1286,8 @@ class ClearScene extends BaseScene {
                     displayTime: this.displayTime,
                     level: this.level,
                     gridSize: this.gridSize,
-                    gameMode: this.gameMode
+                    gameMode: this.gameMode,
+                    tempo: this.tempo
                 });
             }
         );
@@ -1246,7 +1391,8 @@ class RetryScene extends BaseScene {
                     displayTime: this.displayTime,
                     level: this.level,
                     gridSize: this.gridSize,
-                    gameMode: this.gameMode
+                    gameMode: this.gameMode,
+                    tempo: this.tempo
                 });
             }
         );
