@@ -9,9 +9,9 @@
 ---
 
 ## LATEST POINTER
-- `LATEST_PROMPT_ID: PROMPT-0006`
+- `LATEST_PROMPT_ID: PROMPT-0008`
 - `UPDATED_AT: 2026-04-15`
-- `NOTE: 次回実行時は PROMPT-0006 を最初に読むこと。`
+- `NOTE: 次回実行時は PROMPT-0008 を最初に読むこと。`
 
 ---
 
@@ -160,3 +160,55 @@
   - `game63/game1_upgrade/README.md` の確認手順更新
 - Next:
   - Sprint 3（順序記憶×リズム補助）着手用の PROMPT-0007 を追記する。
+
+---
+
+## PROMPT-0007
+- Prompt-ID: PROMPT-0007
+- Created-At: 2026-04-15
+- Status: archived
+- Goal:
+  - Sprint 3（順序記憶×リズム補助）MVPを `game63/game1_upgrade` に導入し、テンポ選択と順序ヒントの有効性を確認する。
+- Scope:
+  - 設定画面にテンポ選択（ゆっくり/ふつう）を追加する。
+  - 表示フェーズでリズムガイドを再生し、イベント記録する。
+  - 色モードに順序タッチ導線を導入し、順番ミス時ヒントを追加する。
+- Constraints:
+  - game1本体は変更しない。
+  - 本質ループ（表示→非表示→再生）を維持する。
+  - 5歳UI（ひらがな中心・短文）を維持する。
+- DoD:
+  - 1) テンポ選択が必須入力として機能する。
+  - 2) `rhythm_guide_played` がイベント保存される。
+  - 3) 色モード順番ミスが `recall_fail.result=wrong_order` で追跡できる。
+- Deliverables:
+  - `game63/game1_upgrade/game.js` の実装更新
+  - `game63/game1_upgrade/README.md` の確認手順更新
+- Next:
+  - Sprint 3チューニング（過負荷緩和・順序UI改善）用の PROMPT-0008 を追記する。
+
+---
+
+## PROMPT-0008
+- Prompt-ID: PROMPT-0008
+- Created-At: 2026-04-15
+- Status: latest
+- Goal:
+  - Sprint 3で導入した順序記憶×リズム補助の負荷を調整し、5歳継続率を落とさずに完遂率を高める。
+- Scope:
+  - 順番ミス時の再挑戦導線を「即失敗」から段階的ヒント方式へ緩和する。
+  - テンポ自動提案（連敗時ゆっくり推奨）を最小UIで導入する。
+  - セッション末に順序再生完遂率を1行表示する。
+- Constraints:
+  - game1本体は変更しない。
+  - 本質ループ（表示→非表示→再生）を維持する。
+  - 1プレイ1〜3分のテンポを維持する。
+- DoD:
+  - 1) 順序ミスでの離脱が軽減される（即失敗率低下をログで確認可能）。
+  - 2) テンポ提案が `difficulty_adjusted` または専用イベントで追跡可能。
+  - 3) 順序完遂率サマリが設定画面に表示される。
+- Deliverables:
+  - `game63/game1_upgrade/game.js` の実装更新
+  - 必要に応じて `game63/outputs/` にSprint 3検証メモを追加
+- Next:
+  - Sprint 4（個別最適メニュー）検討用の PROMPT-0009 を追記する。
