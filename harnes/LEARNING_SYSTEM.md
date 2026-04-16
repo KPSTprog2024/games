@@ -44,6 +44,7 @@
 2. 実行終了: `SPRINT_REVIEW_TEMPLATE.md` で知見抽出を必須化
 3. 永続化: `learning/AGENT_GROWTH_LEDGER.md` に追記
 4. 次回反映: `NEXT_PROMPT_TEMPLATE.md` のGoal/Constraintsへ再注入
+5. 完了ゲート: Session Boot / Sprint Review / Ledger追記の3点が揃って初めてDone
 
 ---
 
