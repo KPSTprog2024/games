@@ -13,20 +13,24 @@
 
 * { box-sizing: border-box; }
 
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
-  min-height: 100dvh;
   background: radial-gradient(circle at top, #eef3ff, #f9fbff 45%);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
 }
 
 .app {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: max(10px, env(safe-area-inset-top)) 10px calc(12px + env(safe-area-inset-bottom));
-  display: grid;
-  gap: 8px;
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .panel {
@@ -36,39 +40,53 @@ body {
   padding: 10px;
 }
 
+.hud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100% - 16px));
+  z-index: 5;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(18, 25, 51, 0.14);
+}
+
 .hero h1 {
   margin: 0;
   font-size: 1.2rem;
+  text-align: center;
 }
 
 .hero p {
   margin: 6px 0 0;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: var(--muted);
+  text-align: center;
 }
 
 .score-board {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .score-card {
   border: 1px solid var(--line);
   border-radius: 10px;
   text-align: center;
-  padding: 8px 4px;
+  padding: 6px 4px;
 }
 
 .score-card .name {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
 .score-card strong {
   display: block;
-  font-size: 1.9rem;
-  line-height: 1.1;
+  font-size: 1.5rem;
+  line-height: 1.05;
 }
 
 .status-panel {
@@ -79,21 +97,7 @@ body {
 .status {
   font-weight: 800;
   text-align: center;
-  min-height: 1.4em;
-}
-
-.history {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 96px;
-  overflow-y: auto;
-  font-size: 0.82rem;
-  color: #364260;
-}
-
-.history li.empty {
-  color: var(--muted);
+  min-height: 1.35em;
 }
 
 .controls {
@@ -103,7 +107,7 @@ body {
 }
 
 .btn {
-  min-height: 42px;
+  min-height: 40px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: #fff;
@@ -120,22 +124,36 @@ body {
   opacity: 0.45;
 }
 
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 76px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  color: #364260;
+}
+
+.history li.empty {
+  color: var(--muted);
+}
+
 .arena {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  position: absolute;
+  inset: 0;
 }
 
 .tap-zone {
+  position: absolute;
   border: none;
   border-radius: 14px;
-  min-height: 150px;
   color: #fff;
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 800;
   touch-action: manipulation;
   box-shadow: 0 5px 16px rgba(18, 25, 51, 0.18);
+  width: clamp(140px, 34vw, 220px);
+  height: clamp(120px, 26dvh, 190px);
 }
 
 .tap-zone.state-red { background: var(--red); }
@@ -143,49 +161,75 @@ body {
 .tap-zone.state-gray { background: var(--gray); }
 .tap-zone.state-orange { background: var(--orange); }
 
-@media (max-width: 620px) {
-  .app {
-    min-height: 100dvh;
-    grid-template-rows: auto auto auto 1fr;
+.tap-zone.slot-1 {
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+}
+
+.tap-zone.slot-2 {
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+}
+
+.tap-zone.slot-3 {
+  bottom: max(8px, env(safe-area-inset-bottom));
+  left: max(8px, env(safe-area-inset-left));
+}
+
+.tap-zone.slot-4 {
+  bottom: max(8px, env(safe-area-inset-bottom));
+  right: max(8px, env(safe-area-inset-right));
+}
+
+@media (max-width: 720px) {
+  body {
+    overflow: hidden;
+  }
+
+  .hud {
+    width: calc(100% - 14px);
+    border-radius: 12px;
+    padding: 8px;
+  }
+
+  .hero h1 {
+    font-size: 1.06rem;
   }
 
   .hero p {
+    font-size: 0.76rem;
     margin-top: 4px;
-    font-size: 0.82rem;
   }
 
-  .score-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .score-board {
+    gap: 5px;
+  }
 
-  .arena {
-    min-height: clamp(380px, 58dvh, 620px);
-    display: block;
+  .score-card strong {
+    font-size: 1.25rem;
+  }
+
+  .btn {
+    min-height: 36px;
+    font-size: 0.84rem;
+  }
+
+  .history {
+    max-height: 58px;
+    font-size: 0.75rem;
   }
 
   .tap-zone {
-    position: absolute;
-    width: calc(50% - 14px);
-    min-height: 34%;
-    max-height: 42%;
-    font-size: 1rem;
+    width: min(42vw, 180px);
+    height: min(24dvh, 155px);
+    font-size: 0.95rem;
   }
+}
 
-  .tap-zone.slot-1 {
-    top: 6px;
-    left: 6px;
-  }
-
-  .tap-zone.slot-2 {
-    top: 6px;
-    right: 6px;
-  }
-
-  .tap-zone.slot-3 {
-    bottom: 6px;
-    left: 6px;
-  }
-
-  .tap-zone.slot-4 {
-    bottom: 6px;
-    right: 6px;
+@media (min-width: 900px) {
+  .tap-zone {
+    width: clamp(180px, 22vw, 260px);
+    height: clamp(140px, 22dvh, 210px);
+    font-size: 1.12rem;
   }
 }
