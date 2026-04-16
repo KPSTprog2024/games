@@ -6,7 +6,7 @@
 ---
 
 ## LATEST_ENTRY
-- ENTRY_ID: ENTRY-0001
+- ENTRY_ID: ENTRY-0002
 - UPDATED_AT: 2026-04-16
 
 ---
@@ -47,5 +47,25 @@
   - game65/app.js の PLAYERS 配列 / resolveReaction / resolveFoul
 - Reuse Plan:
   - 次の多人数ゲーム実装でも phase + players 構造をテンプレ化する
+- Confidence:
+  - high
+
+
+## ENTRY-0002
+- Created-At: 2026-04-16
+- Journey-ID: game65-mobile-corner-layout
+- Context: 4人同時プレイのモバイル操作性改善
+- Reusable Insight:
+  - 多人数同時タップのスマホUIでは、2x2均等グリッドより四隅固定の方が役割分担が直感的になる
+- Reasoning Pivot:
+  - 「4分割表示で十分」から「4人が自然に端末を囲む前提」へ設計視点を変更
+- Do:
+  - モバイル時は端末保持姿勢（四隅）を優先してボタンを配置する
+- Don’t:
+  - 情報パネル都合で押下領域を中央寄せにしない
+- Evidence:
+  - game65/style.css のモバイル `.tap-zone.slot-*` 四隅配置
+- Reuse Plan:
+  - 次回以降のローカル4人ゲームUIの初期レイアウト規約として使う
 - Confidence:
   - high

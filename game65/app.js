@@ -72,10 +72,10 @@ function zoneLabel(player) {
 
 function renderArena() {
   ui.arena.innerHTML = '';
-  PLAYERS.forEach((player) => {
+  PLAYERS.forEach((player, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `tap-zone state-${state.tones[player.id]}`;
+    button.className = `tap-zone slot-${index + 1} state-${state.tones[player.id]}`;
     button.textContent = zoneLabel(player);
     button.addEventListener('pointerdown', (event) => {
       event.preventDefault();
