@@ -1,0 +1,30 @@
+## PROMPT-0001
+- Prompt-ID: PROMPT-0001
+- Created-At: 2026-04-16
+- Status: latest
+- Project Invariants:
+  - 反射神経の核ループ（待機→合図→即応）
+  - フライング不利
+  - 4人同時参加
+- Prior Learning Import:
+  - ENTRY-0001: 人数拡張は配列駆動ルール化が有効
+- Goal:
+  - game65に演出強化（SE・カウントダウン）を加える
+- Scope:
+  - 効果音ON/OFF、ラウンド開始前カウント表示、勝利演出
+- Non-Scope:
+  - サーバー保存、オンライン対戦
+- Constraints:
+  - 依存ライブラリ追加なし
+- DoD:
+  - 演出を追加しても既存勝敗ロジックを壊さない
+- Fail Fast:
+  - フライング判定が崩れたら中止
+- Metrics Plan:
+  - 指標: 3ラウンド連続で正判定
+  - 閾値: 100%
+  - 観測: 手動
+- Deliverables:
+  - 追加実装、検証結果、学習追記
+- Next:
+  - 音量調整UIと視認性改善
