@@ -2,6 +2,12 @@
 
 以下を埋めてからCodexへ投入する。
 
+## 0) Harness Output Paths（必須）
+- Session Boot保存先（例: `<TARGET>/HARNES_SESSION_BOOT.md`）:
+- Sprint Review保存先（例: `<TARGET>/HARNES_SPRINT_REVIEW.md`）:
+- Learning Ledger追記先（固定: `<PROJECT>/harnes/learning/AGENT_GROWTH_LEDGER.md`）:
+
+
 ## 1) Context
 - 参照必須（必要に応じて置換）:
   - `<PROJECT>/harnes/SOUL.md`
@@ -48,6 +54,7 @@
 - 検証結果
 - 次回Prompt草案
 - 学習エントリ（`AGENT_GROWTH_LEDGER.md` 追記）
+- 生成物実体（`HARNES_SESSION_BOOT.md` / `HARNES_SPRINT_REVIEW.md`）
 
 ## 11) 検証コマンド
 - `...`

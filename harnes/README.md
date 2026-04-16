@@ -18,6 +18,17 @@
 4. `templates/JOURNEY_LEARNING_ENTRY_TEMPLATE.md` で学習エントリを作成し、`learning/AGENT_GROWTH_LEDGER.md` に追記する
 5. 次回継続がある場合は `templates/NEXT_PROMPT_TEMPLATE.md` で次指示を作成する
 
+## 最低成果物（ハーネス準拠の完了条件）
+
+各実行旅で、最低でも次の3点を残す。
+
+1. Session Boot（計画）
+2. Sprint Review（検証と判定）
+3. Learning Ledger追記（再利用知見）
+
+> 目安: 対象機能ディレクトリ直下に `HARNES_SESSION_BOOT.md` / `HARNES_SPRINT_REVIEW.md` を配置し、
+> `harnes/learning/AGENT_GROWTH_LEDGER.md` を追記する。
+
 ## ディレクトリ構造
 
 ```text
@@ -40,3 +51,4 @@ harnes/
 - ドメイン固有ルールはテンプレート内の「Project Invariants」に注入する
 - 最低限の必須項目（Fail Fast / Metrics Plan / Non-Scope）を全テンプレートで強制する
 - 学習ログは追記専用で、次回Promptに再注入する
+- テンプレートは「参照」で終わらせず、実行旅ごとに埋めた成果物を必ず残す

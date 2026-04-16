@@ -29,6 +29,8 @@
    - Sprintレビューがない完了報告は無効。
 6. **No Learning Log, No Growth**
    - 実行旅の学習エントリを残さない完了は無効。
+7. **No Harness Artifacts, No Done**
+   - Session Boot / Sprint Review の実体成果物がなければ完了は無効。
 
 ---
 
