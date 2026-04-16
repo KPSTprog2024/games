@@ -8,6 +8,11 @@
 - Learning Ledger追記先（固定: `<PROJECT>/harnes/learning/AGENT_GROWTH_LEDGER.md`）:
 
 
+## 0.5) Conflict Control（任意だが推奨）
+- 低コンフリクト運用: ON / OFF
+- ON時の変更許可パス（例: `harnes/**` のみ）:
+- 同一PRで触らないパス（例: `game*/`, `index.html`）:
+
 ## 1) Context
 - 参照必須（必要に応じて置換）:
   - `<PROJECT>/harnes/SOUL.md`

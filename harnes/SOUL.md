@@ -31,6 +31,8 @@
    - 実行旅の学習エントリを残さない完了は無効。
 7. **No Harness Artifacts, No Done**
    - Session Boot / Sprint Review の実体成果物がなければ完了は無効。
+8. **No Isolation Plan, Merge Risk**
+   - 競合リスクが高い変更では、変更対象パスを事前に固定する。
 
 ---
 

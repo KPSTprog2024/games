@@ -6,7 +6,7 @@
 ---
 
 ## LATEST_ENTRY
-- ENTRY_ID: ENTRY-0002
+- ENTRY_ID: ENTRY-0003
 - UPDATED_AT: 2026-04-16
 
 ---
@@ -70,6 +70,27 @@
   - harnes/SOUL.md
 - Reuse Plan:
   - 新規案件開始時、最初にテンプレへ保存先と成果物チェックを埋める
+- Confidence:
+  - high
+
+## ENTRY-0003
+- Created-At: 2026-04-16
+- Journey-ID: harness-only-conflict-safe
+- Context: 競合回避のため、ハーネス本体のみを更新する依頼に対応
+- Reusable Insight:
+  - 競合リスクが高いときは「改善対象」をharnes配下に閉じると調整コストを最小化できる
+- Reasoning Pivot:
+  - 機能改善と運用改善を同一PRに混ぜるより、運用改善だけを独立させる方が安全
+- Do:
+  - Session Bootに変更許可パスを明記してから着手する
+- Don’t:
+  - 低コンフリクト要請時に `game*/` やトップページを同時変更しない
+- Evidence:
+  - harnes/README.md
+  - harnes/SOUL.md
+  - harnes/templates/SESSION_BOOT_TEMPLATE.md
+- Reuse Plan:
+  - 今後の緊急修正では「harnes-only PR」を標準運用として使う
 - Confidence:
   - high
 
