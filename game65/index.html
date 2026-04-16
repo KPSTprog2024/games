@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>game65: 4人反射バトル</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="panel hero">
+      <h1>4人反射バトル</h1>
+      <p>赤の間は待機、緑で最速タップ。フライングすると他3人に得点が入る。</p>
+    </header>
+
+    <section class="panel score-board" aria-live="polite" id="scoreBoard"></section>
+
+    <section class="panel status-panel">
+      <div id="status" class="status">スタートで開始</div>
+      <ul id="history" class="history"></ul>
+      <div class="controls">
+        <button id="startBtn" class="btn primary" type="button">スタート</button>
+        <button id="nextBtn" class="btn primary" type="button" disabled>次ラウンド</button>
+        <button id="resetBtn" class="btn" type="button">リセット</button>
+      </div>
+    </section>
+
+    <section class="arena" id="arena"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

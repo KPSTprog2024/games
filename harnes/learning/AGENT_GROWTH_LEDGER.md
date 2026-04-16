@@ -6,7 +6,7 @@
 ---
 
 ## LATEST_ENTRY
-- ENTRY_ID: ENTRY-0000
+- ENTRY_ID: ENTRY-0001
 - UPDATED_AT: 2026-04-16
 
 ---
@@ -29,3 +29,23 @@
   - 次回PromptのConstraints/Fail Fastへ抽出知見を反映
 - Confidence:
   - medium
+
+
+## ENTRY-0001
+- Created-At: 2026-04-16
+- Journey-ID: game65-4player-reflex
+- Context: game60の本質を抽出して4人対戦化
+- Reusable Insight:
+  - 多人数化ではUIの複製より、プレイヤー配列とフェーズ状態機械を先に一般化すると品質が安定する
+- Reasoning Pivot:
+  - 「上下2人」の位置依存ロジックを捨て、プレイヤーID駆動の判定へ切り替えた
+- Do:
+  - 先に勝敗ルールを抽象化し、その後UIに写像する
+- Don’t:
+  - 既存UIをそのまま増築して条件分岐を肥大化させる
+- Evidence:
+  - game65/app.js の PLAYERS 配列 / resolveReaction / resolveFoul
+- Reuse Plan:
+  - 次の多人数ゲーム実装でも phase + players 構造をテンプレ化する
+- Confidence:
+  - high
