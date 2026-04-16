@@ -6,7 +6,7 @@
 ---
 
 ## LATEST_ENTRY
-- ENTRY_ID: ENTRY-0002
+- ENTRY_ID: ENTRY-0003
 - UPDATED_AT: 2026-04-16
 
 ---
@@ -67,5 +67,26 @@
   - game65/style.css のモバイル `.tap-zone.slot-*` 四隅配置
 - Reuse Plan:
   - 次回以降のローカル4人ゲームUIの初期レイアウト規約として使う
+- Confidence:
+  - high
+
+
+## ENTRY-0003
+- Created-At: 2026-04-16
+- Journey-ID: harness-globalize-corner-touch-insight
+- Context: game65で得たモバイル4人同時操作の知見をハーネス全体へ反映
+- Reusable Insight:
+  - 1端末多人数操作では、入力責務を四隅へ固定すると初見でも役割分担が成立しやすい
+- Reasoning Pivot:
+  - 個別プロジェクト知見として留めず、テンプレート項目へ昇格させる方が再利用率が上がる
+- Do:
+  - 反復しそうな知見はテンプレートと運用文書に昇格させる
+- Don’t:
+  - 学習ログだけ追記してテンプレートに反映しない
+- Evidence:
+  - harnes/LEARNING_SYSTEM.md の PATTERN-UI-MULTI-TOUCH-CORNERS 追記
+  - harnes/templates/* への到達性チェック項目追加
+- Reuse Plan:
+  - 今後の多人数スマホUI案件で、着手時から四隅到達性をDoD/回帰に組み込む
 - Confidence:
   - high

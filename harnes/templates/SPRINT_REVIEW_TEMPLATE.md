@@ -31,6 +31,7 @@
 - 主要ユーザーフロー: Pass / Fail
 - 既存必須ログ/計測: Pass / Fail
 - 品質要件（可読性/安全性/性能）: Pass / Fail
+- 同時押下到達性（該当時）: Pass / Fail
 
 ## 7. 最終判定
 - Adopt / Iterate / Revert
