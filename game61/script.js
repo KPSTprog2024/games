@@ -7,6 +7,7 @@ const WIN_SCORE = 3;
 const INPUT_GUARD_MS = 100;
 const POST_DECISION_CAPTURE_MS = 100;
 const COUNTDOWN_STEP_MS = 700;
+const AUTO_NEXT_ROUND_MS = 1200;
 
 const COLORS = ['red', 'blue', 'green'];
 const SHAPES = ['circle', 'triangle', 'square'];
@@ -59,7 +60,8 @@ const state = {
   roundTimers: {
     guard: null,
     finish: null,
-    countdown: null
+    countdown: null,
+    autoNext: null
   },
   isCountingDown: false
 };
@@ -70,7 +72,10 @@ const state = {
 const ui = {
   scoreDiamond: document.getElementById('score-diamond'),
   scoreHeart: document.getElementById('score-heart'),
+  scoreDiamondCenter: document.getElementById('score-diamond-center'),
+  scoreHeartCenter: document.getElementById('score-heart-center'),
   roundLabel: document.getElementById('round-label'),
+  phaseBadge: document.getElementById('phase-badge'),
   topicShape: document.getElementById('topic-shape'),
   statusPanel: document.getElementById('status-panel'),
   diamondChoices: document.getElementById('choices-diamond'),
@@ -197,6 +202,9 @@ function handlePlayerPress(player, choiceIndex) {
   state.correctness[player] = selected.isCorrect;
 
   markPressedVisual(player, choiceIndex);
+  if (!selected.isCorrect) {
+    triggerMistapFeedback(player, choiceIndex);
+  }
 
   if (!state.roundSettled) {
     settleRoundByFirstInput(player, selected.isCorrect);
@@ -230,6 +238,9 @@ function finishRound() {
   }
 
   renderStatusRoundResult(true);
+  state.roundTimers.autoNext = window.setTimeout(() => {
+    startNextRound();
+  }, AUTO_NEXT_ROUND_MS);
 }
 
 function saveRoundHistory() {
@@ -268,6 +279,10 @@ function renderAll() {
 function renderScore() {
   ui.scoreDiamond.textContent = state.scores[PLAYER.DIAMOND];
   ui.scoreHeart.textContent = state.scores[PLAYER.HEART];
+  if (ui.scoreDiamondCenter && ui.scoreHeartCenter) {
+    ui.scoreDiamondCenter.textContent = state.scores[PLAYER.DIAMOND];
+    ui.scoreHeartCenter.textContent = state.scores[PLAYER.HEART];
+  }
 }
 
 function renderRoundLabel() {
@@ -308,10 +323,12 @@ function renderPlayerChoices(container, player, hiddenUntilStart) {
 
 
 function renderCountdown(value) {
+  renderPhase('countdown');
   ui.topicShape.innerHTML = `<p class="countdown-number" aria-label="カウントダウン ${value}">${value}</p>`;
   ui.statusPanel.innerHTML = `
     <p class="status-title">まもなく開始</p>
     <div>${value}...</div>
+    <p class="status-hint">合図が出るまでタップは無効です</p>
   `;
 }
 
@@ -320,13 +337,16 @@ function renderStatusWaiting() {
     return;
   }
 
+  renderPhase('ready');
   ui.statusPanel.innerHTML = `
-    <p class="status-title">お題と違う「色」かつ違う「図形」を押す！</p>
+    <p class="status-title">いまタップOK！ お題と違う「色」かつ違う「図形」を押す！</p>
     <div>先に3点で勝利</div>
+    <p class="status-hint">両プレイヤーとも自分側の2択だけを押してください</p>
   `;
 }
 
 function renderStatusRoundResult(showNextButton = false) {
+  renderPhase('result');
   const diamondTime = formatReaction(
     state.reactionsMs[PLAYER.DIAMOND],
     state.correctness[PLAYER.DIAMOND]
@@ -334,16 +354,19 @@ function renderStatusRoundResult(showNextButton = false) {
   const heartTime = formatReaction(state.reactionsMs[PLAYER.HEART], state.correctness[PLAYER.HEART]);
 
   const winnerLabel = state.winnerOfRound ? PLAYER_SYMBOL[state.winnerOfRound] : '—';
+  const reasonText = buildRoundReasonText();
 
   ui.statusPanel.innerHTML = `
     <p class="status-title">ラウンド勝者: ${winnerLabel}</p>
+    <p class="status-reason">${reasonText}</p>
     <div class="result-grid">
       <div>♦️ ${diamondTime} / ${formatCorrectness(state.correctness[PLAYER.DIAMOND])}</div>
       <div>❤️ ${heartTime} / ${formatCorrectness(state.correctness[PLAYER.HEART])}</div>
     </div>
     ${
       showNextButton
-        ? '<button class="control-btn" id="next-round-btn" type="button">次へ</button>'
+        ? `<button class="control-btn" id="next-round-btn" type="button">次へ</button>
+           <p class="status-hint">約${(AUTO_NEXT_ROUND_MS / 1000).toFixed(1)}秒後に自動で次ラウンドへ進みます</p>`
         : '<div>判定中...</div>'
     }
   `;
@@ -352,11 +375,22 @@ function renderStatusRoundResult(showNextButton = false) {
 
   if (showNextButton) {
     const nextBtn = document.getElementById('next-round-btn');
-    nextBtn.addEventListener('click', startNextRound, { once: true });
+    nextBtn.addEventListener(
+      'click',
+      () => {
+        if (state.roundTimers.autoNext !== null) {
+          window.clearTimeout(state.roundTimers.autoNext);
+          state.roundTimers.autoNext = null;
+        }
+        startNextRound();
+      },
+      { once: true }
+    );
   }
 }
 
 function renderGameFinished() {
+  renderPhase('result', 'ゲーム終了');
   renderScore();
   const winner =
     state.scores[PLAYER.DIAMOND] > state.scores[PLAYER.HEART] ? PLAYER.DIAMOND : PLAYER.HEART;
@@ -374,7 +408,10 @@ function renderGameFinished() {
     <p class="status-title">ゲーム勝者: ${PLAYER_SYMBOL[winner]}</p>
     <div>最終スコア: ♦️ ${state.scores[PLAYER.DIAMOND]} - ❤️ ${state.scores[PLAYER.HEART]}</div>
     <ul class="history">${historyItems}</ul>
-    <button class="control-btn" id="restart-btn" type="button">もう一度</button>
+    <div class="control-stack">
+      <button class="control-btn" id="restart-btn" type="button">もう一度</button>
+      <a class="control-btn control-btn--secondary" href="./index.html">トップへ戻る</a>
+    </div>
   `;
 
   paintChoiceFeedback();
@@ -408,8 +445,77 @@ function markPressedVisual(player, choiceIndex) {
   }
 }
 
+function triggerMistapFeedback(player, choiceIndex) {
+  const container = player === PLAYER.DIAMOND ? ui.diamondChoices : ui.heartChoices;
+  const button = container.querySelector(`.choice-btn[data-index="${choiceIndex}"]`);
+
+  if (!button) {
+    return;
+  }
+
+  button.classList.add('is-mistake');
+  window.setTimeout(() => {
+    button.classList.remove('is-mistake');
+  }, 260);
+
+  if ('vibrate' in navigator) {
+    navigator.vibrate(20);
+  }
+}
+
 function pressedChoiceIndex(player) {
   return state.pressedChoiceIndex[player];
+}
+
+function renderPhase(phase, customLabel = null) {
+  if (!ui.phaseBadge) {
+    return;
+  }
+
+  ui.phaseBadge.classList.remove('phase-badge--countdown', 'phase-badge--ready', 'phase-badge--result');
+
+  if (phase === 'ready') {
+    ui.phaseBadge.classList.add('phase-badge--ready');
+    ui.phaseBadge.textContent = customLabel || '入力受付中';
+    return;
+  }
+
+  if (phase === 'result') {
+    ui.phaseBadge.classList.add('phase-badge--result');
+    ui.phaseBadge.textContent = customLabel || '判定表示中';
+    return;
+  }
+
+  ui.phaseBadge.classList.add('phase-badge--countdown');
+  ui.phaseBadge.textContent = customLabel || '準備中';
+}
+
+function buildRoundReasonText() {
+  const firstPlayer =
+    state.pressedAt[PLAYER.DIAMOND] !== null && state.pressedAt[PLAYER.HEART] !== null
+      ? state.pressedAt[PLAYER.DIAMOND] <= state.pressedAt[PLAYER.HEART]
+        ? PLAYER.DIAMOND
+        : PLAYER.HEART
+      : state.pressedAt[PLAYER.DIAMOND] !== null
+        ? PLAYER.DIAMOND
+        : state.pressedAt[PLAYER.HEART] !== null
+          ? PLAYER.HEART
+          : null;
+
+  if (!firstPlayer) {
+    return '入力が成立しなかったため、勝敗理由を判定できませんでした。';
+  }
+
+  const firstCorrect = state.correctness[firstPlayer];
+  const firstPlayerLabel = PLAYER_SYMBOL[firstPlayer];
+  const loser = firstPlayer === PLAYER.DIAMOND ? PLAYER.HEART : PLAYER.DIAMOND;
+  const loserLabel = PLAYER_SYMBOL[loser];
+
+  if (firstCorrect) {
+    return `${firstPlayerLabel} が最初に正解をタップしたため勝利。`;
+  }
+
+  return `${firstPlayerLabel} が最初に不正解をタップしたため、${loserLabel} の勝利。`;
 }
 
 // =========================
@@ -470,5 +576,10 @@ function clearRoundTimers() {
   if (state.roundTimers.countdown !== null) {
     window.clearTimeout(state.roundTimers.countdown);
     state.roundTimers.countdown = null;
+  }
+
+  if (state.roundTimers.autoNext !== null) {
+    window.clearTimeout(state.roundTimers.autoNext);
+    state.roundTimers.autoNext = null;
   }
 }
