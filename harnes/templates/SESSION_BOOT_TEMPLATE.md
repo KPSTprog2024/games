@@ -29,6 +29,7 @@
 
 ## 6) Constraints
 -
+- デザイン関連タスクがある場合は `templates/DESIGN_PROMPT_TEMPLATE.md` をそのまま注入し、`[ここに具体的なプロジェクト要件を入れる]` のみ差し替える
 
 ## 7) DoD
 -
@@ -59,6 +60,7 @@
 ## 12) テンプレート適用方針（必須）
 - 使用するテンプレート:
   - `SESSION_BOOT_TEMPLATE`: Use / Skip（理由）
+  - `DESIGN_PROMPT_TEMPLATE`（デザイン対象時必須）: Use / Skip（理由）
   - `SPRINT_REVIEW_TEMPLATE`: Use / Skip（理由）
   - `NEXT_PROMPT_TEMPLATE`: Use / Skip（理由）
   - `JOURNEY_LEARNING_ENTRY_TEMPLATE`: Use / Skip（理由）

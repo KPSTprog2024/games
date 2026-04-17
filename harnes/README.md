@@ -14,6 +14,7 @@
 
 1. `SOUL.md` を読む（原則・禁止・判定規律）
 2. `templates/SESSION_BOOT_TEMPLATE.md` をコピーして、その回の実行用プロンプトを作る
+   - デザイン関連タスクがある場合は、`templates/DESIGN_PROMPT_TEMPLATE.md` をそのまま各プロジェクト要件に注入する（末尾の `[ここに具体的なプロジェクト要件を入れる]` だけ差し替え）
 3. 実装後は `templates/SPRINT_REVIEW_TEMPLATE.md` で検証を出力する
 4. `templates/JOURNEY_LEARNING_ENTRY_TEMPLATE.md` で学習エントリを作成し、`learning/AGENT_GROWTH_LEDGER.md` に追記する
 5. 次回継続がある場合は `templates/NEXT_PROMPT_TEMPLATE.md` で次指示を作成する
@@ -27,6 +28,7 @@ harnes/
   SOUL.md
   LEARNING_SYSTEM.md
   templates/
+    DESIGN_PROMPT_TEMPLATE.md
     SESSION_BOOT_TEMPLATE.md
     NEXT_PROMPT_TEMPLATE.md
     SPRINT_REVIEW_TEMPLATE.md
