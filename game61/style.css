@@ -211,43 +211,6 @@ body {
   align-content: start;
 }
 
-.round-label {
-  margin: 0;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.phase-badge {
-  margin: 0;
-  display: inline-flex;
-  justify-self: start;
-  align-items: center;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  border: 1px solid transparent;
-}
-
-.phase-badge--countdown {
-  color: #fff3bf;
-  background: rgba(255, 213, 74, 0.14);
-  border-color: rgba(255, 213, 74, 0.45);
-}
-
-.phase-badge--ready {
-  color: #c8ffe0;
-  background: rgba(39, 194, 108, 0.14);
-  border-color: rgba(39, 194, 108, 0.45);
-}
-
-.phase-badge--result {
-  color: #ffd8e0;
-  background: rgba(242, 82, 109, 0.14);
-  border-color: rgba(242, 82, 109, 0.45);
-}
-
 .score-ribbon { display: none; }
 
 .score-ribbon__item {
@@ -303,24 +266,6 @@ body {
   font-size: 0.93rem;
 }
 
-.status-hint {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.result-grid {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.status-reason {
-  margin: 0 0 8px;
-  font-size: 0.82rem;
-  color: var(--muted);
-}
-
 .control-btn {
   display: inline-block;
   width: 100%;
@@ -353,12 +298,6 @@ body {
   padding: 6px 8px;
   display: grid;
   gap: 4px;
-}
-
-.score-log__title {
-  margin: 0;
-  font-size: 0.74rem;
-  color: var(--muted);
 }
 
 .score-log__row {
