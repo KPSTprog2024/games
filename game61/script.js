@@ -7,7 +7,6 @@ const WIN_SCORE = 3;
 const INPUT_GUARD_MS = 100;
 const POST_DECISION_CAPTURE_MS = 100;
 const COUNTDOWN_STEP_MS = 700;
-const AUTO_NEXT_ROUND_MS = 1200;
 
 const COLORS = ['red', 'blue', 'green'];
 const SHAPES = ['circle', 'triangle', 'square'];
@@ -60,8 +59,7 @@ const state = {
   roundTimers: {
     guard: null,
     finish: null,
-    countdown: null,
-    autoNext: null
+    countdown: null
   },
   isCountingDown: false
 };
@@ -238,9 +236,6 @@ function finishRound() {
   }
 
   renderStatusRoundResult(true);
-  state.roundTimers.autoNext = window.setTimeout(() => {
-    startNextRound();
-  }, AUTO_NEXT_ROUND_MS);
 }
 
 function saveRoundHistory() {
@@ -301,6 +296,7 @@ function renderChoices(hiddenUntilStart = false) {
 
 function renderPlayerChoices(container, player, hiddenUntilStart) {
   container.innerHTML = '';
+  container.classList.remove('choices--winner', 'choices--loser');
 
   state.currentChoices.forEach((choice, index) => {
     const fragment = ui.choiceTemplate.content.cloneNode(true);
@@ -366,7 +362,7 @@ function renderStatusRoundResult(showNextButton = false) {
     ${
       showNextButton
         ? `<button class="control-btn" id="next-round-btn" type="button">次へ</button>
-           <p class="status-hint">約${(AUTO_NEXT_ROUND_MS / 1000).toFixed(1)}秒後に自動で次ラウンドへ進みます</p>`
+           <p class="status-hint">内容を確認したら「次へ」を押してください</p>`
         : '<div>判定中...</div>'
     }
   `;
@@ -378,10 +374,6 @@ function renderStatusRoundResult(showNextButton = false) {
     nextBtn.addEventListener(
       'click',
       () => {
-        if (state.roundTimers.autoNext !== null) {
-          window.clearTimeout(state.roundTimers.autoNext);
-          state.roundTimers.autoNext = null;
-        }
         startNextRound();
       },
       { once: true }
@@ -396,8 +388,9 @@ function renderGameFinished() {
     state.scores[PLAYER.DIAMOND] > state.scores[PLAYER.HEART] ? PLAYER.DIAMOND : PLAYER.HEART;
 
   const historyItems = state.roundHistory
+    .slice(-3)
     .map((row) => {
-      return `<li>R${row.round} 勝者:${PLAYER_SYMBOL[row.winner]} / ♦️ ${formatReaction(
+      return `<li>R${row.round}: ${PLAYER_SYMBOL[row.winner]} / ♦️ ${formatReaction(
         row.diamondReaction,
         row.diamondCorrect
       )} / ❤️ ${formatReaction(row.heartReaction, row.heartCorrect)}</li>`;
@@ -407,7 +400,8 @@ function renderGameFinished() {
   ui.statusPanel.innerHTML = `
     <p class="status-title">ゲーム勝者: ${PLAYER_SYMBOL[winner]}</p>
     <div>最終スコア: ♦️ ${state.scores[PLAYER.DIAMOND]} - ❤️ ${state.scores[PLAYER.HEART]}</div>
-    <ul class="history">${historyItems}</ul>
+    <p class="status-hint">履歴: 全${state.roundHistory.length}ラウンド（最新3件）</p>
+    <ul class="history history--compact">${historyItems}</ul>
     <div class="control-stack">
       <button class="control-btn" id="restart-btn" type="button">もう一度</button>
       <a class="control-btn control-btn--secondary" href="./index.html">トップへ戻る</a>
@@ -424,14 +418,20 @@ function paintChoiceFeedback() {
   [ui.diamondChoices, ui.heartChoices].forEach((container, idx) => {
     const player = idx === 0 ? PLAYER.DIAMOND : PLAYER.HEART;
     const buttons = container.querySelectorAll('.choice-btn');
+    const isRoundWinner = player === state.winnerOfRound;
+    const pressedIndex = pressedChoiceIndex(player);
+
+    container.classList.toggle('choices--winner', isRoundWinner);
+    container.classList.toggle('choices--loser', !isRoundWinner);
 
     buttons.forEach((btn, index) => {
-      btn.classList.toggle('is-correct', state.currentChoices[index].isCorrect);
-
-      const pressedIndex = pressedChoiceIndex(player);
+      const isCorrect = state.currentChoices[index].isCorrect;
+      btn.classList.toggle('is-correct', isRoundWinner && isCorrect);
+      btn.classList.toggle('is-correct-muted', !isRoundWinner && isCorrect);
+      btn.classList.toggle('is-muted', !isRoundWinner);
       const pressed = pressedIndex !== null && Number(btn.dataset.index) === pressedIndex;
       btn.classList.toggle('is-pressed', pressed);
-      btn.classList.toggle('is-wrong', pressed && state.correctness[player] === false);
+      btn.classList.toggle('is-wrong', isRoundWinner && pressed && state.correctness[player] === false);
     });
   });
 }
@@ -576,10 +576,5 @@ function clearRoundTimers() {
   if (state.roundTimers.countdown !== null) {
     window.clearTimeout(state.roundTimers.countdown);
     state.roundTimers.countdown = null;
-  }
-
-  if (state.roundTimers.autoNext !== null) {
-    window.clearTimeout(state.roundTimers.autoNext);
-    state.roundTimers.autoNext = null;
   }
 }
