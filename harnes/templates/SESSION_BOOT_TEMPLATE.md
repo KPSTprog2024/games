@@ -50,12 +50,21 @@
 - 検証結果
 - 次回Prompt草案
 - 学習エントリ（`AGENT_GROWTH_LEDGER.md` 追記）
+- バックログ更新（`✅/⏳` と残タスク所在）
 
 ## 11) 検証コマンド
 - `...`
 - 期待結果:
 
-## 12) 出力フォーマット指定
+## 12) テンプレート適用方針（必須）
+- 使用するテンプレート:
+  - `SESSION_BOOT_TEMPLATE`: Use / Skip（理由）
+  - `SPRINT_REVIEW_TEMPLATE`: Use / Skip（理由）
+  - `NEXT_PROMPT_TEMPLATE`: Use / Skip（理由）
+  - `JOURNEY_LEARNING_ENTRY_TEMPLATE`: Use / Skip（理由）
+- Skipがある場合の代替手段:
+
+## 13) 出力フォーマット指定
 - Summary（変更点）
 - Testing（コマンドごとの成否）
 - 判定（Adopt / Iterate / Revert）

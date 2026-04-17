@@ -17,6 +17,7 @@
 3. 実装後は `templates/SPRINT_REVIEW_TEMPLATE.md` で検証を出力する
 4. `templates/JOURNEY_LEARNING_ENTRY_TEMPLATE.md` で学習エントリを作成し、`learning/AGENT_GROWTH_LEDGER.md` に追記する
 5. 次回継続がある場合は `templates/NEXT_PROMPT_TEMPLATE.md` で次指示を作成する
+6. 残タスクはバックログに `✅ / ⏳` で明示し、次回Promptへ carry-over する
 
 ## ディレクトリ構造
 
@@ -40,3 +41,4 @@ harnes/
 - ドメイン固有ルールはテンプレート内の「Project Invariants」に注入する
 - 最低限の必須項目（Fail Fast / Metrics Plan / Non-Scope）を全テンプレートで強制する
 - 学習ログは追記専用で、次回Promptに再注入する
+- 「テンプレートを使った/使わなかった理由」と「残タスクの所在」を毎スプリントで明文化する

@@ -18,3 +18,4 @@
 3. `templates/SPRINT_REVIEW_TEMPLATE.md` でレビュー
 4. `learning/AGENT_GROWTH_LEDGER.md` に学習エントリ追記
 5. `templates/NEXT_PROMPT_TEMPLATE.md` を使い次スプリントに引き継ぎ
+6. `runs/SPRINT_001_BACKLOG.md` の `✅ / ⏳` を更新し、残タスク所在を明示

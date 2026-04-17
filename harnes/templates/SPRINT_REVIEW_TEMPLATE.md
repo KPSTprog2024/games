@@ -49,3 +49,17 @@
 - 続行時の最小タスク:
 - 次回Prompt草案:
 - Learning Ledger追記ID:
+
+## 10. テンプレート運用レビュー（必須）
+- 使ったテンプレート:
+  - SESSION_BOOT_TEMPLATE: Yes / No（理由）
+  - SPRINT_REVIEW_TEMPLATE: Yes / No（理由）
+  - NEXT_PROMPT_TEMPLATE: Yes / No（理由）
+  - JOURNEY_LEARNING_ENTRY_TEMPLATE: Yes / No（理由）
+- 使わなかったテンプレートの代替運用:
+- 次回改善したいテンプレート項目:
+
+## 11. バックログ残対応の見える化（必須）
+- 完了項目（✅）:
+- 残項目（⏳）:
+- 残タスクの所在（ファイルパス）:
