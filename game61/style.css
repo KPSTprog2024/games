@@ -347,23 +347,41 @@ body {
   gap: 8px;
 }
 
-.history {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
+.score-log {
+  background: var(--panel-soft);
+  border-radius: 12px;
+  padding: 6px 8px;
   display: grid;
   gap: 4px;
-  font-size: 0.78rem;
 }
 
-.history li {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding-bottom: 4px;
+.score-log__title {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--muted);
 }
 
-.history--compact {
-  max-height: 78px;
-  overflow: hidden;
+.score-log__row {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+
+.score-log__player {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.score-log__slot {
+  display: grid;
+  place-items: center;
+  min-height: 22px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .choices--loser .choice-btn {

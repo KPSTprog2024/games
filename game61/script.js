@@ -56,6 +56,11 @@ const state = {
   },
   winnerOfRound: null,
   roundHistory: [],
+  gameStartedAt: 0,
+  scoreTimeline: {
+    [PLAYER.DIAMOND]: [],
+    [PLAYER.HEART]: []
+  },
   roundTimers: {
     guard: null,
     finish: null,
@@ -78,7 +83,9 @@ const ui = {
   statusPanel: document.getElementById('status-panel'),
   diamondChoices: document.getElementById('choices-diamond'),
   heartChoices: document.getElementById('choices-heart'),
-  choiceTemplate: document.getElementById('choice-button-template')
+  choiceTemplate: document.getElementById('choice-button-template'),
+  scoreLogDiamond: document.getElementById('score-log-diamond'),
+  scoreLogHeart: document.getElementById('score-log-heart')
 };
 
 // =========================
@@ -101,6 +108,9 @@ function startNewGame() {
   state.scores[PLAYER.DIAMOND] = 0;
   state.scores[PLAYER.HEART] = 0;
   state.roundHistory = [];
+  state.gameStartedAt = performance.now();
+  state.scoreTimeline[PLAYER.DIAMOND] = [];
+  state.scoreTimeline[PLAYER.HEART] = [];
   state.gameEnded = false;
 
   startNextRound();
@@ -216,6 +226,7 @@ function settleRoundByFirstInput(firstPlayer, firstIsCorrect) {
   state.winnerOfRound = firstIsCorrect ? firstPlayer : other;
 
   state.scores[state.winnerOfRound] += 1;
+  state.scoreTimeline[state.winnerOfRound].push(formatScoreStamp(performance.now()));
 
   state.roundTimers.finish = window.setTimeout(() => {
     finishRound();
@@ -278,6 +289,7 @@ function renderScore() {
     ui.scoreDiamondCenter.textContent = state.scores[PLAYER.DIAMOND];
     ui.scoreHeartCenter.textContent = state.scores[PLAYER.HEART];
   }
+  renderScoreTimeline();
 }
 
 function renderRoundLabel() {
@@ -387,21 +399,10 @@ function renderGameFinished() {
   const winner =
     state.scores[PLAYER.DIAMOND] > state.scores[PLAYER.HEART] ? PLAYER.DIAMOND : PLAYER.HEART;
 
-  const historyItems = state.roundHistory
-    .slice(-3)
-    .map((row) => {
-      return `<li>R${row.round}: ${PLAYER_SYMBOL[row.winner]} / ♦️ ${formatReaction(
-        row.diamondReaction,
-        row.diamondCorrect
-      )} / ❤️ ${formatReaction(row.heartReaction, row.heartCorrect)}</li>`;
-    })
-    .join('');
-
   ui.statusPanel.innerHTML = `
     <p class="status-title">ゲーム勝者: ${PLAYER_SYMBOL[winner]}</p>
     <div>最終スコア: ♦️ ${state.scores[PLAYER.DIAMOND]} - ❤️ ${state.scores[PLAYER.HEART]}</div>
-    <p class="status-hint">履歴: 全${state.roundHistory.length}ラウンド（最新3件）</p>
-    <ul class="history history--compact">${historyItems}</ul>
+    <p class="status-hint">下の得点時刻ログで、1点目〜3点目まで確認できます。</p>
     <div class="control-stack">
       <button class="control-btn" id="restart-btn" type="button">もう一度</button>
       <a class="control-btn control-btn--secondary" href="./index.html">トップへ戻る</a>
@@ -560,6 +561,34 @@ function formatCorrectness(correctness) {
     return '—';
   }
   return correctness ? '○' : '✕';
+}
+
+function renderScoreTimeline() {
+  renderScoreTimelineRow(ui.scoreLogDiamond, PLAYER.DIAMOND);
+  renderScoreTimelineRow(ui.scoreLogHeart, PLAYER.HEART);
+}
+
+function renderScoreTimelineRow(container, player) {
+  if (!container) {
+    return;
+  }
+
+  const stamps = state.scoreTimeline[player];
+  const slots = Array.from({ length: WIN_SCORE }, (_, index) => stamps[index] || '—');
+  const playerLabel = player === PLAYER.DIAMOND ? '♦️' : '❤️';
+
+  container.innerHTML = `
+    <span class="score-log__player">${playerLabel}</span>
+    ${slots
+      .map((slot, index) => `<span class="score-log__slot" aria-label="${index + 1}点目の時刻">${slot}</span>`)
+      .join('')}
+  `;
+}
+
+function formatScoreStamp(nowMs) {
+  const elapsedMs = Math.max(0, nowMs - state.gameStartedAt);
+  const elapsedSec = elapsedMs / 1000;
+  return `${elapsedSec.toFixed(1)}s`;
 }
 
 function clearRoundTimers() {
