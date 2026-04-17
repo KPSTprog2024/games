@@ -53,6 +53,7 @@
 ## 10. テンプレート運用レビュー（必須）
 - 使ったテンプレート:
   - SESSION_BOOT_TEMPLATE: Yes / No（理由）
+  - DESIGN_PROMPT_TEMPLATE（デザイン対象時必須）: Yes / No（理由）
   - SPRINT_REVIEW_TEMPLATE: Yes / No（理由）
   - NEXT_PROMPT_TEMPLATE: Yes / No（理由）
   - JOURNEY_LEARNING_ENTRY_TEMPLATE: Yes / No（理由）

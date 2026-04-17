@@ -42,5 +42,6 @@
 - [ ] 既存エントリ本文を編集していない
 - [ ] latest ポインタ/状態を更新した
 - [ ] Non-Scope / Fail Fast / Metrics Plan / Project Invariants を含めた
+- [ ] デザイン関連タスクがある場合、`DESIGN_PROMPT_TEMPLATE.md` を注入した
 - [ ] Learning Ledgerから再利用知見を1つ以上注入した
 - [ ] `Carry-over Backlog` に `✅ / ⏳ / 残タスク所在` を記入した
