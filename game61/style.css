@@ -279,6 +279,14 @@ body {
   font-size: 1rem;
   text-align: center;
   text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.control-btn:disabled {
+  background: var(--muted-btn-bg);
+  color: var(--muted);
+  border: 1px solid var(--muted-btn-border);
+  cursor: not-allowed;
 }
 
 .control-btn--secondary {
