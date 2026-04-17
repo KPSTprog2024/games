@@ -127,6 +127,7 @@ function startNextRound() {
 
   renderScore();
   renderChoices(true);
+  renderStatusNextButton(false);
   startRoundCountdown();
 }
 
@@ -222,6 +223,7 @@ function settleRoundByFirstInput(firstPlayer, firstIsCorrect) {
 
   state.scores[state.winnerOfRound] += 1;
   state.scoreTimeline[state.winnerOfRound].push(formatScoreStamp(state.reactionsMs[state.winnerOfRound]));
+  renderScore();
 
   state.roundTimers.finish = window.setTimeout(() => {
     finishRound();
@@ -322,7 +324,7 @@ function renderPlayerChoices(container, player, hiddenUntilStart) {
 
 function renderCountdown(value) {
   ui.topicShape.innerHTML = `<p class="countdown-number" aria-label="カウントダウン ${value}">${value}</p>`;
-  ui.statusPanel.innerHTML = '';
+  renderStatusNextButton(false);
 }
 
 function renderStatusWaiting() {
@@ -330,26 +332,13 @@ function renderStatusWaiting() {
     return;
   }
 
-  ui.statusPanel.innerHTML = '';
+  renderStatusNextButton(false);
 }
 
 function renderStatusRoundResult(showNextButton = false) {
-  ui.statusPanel.innerHTML = showNextButton
-    ? `<button class="control-btn" id="next-round-btn" type="button">次へ</button>`
-    : '';
+  renderStatusNextButton(showNextButton);
 
   paintChoiceFeedback();
-
-  if (showNextButton) {
-    const nextBtn = document.getElementById('next-round-btn');
-    nextBtn.addEventListener(
-      'click',
-      () => {
-        startNextRound();
-      },
-      { once: true }
-    );
-  }
 }
 
 function renderGameFinished() {
@@ -370,6 +359,23 @@ function renderGameFinished() {
 
   const restartBtn = document.getElementById('restart-btn');
   restartBtn.addEventListener('click', startNewGame, { once: true });
+}
+
+function renderStatusNextButton(enabled) {
+  ui.statusPanel.innerHTML = `<button class="control-btn" id="next-round-btn" type="button" ${enabled ? '' : 'disabled'}>次へ</button>`;
+
+  const nextBtn = document.getElementById('next-round-btn');
+  if (!nextBtn || !enabled) {
+    return;
+  }
+
+  nextBtn.addEventListener(
+    'click',
+    () => {
+      startNextRound();
+    },
+    { once: true }
+  );
 }
 
 function paintChoiceFeedback() {
