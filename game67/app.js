@@ -1,7 +1,7 @@
 const ROWS = 4;
 const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
-const MAX_ROUND = 14;
+const MAX_ROUND = 25;
 const BASE_DISPLAY_MS = 600;
 const DISPLAY_RATIO = 0.8;
 const MIN_DISPLAY_MS = 10;
@@ -9,14 +9,18 @@ const IN_ROUND_RATIO = 0.9;
 const MIN_SHOW_COUNT = 6;
 const MAX_SHOW_COUNT = 15;
 
+const CAT_ICONS = ["🐈", "🐈‍⬛", "😺", "😻", "😽", "😹", "🙀", "🦁"];
+const DISTRACTOR_ICONS = ["🐸", "🐘", "🦒"];
+
 const state = {
   round: 1,
   score: 0,
   isAnimating: false,
   isAnswering: false,
+  isDisturbanceMode: false,
   currentDisplayMs: BASE_DISPLAY_MS,
   finalCellIndex: null,
-  currentVisibleCellIndex: null,
+  entities: [],
 };
 
 const elements = {
@@ -27,6 +31,8 @@ const elements = {
   grid: document.getElementById("grid"),
   actionBtn: document.getElementById("action-btn"),
   resetBtn: document.getElementById("reset-btn"),
+  prevRoundBtn: document.getElementById("prev-round-btn"),
+  disturbanceBtn: document.getElementById("disturbance-btn"),
 };
 
 const cells = [];
@@ -50,6 +56,44 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function truncateToTwoDecimals(value) {
+  return Math.floor(value * 100) / 100;
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomNextIndex(previous, usedIndices = new Set()) {
+  let next = Math.floor(Math.random() * TOTAL_CELLS);
+  while (next === previous || usedIndices.has(next)) {
+    next = Math.floor(Math.random() * TOTAL_CELLS);
+  }
+  return next;
+}
+
+function pickRandomItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function pickRandomUniqueItems(items, count) {
+  const pool = [...items];
+  const picked = [];
+  while (picked.length < count && pool.length > 0) {
+    const index = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(index, 1)[0]);
+  }
+  return picked;
+}
+
+function computeDisplayMsForRound(round) {
+  let displayMs = BASE_DISPLAY_MS;
+  for (let index = 1; index < round; index += 1) {
+    displayMs = Math.max(MIN_DISPLAY_MS, truncateToTwoDecimals(displayMs * DISPLAY_RATIO));
+  }
+  return displayMs;
+}
+
 function syncStatus() {
   elements.round.textContent = String(state.round);
   elements.maxRound.textContent = String(MAX_ROUND);
@@ -63,51 +107,80 @@ function clearHighlights() {
   });
 }
 
-function clearCat() {
-  if (state.currentVisibleCellIndex === null) {
-    return;
+function clearEntities() {
+  cells.forEach((cell) => {
+    cell.innerHTML = "";
+    cell.classList.remove("has-target", "has-distractor");
+  });
+}
+
+function renderEntity(entity) {
+  const cell = cells[entity.cellIndex];
+  const icon = document.createElement("span");
+  icon.className = "cat-icon";
+  icon.textContent = entity.icon;
+  cell.appendChild(icon);
+  if (entity.isTarget) {
+    cell.classList.add("has-target");
+  } else {
+    cell.classList.add("has-distractor");
   }
-  const cell = cells[state.currentVisibleCellIndex];
-  cell.innerHTML = "";
-  cell.classList.remove("has-cat");
-  state.currentVisibleCellIndex = null;
 }
 
-function renderCat(cell) {
-  const cat = document.createElement("span");
-  cat.className = "cat-icon";
-  cat.textContent = "🐈";
-  cell.appendChild(cat);
-  cell.classList.add("has-cat");
+function renderEntities(entities) {
+  clearEntities();
+  entities.forEach(renderEntity);
 }
 
-function showCat(index) {
-  clearCat();
-  const cell = cells[index];
-  renderCat(cell);
-  state.currentVisibleCellIndex = index;
-}
+function buildRoundEntities() {
+  const entities = [];
+  const targetCell = randomInt(0, TOTAL_CELLS - 1);
+  entities.push({
+    isTarget: true,
+    icon: pickRandomItem(CAT_ICONS),
+    cellIndex: targetCell,
+  });
 
-function randomNextIndex(previous) {
-  let next = Math.floor(Math.random() * TOTAL_CELLS);
-  while (next === previous) {
-    next = Math.floor(Math.random() * TOTAL_CELLS);
+  if (state.isDisturbanceMode) {
+    const distractorCount = randomInt(1, 2);
+    const distractorIcons = pickRandomUniqueItems(DISTRACTOR_ICONS, distractorCount);
+
+    distractorIcons.forEach((icon) => {
+      const used = new Set(entities.map((entity) => entity.cellIndex));
+      entities.push({
+        isTarget: false,
+        icon,
+        cellIndex: randomNextIndex(-1, used),
+      });
+    });
   }
-  return next;
+
+  return entities;
 }
 
-function truncateToTwoDecimals(value) {
-  return Math.floor(value * 100) / 100;
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function moveEntities(currentEntities) {
+  const used = new Set();
+  return currentEntities.map((entity) => {
+    const nextCell = randomNextIndex(entity.cellIndex, used);
+    used.add(nextCell);
+    return {
+      ...entity,
+      cellIndex: nextCell,
+    };
+  });
 }
 
 function updateButtonStates() {
   const canRunRound = !state.isAnimating && !state.isAnswering && state.round <= MAX_ROUND;
   elements.actionBtn.disabled = !canRunRound;
-  elements.actionBtn.textContent = state.round === 1 ? "開始" : "次のラウンド";
+  elements.actionBtn.textContent = state.round === 1 ? "スタート" : "つぎへ";
+
+  elements.prevRoundBtn.disabled =
+    state.isAnimating || state.isAnswering || state.round <= 1;
+
+  elements.disturbanceBtn.disabled = state.isAnimating || state.isAnswering;
+  elements.disturbanceBtn.textContent = state.isDisturbanceMode ? "お邪魔あり" : "お邪魔なし";
+  elements.disturbanceBtn.setAttribute("aria-pressed", String(state.isDisturbanceMode));
 
   cells.forEach((cell) => {
     cell.disabled = !state.isAnswering;
@@ -121,24 +194,27 @@ async function runRound() {
   updateButtonStates();
 
   const showCount = randomInt(MIN_SHOW_COUNT, MAX_SHOW_COUNT);
-  let current = Math.floor(Math.random() * TOTAL_CELLS);
   let currentStepMs = state.currentDisplayMs;
+  let entities = buildRoundEntities();
 
   for (let show = 0; show < showCount; show += 1) {
-    showCat(current);
+    renderEntities(entities);
     await wait(currentStepMs);
-    clearCat();
+    clearEntities();
+
     if (show < showCount - 1) {
       await wait(currentStepMs);
-      current = randomNextIndex(current);
+      entities = moveEntities(entities);
     }
+
     currentStepMs = Math.max(
       MIN_DISPLAY_MS,
       truncateToTwoDecimals(currentStepMs * IN_ROUND_RATIO),
     );
   }
 
-  state.finalCellIndex = current;
+  state.entities = entities;
+  state.finalCellIndex = entities.find((entity) => entity.isTarget).cellIndex;
 
   state.isAnimating = false;
   state.isAnswering = true;
@@ -176,18 +252,32 @@ function onAnswerClick(event) {
 
   if (correct) {
     cells[selected].classList.add("correct");
-    showCat(selected);
   } else {
     cells[selected].classList.add("wrong");
     cells[state.finalCellIndex].classList.add("correct");
-    showCat(state.finalCellIndex);
   }
 
+  renderEntities(state.entities);
   completeRound(correct);
 }
 
+function stepBackRound() {
+  if (state.isAnimating || state.isAnswering || state.round <= 1) {
+    return;
+  }
+
+  state.round -= 1;
+  state.currentDisplayMs = computeDisplayMsForRound(state.round);
+  state.finalCellIndex = null;
+  state.entities = [];
+  clearEntities();
+  clearHighlights();
+  syncStatus();
+  updateButtonStates();
+}
+
 function resetGame() {
-  clearCat();
+  clearEntities();
   clearHighlights();
   state.round = 1;
   state.score = 0;
@@ -195,6 +285,7 @@ function resetGame() {
   state.isAnswering = false;
   state.currentDisplayMs = BASE_DISPLAY_MS;
   state.finalCellIndex = null;
+  state.entities = [];
   syncStatus();
   updateButtonStates();
 }
@@ -207,6 +298,14 @@ elements.actionBtn.addEventListener("click", async () => {
 });
 
 elements.resetBtn.addEventListener("click", resetGame);
+elements.prevRoundBtn.addEventListener("click", stepBackRound);
+elements.disturbanceBtn.addEventListener("click", () => {
+  if (state.isAnimating || state.isAnswering) {
+    return;
+  }
+  state.isDisturbanceMode = !state.isDisturbanceMode;
+  updateButtonStates();
+});
 
 createGrid();
 resetGame();

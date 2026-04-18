@@ -61,7 +61,26 @@ body {
   margin: 14px 0;
 }
 
-.status-panel p { margin: 5px 0; }
+.status-panel p {
+  margin: 5px 0;
+}
+
+.round-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.small-btn {
+  border: none;
+  border-radius: 9px;
+  padding: 7px 11px;
+  background: #4b5563;
+  color: #f9fafb;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 .grid {
   display: grid;
@@ -107,6 +126,7 @@ body {
 .controls {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
   margin: 16px 0;
 }
 
@@ -121,25 +141,15 @@ body {
   min-width: 130px;
 }
 
-.controls button:disabled {
+.controls .disturbance-btn {
+  min-width: 120px;
+  background: #1f6f5f;
+}
+
+.controls button:disabled,
+.small-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.help {
-  background: rgba(17, 24, 39, 0.85);
-  border-radius: 14px;
-  padding: 12px 16px;
-}
-
-.help h2 {
-  margin-top: 0;
-  font-size: 1rem;
-}
-
-.help ol {
-  margin: 8px 0 0;
-  padding-left: 20px;
 }
 
 @media (max-width: 520px) {
