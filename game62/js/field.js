@@ -53,16 +53,17 @@ export class Field {
     );
   }
 
-  isWalkableForPlayer(x, y) {
+  isWalkableForPlayer(x, y, drawing = false) {
     const cell = this.getCell(x, y);
     if (cell === CELL.UNCAPTURED || cell === CELL.BOUNDARY) return true;
     if (cell !== CELL.CAPTURED) return false;
+    if (drawing) return true;
     return this.isCapturedEdge(x, y);
   }
 
   isSolidForEnemy(x, y) {
     const cell = this.getCell(x, y);
-    return cell === CELL.CAPTURED || cell === CELL.BOUNDARY || cell === CELL.TRAIL;
+    return cell === CELL.CAPTURED || cell === CELL.BOUNDARY;
   }
 
   getFillRate() {
