@@ -3,18 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>猫を探せ</title>
+    <title>ネコさがし</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="app">
       <header class="header">
-        <h1>🐈 猫を探せ</h1>
+        <h1>🐈 ネコさがし</h1>
         <button id="reset-btn" class="reset-btn" type="button">リセット</button>
       </header>
 
       <section class="status-panel" aria-live="polite">
-        <p><strong>ラウンド:</strong> <span id="round">1</span> / <span id="max-round">14</span></p>
+        <p class="round-row">
+          <span><strong>ラウンド:</strong> <span id="round">1</span> / <span id="max-round">25</span></span>
+          <button id="prev-round-btn" class="small-btn" type="button">ラウンド戻る</button>
+        </p>
         <p><strong>スコア:</strong> <span id="score">0</span></p>
         <p><strong>表示時間:</strong> <span id="display-ms">600</span>ms</p>
       </section>
@@ -22,17 +25,8 @@
       <section class="grid" id="grid" aria-label="3列4行のマス"></section>
 
       <section class="controls">
-        <button id="action-btn" type="button">開始</button>
-      </section>
-
-      <section class="help">
-        <h2>遊び方</h2>
-        <ol>
-          <li>猫は 4x3 グリッド内を移動します。</li>
-          <li>猫が表示されていない間は移動中です。</li>
-          <li>動きが終わったら「最後の位置」をクリックします。</li>
-          <li>ラウンドが進むほど猫の表示時間は短くなります。</li>
-        </ol>
+        <button id="disturbance-btn" class="disturbance-btn" type="button">お邪魔なし</button>
+        <button id="action-btn" type="button">スタート</button>
       </section>
     </main>
 
