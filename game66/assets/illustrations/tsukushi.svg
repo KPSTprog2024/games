@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="つくしのイラスト">
+  <rect width="128" height="128" rx="18" fill="#f4fbef"/>
+  <ellipse cx="64" cy="112" rx="42" ry="8" fill="#d8eec9"/>
+  <rect x="56" y="52" width="16" height="52" rx="8" fill="#b9935a"/>
+  <ellipse cx="64" cy="44" rx="22" ry="20" fill="#9a6d3e"/>
+  <path d="M47 45c8-7 26-7 34 0" stroke="#c89f68" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M48 54c8-7 24-7 32 0" stroke="#c89f68" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M49 63c8-7 22-7 30 0" stroke="#c89f68" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

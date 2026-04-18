@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="たけのこのイラスト">
+  <rect width="128" height="128" rx="18" fill="#f8f3e7"/>
+  <ellipse cx="64" cy="114" rx="44" ry="8" fill="#e2d6bb"/>
+  <path d="M64 20 88 54 80 102 48 102 40 54Z" fill="#b88b55"/>
+  <path d="M64 20 74 36 54 36Z" fill="#d2b486"/>
+  <path d="M54 36h20l-4 14H58z" fill="#c69a66"/>
+  <path d="M50 50h28l-4 14H54z" fill="#d2b486"/>
+  <path d="M46 66h36l-4 14H50z" fill="#c69a66"/>
+  <path d="M46 82h36l-4 14H50z" fill="#d2b486"/>
+</svg>

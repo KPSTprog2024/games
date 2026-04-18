@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="朝顔のイラスト">
+  <rect width="128" height="128" rx="18" fill="#eff6ff"/>
+  <path d="M62 106V38" stroke="#4e9d52" stroke-width="8" stroke-linecap="round"/>
+  <path d="M62 66c16 0 24 10 28 20" stroke="#4e9d52" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M62 54c-12 0-20 8-24 18" stroke="#4e9d52" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="84" cy="90" r="18" fill="#7f7fff"/>
+  <circle cx="84" cy="90" r="7" fill="#fff6da"/>
+  <circle cx="40" cy="78" r="20" fill="#6f7df2"/>
+  <circle cx="40" cy="78" r="8" fill="#fff6da"/>
+  <ellipse cx="70" cy="72" rx="10" ry="6" fill="#68b86b"/>
+  <ellipse cx="52" cy="92" rx="10" ry="6" fill="#68b86b"/>
+</svg>
