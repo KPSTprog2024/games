@@ -15,20 +15,23 @@
 
       <section class="status-panel" aria-live="polite">
         <p class="round-row">
-          <span><strong>ラウンド:</strong> <span id="round">1</span> / <span id="max-round">25</span></span>
+          <span><strong>ラウンド:</strong> <span id="round">1</span> / <span id="max-round">40</span></span>
           <div class="round-buttons">
             <button id="next-round-btn" class="small-btn" type="button">ラウンドすすむ</button>
             <button id="prev-round-btn" class="small-btn" type="button">ラウンドもどる</button>
           </div>
         </p>
-        <p><strong>スコア:</strong> <span id="score">0</span></p>
+        <div class="score-row">
+          <p><strong>スコア:</strong> <span id="score">0</span></p>
+          <p id="disturbance-indicator" class="disturbance-indicator" aria-live="polite">通常モード</p>
+        </div>
         <p><strong>表示時間:</strong> <span id="display-ms">600</span>ms</p>
       </section>
 
       <section class="grid" id="grid" aria-label="3列4行のマス"></section>
 
       <section class="controls">
-        <button id="disturbance-btn" class="disturbance-btn" type="button">お邪魔なし</button>
+        <button id="disturbance-btn" class="disturbance-btn" type="button">じゃまもの</button>
         <button id="action-btn" type="button">スタート</button>
       </section>
     </main>

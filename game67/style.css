@@ -65,6 +65,13 @@ body {
   margin: 5px 0;
 }
 
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .round-row {
   display: flex;
   align-items: center;
@@ -75,6 +82,21 @@ body {
 .round-buttons {
   display: flex;
   gap: 8px;
+}
+
+.disturbance-indicator {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #374151;
+  color: #d1d5db;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.disturbance-indicator.is-on {
+  background: #f59e0b;
+  color: #1f2937;
 }
 
 .small-btn {

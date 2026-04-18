@@ -1,7 +1,7 @@
 const ROWS = 4;
 const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
-const MAX_ROUND = 25;
+const MAX_ROUND = 40;
 const BASE_DISPLAY_MS = 600;
 const EARLY_ROUND_DISPLAY_RATIO = 0.8;
 const LATE_ROUND_DISPLAY_RATIO = 0.9;
@@ -36,6 +36,7 @@ const elements = {
   prevRoundBtn: document.getElementById("prev-round-btn"),
   nextRoundBtn: document.getElementById("next-round-btn"),
   disturbanceBtn: document.getElementById("disturbance-btn"),
+  disturbanceIndicator: document.getElementById("disturbance-indicator"),
 };
 
 const cells = [];
@@ -109,6 +110,10 @@ function syncStatus() {
   elements.maxRound.textContent = String(MAX_ROUND);
   elements.score.textContent = String(state.score);
   elements.displayMs.textContent = String(state.currentDisplayMs);
+  elements.disturbanceIndicator.textContent = state.isDisturbanceMode
+    ? "おじゃま中"
+    : "通常モード";
+  elements.disturbanceIndicator.classList.toggle("is-on", state.isDisturbanceMode);
 }
 
 function clearHighlights() {
@@ -183,13 +188,7 @@ function moveEntities(currentEntities) {
 function updateButtonStates() {
   const canRunRound = !state.isAnimating && !state.isAnswering && state.round <= MAX_ROUND;
   elements.actionBtn.disabled = !canRunRound;
-  if (state.round === 1 && !state.needsRetry) {
-    elements.actionBtn.textContent = "スタート";
-  } else if (state.needsRetry) {
-    elements.actionBtn.textContent = "もういちど";
-  } else {
-    elements.actionBtn.textContent = "もういちど";
-  }
+  elements.actionBtn.textContent = "スタート";
 
   elements.prevRoundBtn.disabled =
     state.isAnimating || state.isAnswering || state.round <= 1;
@@ -197,8 +196,12 @@ function updateButtonStates() {
     state.isAnimating || state.isAnswering || state.round >= MAX_ROUND;
 
   elements.disturbanceBtn.disabled = state.isAnimating || state.isAnswering;
-  elements.disturbanceBtn.textContent = state.isDisturbanceMode ? "お邪魔あり" : "お邪魔なし";
+  elements.disturbanceBtn.textContent = "じゃまもの";
   elements.disturbanceBtn.setAttribute("aria-pressed", String(state.isDisturbanceMode));
+  elements.disturbanceIndicator.textContent = state.isDisturbanceMode
+    ? "おじゃま中"
+    : "通常モード";
+  elements.disturbanceIndicator.classList.toggle("is-on", state.isDisturbanceMode);
 
   cells.forEach((cell) => {
     cell.disabled = !state.isAnswering;
@@ -346,6 +349,7 @@ elements.disturbanceBtn.addEventListener("click", () => {
     return;
   }
   state.isDisturbanceMode = !state.isDisturbanceMode;
+  syncStatus();
   updateButtonStates();
 });
 
