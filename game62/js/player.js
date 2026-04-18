@@ -56,7 +56,7 @@ export class Player {
       return false;
     }
 
-    if (!this.field.isWalkableForPlayer(nx, ny)) {
+    if (!this.field.isWalkableForPlayer(nx, ny, this.drawing)) {
       return false;
     }
 
@@ -81,7 +81,7 @@ export class Player {
     this.x = nx;
     this.y = ny;
 
-    if (this.drawing && this.field.isSafe(this.x, this.y)) {
+    if (this.drawing && (nextCell === CELL.BOUNDARY || nextCell === CELL.CAPTURED)) {
       return { closed: true };
     }
 
