@@ -73,11 +73,16 @@ body {
   border: none;
   border-radius: 10px;
   min-height: 88px;
-  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-size: 1rem;
   background: var(--cell);
   color: var(--text);
   cursor: pointer;
   transition: transform 0.12s ease, background-color 0.12s ease;
+}
+
+.cat-icon {
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1;
 }
 
 .cell:hover:not(:disabled),
