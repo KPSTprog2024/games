@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game68 - Meta Lissajous Lab</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div>
+      <p class="eyebrow">game68 / Improved from game54</p>
+      <h1>Meta Lissajous Lab</h1>
+      <p class="lede">3Dリサージュの軌跡を観察しながら「仮説→観測→解釈」を回す学習型ラボ。比率・周期性・再現性を可視化して、試行錯誤を構造化します。</p>
+    </div>
+    <div class="legend">
+      <span class="chip">WASD / ドラッグ: カメラ</span>
+      <span class="chip">R: リセット</span>
+      <span class="chip">M: メタメモ切替</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="controls-panel">
+      <div class="panel-heading">Experiment Controls</div>
+      <div class="control">
+        <label for="freqX">X 周波数<span id="freqXValue" class="value">3.0</span></label>
+        <input id="freqX" type="range" min="0.5" max="10" step="0.1" value="3" />
+      </div>
+      <div class="control">
+        <label for="freqY">Y 周波数<span id="freqYValue" class="value">4.0</span></label>
+        <input id="freqY" type="range" min="0.5" max="10" step="0.1" value="4" />
+      </div>
+      <div class="control">
+        <label for="freqZ">Z 周波数<span id="freqZValue" class="value">5.0</span></label>
+        <input id="freqZ" type="range" min="0.5" max="10" step="0.1" value="5" />
+      </div>
+      <div class="control">
+        <label for="amplitude">振幅<span id="amplitudeValue" class="value">8</span></label>
+        <input id="amplitude" type="range" min="2" max="14" step="0.5" value="8" />
+      </div>
+      <div class="control">
+        <label for="speed">スピード<span id="speedValue" class="value">1.0</span></label>
+        <input id="speed" type="range" min="0.2" max="5" step="0.1" value="1" />
+      </div>
+      <div class="control">
+        <label for="trail">軌跡の長さ<span id="trailValue" class="value">720</span></label>
+        <input id="trail" type="range" min="120" max="1800" step="60" value="720" />
+      </div>
+
+      <div class="presets">
+        <button class="preset" data-preset="classic">Classic 3:4:5</button>
+        <button class="preset" data-preset="woven">Woven 5:7:9</button>
+        <button class="preset" data-preset="resonant">Resonant 2:3:2</button>
+      </div>
+
+      <div class="button-row tight">
+        <button id="unlimitedTrail" data-active="false">軌跡上限なし</button>
+      </div>
+      <div class="button-row">
+        <button id="reset">リセット</button>
+        <button id="toggle" data-running="true">一時停止</button>
+        <button id="clear">軌跡クリア</button>
+      </div>
+      <div class="button-row param-history">
+        <button id="undoParams">一手戻す</button>
+        <button id="redoParams">一手進める</button>
+      </div>
+      <div class="button-row tight">
+        <button id="openTutorial" class="ghost">使い方を見る</button>
+      </div>
+
+      <div class="panel-heading">Insight Metrics</div>
+      <div class="stat-grid">
+        <div class="stat"><span>比率</span><strong id="ratioDisplay">3 : 4 : 5</strong></div>
+        <div class="stat"><span>複雑度</span><strong id="complexity">Medium</strong></div>
+        <div class="stat"><span>閉曲線予測</span><strong id="closureScore">72%</strong></div>
+      </div>
+      <p id="insightSummary" class="hint">整数比が近いほど閉曲線になりやすく、再現性の高い形状を得られます。</p>
+
+      <div class="panel-heading">Challenge Mode</div>
+      <div class="challenge-box">
+        <p class="challenge-target">ターゲット比率: <strong id="challengeTarget">-</strong></p>
+        <div class="difficulty-row">
+          <span>難易度</span>
+          <div class="difficulty-buttons">
+            <button class="difficulty" data-level="easy">Easy</button>
+            <button class="difficulty" data-level="normal" data-active="true">Normal</button>
+            <button class="difficulty" data-level="hard">Hard</button>
+          </div>
+        </div>
+        <p class="challenge-status" id="challengeStatus">「チャレンジ開始」でお題比率に合わせてください。</p>
+        <div class="stat-grid mini">
+          <div class="stat"><span>スコア</span><strong id="challengeScore">0</strong></div>
+          <div class="stat"><span>経過</span><strong id="challengeTime">0.0s</strong></div>
+          <div class="stat"><span>誤差</span><strong id="challengeDelta">-</strong></div>
+          <div class="stat"><span>許容</span><strong id="challengeTolerance">0.60</strong></div>
+        </div>
+        <div class="button-row challenge-actions">
+          <button id="challengeToggle" data-active="false">チャレンジ開始</button>
+          <button id="challengeNext">お題を変更</button>
+        </div>
+        <div class="challenge-history">
+          <p class="history-title">Recent Sessions</p>
+          <div class="stat-grid mini">
+            <div class="stat"><span>最終スコア</span><strong id="lastSessionScore">-</strong></div>
+            <div class="stat"><span>最高スコア</span><strong id="bestSessionScore">0</strong></div>
+            <div class="stat"><span>最終平均誤差</span><strong id="lastSessionAvgDelta">-</strong></div>
+          </div>
+          <ul id="sessionHistoryList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene-panel">
+      <div id="scene"></div>
+      <aside id="metaPanel" class="meta-panel hidden">
+        <h2>Metacognitive Loop</h2>
+        <label for="hypothesis">仮説</label>
+        <textarea id="hypothesis" placeholder="例: XとYを近い整数比にすると閉曲線になりやすい"></textarea>
+        <label for="observation">観測</label>
+        <textarea id="observation" placeholder="例: 5:7:9ではねじれが増え、閉じるまで時間がかかった"></textarea>
+        <label for="nextAction">次の実験</label>
+        <textarea id="nextAction" placeholder="例: 振幅を固定し、周波数だけ変えて比較する"></textarea>
+        <button id="saveMemo" class="ghost">メモをローカル保存</button>
+        <p class="meta-hint" id="metaHint">Mキーで表示切替。保存先: このブラウザのLocalStorage。</p>
+      </aside>
+      <div class="overlay">
+        <div class="overlay-title">Meta Lissajous</div>
+        <div class="overlay-sub">観察と内省を一体化した3D曲線実験環境。</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="mobile-action-dock">
+    <button id="undoParamsDock">一手戻す</button>
+    <button id="redoParamsDock">一手進める</button>
+  </div>
+
+  <div id="tutorialModal" class="tutorial-modal hidden" aria-live="polite">
+    <div class="tutorial-card">
+      <p class="tutorial-step" id="tutorialStep">STEP 1 / 3</p>
+      <h2 id="tutorialTitle">ようこそ</h2>
+      <p id="tutorialBody">このラボでは周波数比を操作して立体軌跡を観察します。</p>
+      <div class="button-row tutorial-actions">
+        <button id="tutorialSkip" class="ghost">スキップ</button>
+        <button id="tutorialNext">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
