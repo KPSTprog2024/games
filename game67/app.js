@@ -2,8 +2,8 @@ const ROWS = 4;
 const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
 const MAX_ROUND = 14;
-const BASE_DISPLAY_MS = 800;
-const DISPLAY_RATIO = 0.7;
+const BASE_DISPLAY_MS = 600;
+const DISPLAY_RATIO = 0.8;
 const MIN_DISPLAY_MS = 10;
 const IN_ROUND_RATIO = 0.9;
 const MIN_SHOW_COUNT = 6;
@@ -68,14 +68,23 @@ function clearCat() {
     return;
   }
   const cell = cells[state.currentVisibleCellIndex];
-  cell.textContent = "";
+  cell.innerHTML = "";
+  cell.classList.remove("has-cat");
   state.currentVisibleCellIndex = null;
+}
+
+function renderCat(cell) {
+  const cat = document.createElement("span");
+  cat.className = "cat-icon";
+  cat.textContent = "🐈";
+  cell.appendChild(cat);
+  cell.classList.add("has-cat");
 }
 
 function showCat(index) {
   clearCat();
   const cell = cells[index];
-  cell.textContent = "🐈";
+  renderCat(cell);
   state.currentVisibleCellIndex = index;
 }
 
@@ -167,9 +176,11 @@ function onAnswerClick(event) {
 
   if (correct) {
     cells[selected].classList.add("correct");
+    showCat(selected);
   } else {
     cells[selected].classList.add("wrong");
     cells[state.finalCellIndex].classList.add("correct");
+    showCat(state.finalCellIndex);
   }
 
   completeRound(correct);
