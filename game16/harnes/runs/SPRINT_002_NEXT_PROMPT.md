@@ -1,0 +1,33 @@
+## PROMPT-0002
+- Prompt-ID: PROMPT-0002
+- Created-At: 2026-04-17
+- Status: latest
+- Project Invariants:
+  - 足元タイミング入力の納得感
+  - 30秒で上達実感
+- Prior Learning Import:
+  - ENTRY-0001: 目的を固定してから機能拡張する
+- Goal:
+  - 難易度曲線と演出を改善
+- Scope:
+  - 難易度3段階、効果音、チュートリアル1画面
+- Non-Scope:
+  - オンライン機能
+- Constraints:
+  - Vanilla JSのみ
+- DoD:
+  - 初見離脱率低下を期待できる導線
+- Fail Fast:
+  - 判定が不明瞭になったら即戻す
+- Metrics Plan:
+  - 指標: 10コンボ到達率
+  - 閾値: テストプレイで70%以上
+  - 観測: 10セッション
+- Deliverables:
+  - 実装 + 検証 + 学習追記
+- Next:
+  - SPRINT_002実装
+- Carry-over Backlog:
+  - ✅ 完了: 基本ゲームループ
+  - ⏳ 継続: 演出強化
+  - 残タスク所在: `game16/js/app.js`

@@ -1,586 +1,591 @@
-// ===== FILE: assets/js/app.js =====
-// Utility
-const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-const lerp = (a,b,t) => a + (b-a)*t;
+const LS_BEST = "jump16_best_score_v4";
+const LS_SOUND = "jump16_sound_on_v1";
+const LS_TUTORIAL = "jump16_tutorial_seen_v1";
+const LS_HAPTIC = "jump16_haptic_level_v1";
 
-// Robust statistics helpers for calibration
-function median(arr){
-  if(!arr.length) return 0;
-  const s = [...arr].sort((a,b)=>a-b);
-  const mid = Math.floor(s.length/2);
-  return s.length % 2 ? s[mid] : (s[mid-1] + s[mid]) / 2;
-}
-function trimmedMedian(samples, thresh=150){
-  if(!samples.length) return {value:0, kept:0};
-  const m1 = median(samples);
-  const keptArr = samples.filter(v => Math.abs(v - m1) <= thresh);
-  if(keptArr.length===0){ return {value:m1, kept:0}; }
-  return {value: median(keptArr), kept: keptArr.length};
-}
-
-// LocalStorage keys
-const LS = {
-  BEST: 'rjr_best_combo_v1',
-  LATENCY: 'rjr_latency_ms_v1',
-  SOUND: 'rjr_sound_on_v1'
+const DIFFICULTY = {
+  easy: { hitWindow: 130, scoreMul: 1 },
+  normal: { hitWindow: 98, scoreMul: 1.2 },
+  hard: { hitWindow: 72, scoreMul: 1.5 }
 };
 
-// Audio Engine (Web Audio)
-class AudioEngine{
-  constructor(){
+const ui = {
+  canvas: document.getElementById("game"),
+  score: document.getElementById("score"),
+  combo: document.getElementById("combo"),
+  best: document.getElementById("best"),
+  life: document.getElementById("life"),
+  rate: document.getElementById("rate"),
+  streak: document.getElementById("streak"),
+  judge: document.getElementById("judge"),
+  bpm: document.getElementById("bpm"),
+  bpmValue: document.getElementById("bpmValue"),
+  soundBtn: document.getElementById("soundBtn"),
+  hapticBtn: document.getElementById("hapticBtn"),
+  rhythmFill: document.getElementById("rhythmFill"),
+  easyBtn: document.getElementById("easyBtn"),
+  normalBtn: document.getElementById("normalBtn"),
+  hardBtn: document.getElementById("hardBtn"),
+  overlay: document.getElementById("overlay"),
+  overlayTitle: document.getElementById("overlayTitle"),
+  overlayText: document.getElementById("overlayText"),
+  overlayMeta: document.getElementById("overlayMeta"),
+  startBtn: document.getElementById("startBtn"),
+  retryBtn: document.getElementById("retryBtn"),
+  jumpBtn: document.getElementById("jumpBtn"),
+  pauseBtn: document.getElementById("pauseBtn"),
+  resetBtn: document.getElementById("resetBtn"),
+  srStatus: document.getElementById("srStatus"),
+  tutorial: document.getElementById("tutorial"),
+  tutorialText: document.getElementById("tutorialText"),
+  tutorialNext: document.getElementById("tutorialNext"),
+  historyChart: document.getElementById("historyChart")
+};
+
+class MiniAudio {
+  constructor() {
     this.ctx = null;
-    this.enabled = true;
-    this.latencyCompMs = parseFloat(localStorage.getItem(LS.LATENCY) || '0');
-    const sndOn = localStorage.getItem(LS.SOUND);
-    if(sndOn!==null) this.enabled = sndOn === '1';
+    this.enabled = localStorage.getItem(LS_SOUND) !== "0";
   }
-  async ensure(){
-    if(!this.ctx){
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)({latencyHint:'interactive'});
-      await this.ctx.resume();
-    }
+
+  async ensure() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state !== "running") await this.ctx.resume();
   }
-  setEnabled(on){
-    this.enabled = on; localStorage.setItem(LS.SOUND, on?'1':'0');
+
+  setEnabled(on) {
+    this.enabled = on;
+    localStorage.setItem(LS_SOUND, on ? "1" : "0");
   }
-  now(){ return this.ctx ? this.ctx.currentTime : 0; }
-  tick(at){
-    if(!this.enabled || !this.ctx) return;
-    const ctx = this.ctx; const t = at ?? ctx.currentTime;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'square';
-    o.frequency.value = 1000;
-    g.gain.value = 0.001;
-    o.connect(g).connect(ctx.destination);
-    o.start(t);
-    g.gain.setValueAtTime(0.12, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-    o.stop(t + 0.05);
-  }
-  blipSuccess(){
-    if(!this.enabled || !this.ctx) return;
+
+  beep(freq, ms, gain = 0.1) {
+    if (!this.enabled || !this.ctx) return;
     const t = this.ctx.currentTime;
-    this._blip(660, 0.08, t);
-    this._blip(990, 0.06, t + 0.05);
-  }
-  blipMiss(){
-    if(!this.enabled || !this.ctx) return;
-    const t = this.ctx.currentTime;
-    this._blip(200, 0.12, t);
-  }
-  _blip(freq, dur, t){
-    const ctx = this.ctx;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = freq;
-    g.gain.value = 0.0001;
-    o.connect(g).connect(ctx.destination);
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g).connect(this.ctx.destination);
     o.start(t);
-    g.gain.setValueAtTime(0.15, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.stop(t + dur + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+    o.stop(t + ms / 1000 + 0.01);
   }
+
+  tick() { this.beep(520, 28, 0.04); }
+  success(judge) {
+    if (judge === "PERFECT") this.beep(980, 86, 0.13);
+    else if (judge === "GREAT") this.beep(840, 74, 0.1);
+    else this.beep(720, 60, 0.08);
+  }
+  miss() { this.beep(220, 140, 0.11); }
 }
 
-// Metronome with scheduler
-class Metronome{
-  constructor(audio){
-    this.audio = audio;
-    this.bpm = 100;
-    this.period = 60/this.bpm; // seconds per beat
-    this.basePerf = 0; // performance.now() at start
-    this.baseAudio = 0; // audio currentTime at start
-    this.nextTick = 0; // audio time of next tick
-    this.running = false;
-  }
-  setBpm(bpm){ this.bpm = bpm; this.period = 60/this.bpm; }
-  start(){
-    this.basePerf = performance.now();
-    this.baseAudio = this.audio.now();
-    this.nextTick = this.audio.now();
-    this.running = true;
-  }
-  stop(){ this.running=false; }
-  schedule(){
-    if(!this.running) return;
-    const lookAhead = 0.15; // seconds
-    const now = this.audio.now();
-    while(this.nextTick < now + lookAhead){
-      this.audio.tick(this.nextTick);
-      this.nextTick += this.period;
-    }
-  }
-  cycles(nowPerf){
-    return (nowPerf - this.basePerf)/1000 / this.period;
-  }
-  nearestBeatTimeMs(nowPerf){
-    const cycles = this.cycles(nowPerf);
-    const i = Math.round(cycles);
-    return this.basePerf + i * this.period * 1000;
-  }
-}
+class RopeJumpGame {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.audio = new MiniAudio();
 
-// Game core
-class Game{
-  constructor(canvas){
-    this.cv = canvas;
-    this.ctx = canvas.getContext('2d');
-    this.dpr = window.devicePixelRatio || 1;
-    this.audio = new AudioEngine();
-    this.metro = new Metronome(this.audio);
+    this.state = "ready"; // ready, countdown, running, paused, gameover
+    this.bpm = Number(ui.bpm.value);
+    this.periodMs = 60000 / this.bpm;
+    this.difficulty = "easy";
+    this.hitWindow = DIFFICULTY[this.difficulty].hitWindow;
 
-    // state
-    this.soundOn = true;
-    this.paused = false;
-    this.started = false;
+    this.startAt = 0;
+    this.lastFrameAt = performance.now();
+    this.pauseElapsed = 0;
+    this.countdownUntil = 0;
+
+    this.score = 0;
     this.combo = 0;
-    this.best = parseInt(localStorage.getItem(LS.BEST)||'0');
-    this.lastJudge = '-';
-    this.difficulty = 'easy';
-    this.hitWindowMsMap = { easy: 120, normal: 80, hard: 55 };
-    this.hitWindowMs = this.hitWindowMsMap[this.difficulty];
-    this.latencyMs = this.audio.latencyCompMs; // positive means user taps late
-    this.calibrating = false;
+    this.best = Number(localStorage.getItem(LS_BEST) || 0);
+    this.life = 3;
+    this.streak = 0;
+    this.judgeText = "READY";
+    this.judgeTimer = 0;
 
-    // learning stats
-    this.statsEnabled = true;
-    this.recent = []; // {delta, label}
-    this.recentCap = 20;
+    this.successCount = 0;
+    this.totalAttempts = 0;
+    this.lastResolvedBeat = -1;
+    this.lastTickBeat = -1;
 
-    // resync
-    this.resyncInterval = 35000; // 35s
-    this._lastResyncPerf = performance.now();
+    this.tutorialSeen = localStorage.getItem(LS_TUTORIAL) === "1";
+    this.tutorialStep = 0;
 
-    // beat / miss tracking
-    this.lastHitBeat = -1;
-    this.nextBeatCheck = 0;
+    this.hapticLevel = localStorage.getItem(LS_HAPTIC) || "strong";
 
-    // character physics
+    this.history = [];
+    this.historyMax = 10;
+
     this.jumpY = 0;
-    this.vy = 0;
-    this.gravity = 2400;
-    this.jumpPower = 780;
-    this.missFlash = 0;
+    this.jumpV = 0;
+    this.gravity = 2300;
+    this.jumpPower = -760;
 
-    // visuals cache
-    this._resizeObserver = new ResizeObserver(()=>this.resize());
-    this._resizeObserver.observe(this.cv);
-    window.addEventListener('resize', ()=>this.resize());
+    this.judgmentStats = { perfect: 0, great: 0, good: 0, miss: 0 };
+
     this.resize();
-
-    // main loop
-    this._lastPerf = performance.now();
-    const loop = ()=>{
-      const now = performance.now();
-      const dt = (now - this._lastPerf)/1000;
-      this._lastPerf = now;
-      if(this.started && !this.paused){
-        this.metro.schedule();
-        this.update(dt);
-      }
-      this.render(now);
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-
-    // Input
-    this._bindInputs();
+    window.addEventListener("resize", () => this.resize());
+    this.refreshSoundButton();
+    this.refreshHapticButton();
+    this.updateHUD();
+    this.bindTutorial();
+    this.renderHistory();
+    this.loop();
   }
 
-  _bindInputs(){
-    const onPress = ()=> this.jump();
-    document.addEventListener('pointerdown', (e)=>{
-      if(e.pointerType==='mouse' && e.button!==0) return;
-      if(e.target.closest('#startBtn')) return;
-      if(e.target.tagName==='INPUT' || e.target.tagName==='BUTTON') return;
-      if(e.pointerType==='touch') e.preventDefault();
-      onPress();
-    });
-    document.addEventListener('keydown', (e)=>{
-      if(e.code==='Space' || e.code==='Enter'){
-        e.preventDefault(); onPress();
-      }
-    });
-    document.getElementById('jumpBtn').addEventListener('click', onPress);
 
-    // controls
-    const bpmRange = document.getElementById('bpm');
-    const bpmVal = document.getElementById('bpmVal');
-    bpmRange.addEventListener('input', ()=>{
-      bpmVal.textContent = bpmRange.value;
-      this.metro.setBpm(parseInt(bpmRange.value,10));
-    });
-
-    const setDiff = (d)=>{
-      this.difficulty = d;
-      this.hitWindowMs = this.hitWindowMsMap[d];
-      document.querySelectorAll('[role="tablist"] .active').forEach(el=>el.classList.remove('active'));
-      document.getElementById(d).classList.add('active');
-    };
-    document.getElementById('easy').onclick = ()=> setDiff('easy');
-    document.getElementById('normal').onclick = ()=> setDiff('normal');
-    document.getElementById('hard').onclick = ()=> setDiff('hard');
-
-    // sound toggle
-    const sndOn = document.getElementById('sndOn');
-    const sndOff = document.getElementById('sndOff');
-    sndOn.onclick = ()=>{ sndOn.classList.add('active'); sndOff.classList.remove('active'); this.soundOn=true; this.audio.setEnabled(true); };
-    sndOff.onclick = ()=>{ sndOff.classList.add('active'); sndOn.classList.remove('active'); this.soundOn=false; this.audio.setEnabled(false); };
-
-    // stats toggle
-    const stOn = document.getElementById('statsOn');
-    const stOff = document.getElementById('statsOff');
-    stOn.onclick = ()=>{ stOn.classList.add('active'); stOff.classList.remove('active'); this.statsEnabled=true; document.getElementById('learnCard').style.display='block'; };
-    stOff.onclick = ()=>{ stOff.classList.add('active'); stOn.classList.remove('active'); this.statsEnabled=false; document.getElementById('learnCard').style.display='none'; };
-
-    // pause/reset
-    document.getElementById('pauseBtn').onclick = ()=>{ if(!this.started) return; this.paused = !this.paused; showToast(this.paused?'一時停止中':'再開'); };
-    document.getElementById('resetBtn').onclick = ()=> this.reset();
-
-    // overlay actions
-    document.getElementById('startBtn').onclick = async()=>{
-      await this.audio.ensure();
-      hideOverlay();
-      this.start();
-    };
-    document.getElementById('howBtn').onclick = ()=>{
-      alert('【あそびかた】\nBPMのテンポに合わせてタップしよう。\nロープが足もと（下）を通るタイミングでタップできれば成功！\n判定幅は［やさしい→むずかしい］で狭くなるよ。\n画面どこでもタップOK／下のボタンでもOK。');
-    };
-
-    // calibration
-    document.getElementById('calibBtn').onclick = ()=> this.calibrate();
+  bindTutorial() {
+    ui.tutorialNext.addEventListener("click", () => this.advanceTutorial());
   }
 
-  resize(){
-    const rect = this.cv.getBoundingClientRect();
-    const dpr = Math.max(1, window.devicePixelRatio||1);
-    const w = Math.floor(rect.width * dpr);
-    const h = Math.floor(rect.height * dpr);
-    if(this.cv.width!==w || this.cv.height!==h){
-      this.cv.width = w; this.cv.height = h; this.dpr = dpr;
-    }
+  showTutorial(text) {
+    if (this.tutorialSeen) return;
+    ui.tutorialText.textContent = text;
+    ui.tutorial.hidden = false;
   }
 
-  start(){
-    this.started = true; this.paused = false; this.combo = 0; this.lastJudge = '-';
-    this.metro.start();
-    this.lastHitBeat = -1;
-    this.nextBeatCheck = 0;
+  hideTutorial() {
+    ui.tutorial.hidden = true;
   }
 
-  reset(){
-    this.combo = 0; this.lastJudge='-'; this.jumpY=0; this.vy=0; this.missFlash=0;
-    if(this.started) this.metro.start();
-    this.lastHitBeat = -1;
-    this.nextBeatCheck = 0;
-  }
-
-  jump(){
-    if(this.calibrating) return;
-    if(!this.started || this.paused) return;
-    const now = performance.now();
-    const beatInfo = this._getBeatTiming(now);
-    const delta = beatInfo.delta; // ms
-    const win = this.hitWindowMs;
-    const absd = Math.abs(delta);
-    let label;
-    if(absd <= win && beatInfo.index > this.lastHitBeat){
-      this.combo++;
-      label = (absd<=win*0.35) ? 'PERFECT' : (absd<=win*0.7?'GREAT':'GOOD');
-      this.lastJudge = label;
-      if(this.combo>this.best){ this.best=this.combo; localStorage.setItem(LS.BEST, String(this.best)); }
-      if(this.jumpY===0){ this.vy = -this.jumpPower; }
-      this.audio.blipSuccess();
-      this.lastHitBeat = beatInfo.index;
-      this.nextBeatCheck = Math.max(this.nextBeatCheck, beatInfo.index + 1);
-    } else {
-      this._registerMiss(delta>0?'LATE':'EARLY', delta);
+  advanceTutorial() {
+    if (this.tutorialSeen) return;
+    this.tutorialStep += 1;
+    if (this.tutorialStep === 1) {
+      this.showTutorial("GOOD! 次は連続で3回成功を狙ってみよう。");
       return;
     }
-
-    // record for learning card
-    this.recent.push({delta, label});
-    if(this.recent.length>this.recentCap) this.recent.shift();
-    this.updateLearnCard();
-
-    // HUD update
-    document.getElementById('combo').textContent = this.combo;
-    document.getElementById('best').textContent = this.best;
-    document.getElementById('judge').textContent = this.lastJudge;
-  }
-
-  update(dt){
-    // physics
-    if(this.jumpY < 0 || this.vy < 0){
-      this.vy += this.gravity * dt;
-      this.jumpY += this.vy * dt;
-      if(this.jumpY>0){ this.jumpY=0; this.vy=0; }
-    }
-    if(this.missFlash>0){ this.missFlash = Math.max(0, this.missFlash - dt*2); }
-
-    // miss detection whenロープが足元を通過
-    this._checkForMiss(performance.now());
-
-    // light resync
-    const nowPerf = performance.now();
-    if (this.started && !this.paused && nowPerf - this._lastResyncPerf > this.resyncInterval) {
-      this._lastResyncPerf = nowPerf;
-      const nearest = this.metro.nearestBeatTimeMs(nowPerf);
-      this.metro.basePerf += (nowPerf - nearest) * 0.1; // 10% gentle correction
-      showToast('リズム再同期しました');
-    }
-  }
-
-  render(nowPerf){
-    const ctx = this.ctx; const W = this.cv.width; const H = this.cv.height;
-    ctx.clearRect(0,0,W,H);
-    // background grid subtle
-    ctx.save();
-    ctx.globalAlpha = 0.15;
-    ctx.strokeStyle = '#272b53';
-    const step = 32 * this.dpr;
-    for(let x= (W%step); x<W; x+=step){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-    for(let y= (H%step); y<H; y+=step){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-    ctx.restore();
-
-    // stage
-    const cx = W*0.5; const groundY = H*0.75; const scale = Math.min(W,H);
-    const r = Math.max(120, Math.min(scale*0.22, 260));
-
-    let ang = 0; let cycles = 0;
-    if(this.started){
-      cycles = this.metro.cycles(nowPerf);
-      ang = (cycles % 1) * Math.PI*2;
-      const proximity = Math.max(0, -Math.sin(ang));
-      if(proximity>0.2){
-        ctx.save();
-        ctx.globalAlpha = 0.25 * proximity;
-        ctx.fillStyle = '#7cf4d3';
-        ctx.beginPath();
-        ctx.ellipse(cx, groundY+4*this.dpr, r*0.9, 22*this.dpr, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    // character
-    const charY = groundY + this.jumpY;
-    drawCharacter(ctx, cx, charY, this.dpr, this.jumpY);
-
-    // rope
-    if(this.started){
-      drawRope(ctx, cx, groundY, r, ang, this.missFlash);
-    }
-
-    // combo label
-    ctx.save();
-    ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(230,232,255,0.8)';
-    ctx.font = `${32*this.dpr}px ui-sans-serif, system-ui`;
-    ctx.fillText(`${this.combo} combo`, cx, groundY - r - 26*this.dpr);
-    ctx.restore();
-  }
-
-  updateLearnCard(){
-    const card = document.getElementById('learnCard');
-    if(!card || !this.statsEnabled){ return; }
-    const N = this.recent.length;
-    document.getElementById('sampleCount').textContent = `${N} / ${this.recentCap}`;
-    if(N===0){
-      document.getElementById('avgDelta').textContent = '- ms';
-      document.getElementById('tempoRate').textContent = '- %';
+    if (this.tutorialStep === 2) {
+      this.showTutorial("MISSしてもOK。タイミングを見直して再挑戦！");
       return;
     }
-    const avgAbs = this.recent.reduce((a,r)=>a+Math.abs(r.delta),0)/N;
-    const goodCount = this.recent.filter(r=> r.label==='PERFECT' || r.label==='GREAT').length;
-    const rate = Math.round((goodCount / N) * 100);
-    document.getElementById('avgDelta').textContent = `${avgAbs.toFixed(0)} ms`;
-    document.getElementById('tempoRate').textContent = `${rate} %`;
+    this.tutorialSeen = true;
+    localStorage.setItem(LS_TUTORIAL, "1");
+    this.hideTutorial();
   }
 
-  _getBeatTiming(now){
-    const cycles = this.metro.cycles(now);
-    const beatIndex = Math.round(cycles);
-    const beatTime = this.metro.basePerf + beatIndex * this.metro.period * 1000;
-    const delta = now - beatTime - this.latencyMs;
-    return {index: beatIndex, delta};
+
+  pushHistory(type, strength = 0.6) {
+    this.history.push({ type, strength });
+    if (this.history.length > this.historyMax) this.history.shift();
+    this.renderHistory();
   }
 
-  _checkForMiss(now){
-    if(!this.started || this.paused || this.calibrating) return;
-    const adjNow = now - this.latencyMs;
-    const beatDur = this.metro.period * 1000;
-    while(true){
-      const beatTime = this.metro.basePerf + this.nextBeatCheck * beatDur;
-      if(adjNow > beatTime + this.hitWindowMs){
-        this._registerMiss('MISS');
-        this.nextBeatCheck++;
+  renderHistory() {
+    if (!ui.historyChart) return;
+    ui.historyChart.innerHTML = "";
+    const padded = Array(Math.max(0, this.historyMax - this.history.length)).fill({ type: "empty", strength: 0.25 }).concat(this.history);
+    padded.forEach((item) => {
+      const bar = document.createElement("div");
+      bar.className = `history-bar ${item.type === "empty" ? "" : item.type}`.trim();
+      bar.style.height = `${Math.round(12 + item.strength * 20)}px`;
+      bar.title = item.type.toUpperCase();
+      ui.historyChart.appendChild(bar);
+    });
+  }
+
+  vibrate(pattern) {
+    if (this.hapticLevel === "off") return;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      if (this.hapticLevel === "light") {
+        const light = Array.isArray(pattern) ? pattern.map((p) => Math.max(8, Math.round(p * 0.5))) : 12;
+        navigator.vibrate(light);
       } else {
-        break;
+        navigator.vibrate(pattern);
       }
     }
   }
 
-  _registerMiss(label, deltaOverride){
-    this.combo = 0; this.lastJudge = label;
-    this.missFlash = 1; this.audio.blipMiss();
-    const deltaVal = typeof deltaOverride === 'number' ? deltaOverride : (label==='MISS'?this.hitWindowMs*2: (label==='LATE'?this.hitWindowMs+8:-this.hitWindowMs-8));
-    this.recent.push({delta: deltaVal, label});
-    if(this.recent.length>this.recentCap) this.recent.shift();
-    this.updateLearnCard();
-    document.getElementById('combo').textContent = this.combo;
-    document.getElementById('best').textContent = this.best;
-    document.getElementById('judge').textContent = this.lastJudge;
+  toggleHaptic() {
+    const order = ["off", "light", "strong"];
+    const i = order.indexOf(this.hapticLevel);
+    this.hapticLevel = order[(i + 1) % order.length];
+    localStorage.setItem(LS_HAPTIC, this.hapticLevel);
+    this.refreshHapticButton();
+    this.announce(`触覚 ${this.hapticLevel}`);
   }
 
-  async calibrate(){
-    if(this.calibrating) return;
-    if(!this.audio.ctx){ await this.audio.ensure(); }
-    const bpm = parseInt(document.getElementById('bpm').value,10);
-    this.metro.setBpm(bpm);
-    const N = 12;
-    const samples = [];
-    showToast('キャリブレーション：リズムに合わせて12回タップしてください');
-    this.calibrating = true;
-    this.metro.start();
-    this.started = true; this.paused = false;
-    this.lastHitBeat = -1; this.nextBeatCheck = 0;
+  refreshHapticButton() {
+    const label = this.hapticLevel.toUpperCase();
+    ui.hapticBtn.textContent = `📳 Haptic: ${label}`;
+    ui.hapticBtn.setAttribute("aria-pressed", this.hapticLevel === "off" ? "false" : "true");
+  }
 
-    const onTap = ()=>{
-      const now = performance.now();
-      const nearest = this.metro.nearestBeatTimeMs(now);
-      samples.push(now - nearest);
-      if(samples.length>=N){
-        document.removeEventListener('touchstart', onTapCap, {passive:true});
-        document.removeEventListener('mousedown', onTap);
-        document.removeEventListener('keydown', onKey);
-        finish();
+  resize() {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const rect = this.canvas.getBoundingClientRect();
+    this.canvas.width = Math.floor(rect.width * dpr);
+    this.canvas.height = Math.floor(rect.height * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.width = rect.width;
+    this.height = rect.height;
+  }
+
+  getElapsed(now = performance.now()) {
+    if (this.state === "paused") return this.pauseElapsed;
+    return Math.max(0, now - this.startAt);
+  }
+
+  setBpm(v) {
+    const now = performance.now();
+    const elapsed = this.getElapsed(now);
+    this.bpm = v;
+    this.periodMs = 60000 / this.bpm;
+    if (this.state === "running") this.startAt = now - elapsed;
+  }
+
+  setDifficulty(level) {
+    this.difficulty = level;
+    this.hitWindow = DIFFICULTY[level].hitWindow;
+    [ui.easyBtn, ui.normalBtn, ui.hardBtn].forEach((btn) => btn.classList.remove("active"));
+    if (level === "easy") ui.easyBtn.classList.add("active");
+    if (level === "normal") ui.normalBtn.classList.add("active");
+    if (level === "hard") ui.hardBtn.classList.add("active");
+    this.announce(`難易度 ${level.toUpperCase()} に変更`);
+  }
+
+  async start() {
+    await this.audio.ensure();
+    const now = performance.now();
+    this.state = "countdown";
+    this.countdownUntil = now + 3000;
+    this.showOverlay("3", "リズムを感じて、開始に備えてください。", false);
+    this.announce("カウントダウン開始");
+  }
+
+  beginRun(now = performance.now()) {
+    this.state = "running";
+    this.startAt = now;
+    this.pauseElapsed = 0;
+    this.lastResolvedBeat = -1;
+    this.lastTickBeat = -1;
+    this.hideOverlay();
+    this.setJudge("GO!");
+    this.announce("ゲーム開始");
+  }
+
+  reset() {
+    this.state = "ready";
+    this.score = 0;
+    this.combo = 0;
+    this.life = 3;
+    this.streak = 0;
+    this.successCount = 0;
+    this.totalAttempts = 0;
+    this.lastResolvedBeat = -1;
+    this.lastTickBeat = -1;
+    this.judgmentStats = { perfect: 0, great: 0, good: 0, miss: 0 };
+    this.jumpY = 0;
+    this.jumpV = 0;
+    this.setJudge("READY");
+    this.updateHUD();
+    this.updateRhythmBar(0);
+    this.showOverlay("Tap / Space で開始", "縄が足元(黄色ライン)を通る瞬間に押そう。", false);
+    ui.overlayMeta.textContent = "";
+    this.history = [];
+    this.renderHistory();
+    if (!this.tutorialSeen) this.showTutorial("黄色ラインを縄が通る瞬間に押そう！");
+    this.announce("リセットしました");
+  }
+
+  togglePause() {
+    if (this.state === "running") {
+      this.state = "paused";
+      this.pauseElapsed = this.getElapsed();
+      this.showOverlay("一時停止中", "再開するには一時停止をもう一度押してください。", false);
+      this.announce("一時停止");
+    } else if (this.state === "paused") {
+      this.state = "running";
+      this.startAt = performance.now() - this.pauseElapsed;
+      this.hideOverlay();
+      this.announce("再開");
+    }
+  }
+
+  async onJump() {
+    if (this.state === "ready") {
+      await this.start();
+      return;
+    }
+    if (this.state === "countdown" || this.state !== "running") return;
+
+    const now = performance.now();
+    const elapsed = this.getElapsed(now);
+    const beatFloat = elapsed / this.periodMs;
+    const beatIndex = Math.round(beatFloat);
+    const beatTime = beatIndex * this.periodMs;
+    const delta = Math.abs(elapsed - beatTime);
+
+    if (beatIndex <= this.lastResolvedBeat) return;
+
+    this.totalAttempts += 1;
+
+    if (delta <= this.hitWindow) {
+      const judge = delta <= this.hitWindow * 0.35 ? "PERFECT" : delta <= this.hitWindow * 0.72 ? "GREAT" : "GOOD";
+      const mul = DIFFICULTY[this.difficulty].scoreMul;
+      this.combo += 1;
+      this.streak += 1;
+      this.score += Math.round((100 + this.combo * 10 + this.streak * 2) * mul);
+      this.successCount += 1;
+      if (this.streak > 0 && this.streak % 10 === 0) {
+        this.score += Math.round(250 * mul);
+        this.setJudge("STREAK BONUS");
+      } else {
+        this.setJudge(judge);
       }
-    };
-    const onTapCap = (e)=>{
-      if(e.target.tagName==='INPUT' || e.target.tagName==='BUTTON') return;
-      onTap();
-    };
-    const onKey = (e)=>{ if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); onTap();} };
-    document.addEventListener('touchstart', onTapCap, {passive:true});
-    document.addEventListener('mousedown', onTap);
-    document.addEventListener('keydown', onKey);
+      this.jumpV = this.jumpPower;
+      if (judge === "PERFECT") this.judgmentStats.perfect += 1;
+      else if (judge === "GREAT") this.judgmentStats.great += 1;
+      else this.judgmentStats.good += 1;
+      this.audio.success(judge);
+      this.pushHistory(judge.toLowerCase(), Math.max(0.2, 1 - delta / this.hitWindow));
+      this.vibrate([10]);
+      this.lastResolvedBeat = beatIndex;
+      if (!this.tutorialSeen && this.successCount === 1 && this.tutorialStep < 1) this.showTutorial("ナイス！もう一度OKを押すと次のヒントへ進みます。");
+    } else {
+      this.registerMiss("EARLY/LATE", beatIndex);
+    }
 
-    const finish = ()=>{
-      const {value, kept} = trimmedMedian(samples, 150);
-      this.latencyMs = value;
-      localStorage.setItem(LS.LATENCY, String(this.latencyMs));
-      const dropped = samples.length - kept;
-      showToast(`補正: ${value.toFixed(0)}ms（中央値${kept>0?`・外れ値${dropped}件除外`:''}）を適用しました`);
-      this.calibrating = false;
-      this.metro.stop();
-      this.started = false;
-      this.reset();
-      document.getElementById('combo').textContent = '0';
-      document.getElementById('judge').textContent = '-';
+    this.updateHUD();
+  }
+
+  registerMiss(text, beatIndex) {
+    this.combo = 0;
+    this.streak = 0;
+    this.life -= 1;
+    this.setJudge(text);
+    this.audio.miss();
+    this.judgmentStats.miss += 1;
+    this.pushHistory("miss", 0.95);
+    this.vibrate([20, 20, 20]);
+    this.lastResolvedBeat = Math.max(this.lastResolvedBeat, beatIndex);
+    if (!this.tutorialSeen && this.tutorialStep < 2) this.showTutorial("MISSは学習のチャンス。OKで次へ。");
+    if (this.life <= 0) this.gameOver();
+  }
+
+  gameOver() {
+    this.state = "gameover";
+    this.best = Math.max(this.best, this.score);
+    localStorage.setItem(LS_BEST, String(this.best));
+    this.updateHUD();
+    this.showOverlay("GAME OVER", `Score: ${this.score} / Best: ${this.best}`, true);
+    ui.overlayMeta.textContent = `PERFECT ${this.judgmentStats.perfect}  /  GREAT ${this.judgmentStats.great}\nGOOD ${this.judgmentStats.good}  /  MISS ${this.judgmentStats.miss}`;
+    this.announce(`ゲームオーバー。スコア ${this.score}`);
+  }
+
+  setJudge(text) {
+    this.judgeText = text;
+    this.judgeTimer = 0.85;
+    ui.judge.textContent = text;
+    ui.judge.style.color = text.includes("MISS") || text.includes("EARLY") ? "var(--warn)" : "var(--good)";
+  }
+
+  updateHUD() {
+    const rate = this.totalAttempts === 0 ? 0 : Math.round((this.successCount / this.totalAttempts) * 100);
+    ui.score.textContent = String(this.score);
+    ui.combo.textContent = String(this.combo);
+    ui.best.textContent = String(this.best);
+    ui.life.textContent = "❤".repeat(Math.max(0, this.life)) + "·".repeat(Math.max(0, 3 - this.life));
+    ui.rate.textContent = `${rate}%`;
+    ui.streak.textContent = String(this.streak);
+    ui.judge.textContent = this.judgeText;
+  }
+
+  updateRhythmBar(progress) {
+    ui.rhythmFill.style.width = `${Math.round(progress * 100)}%`;
+  }
+
+  showOverlay(title, text, showRetry) {
+    ui.overlayTitle.textContent = title;
+    ui.overlayText.textContent = text;
+    ui.retryBtn.hidden = !showRetry;
+    if (title !== "GAME OVER") ui.overlayMeta.textContent = "";
+    ui.overlay.style.display = "grid";
+  }
+
+  hideOverlay() {
+    ui.overlay.style.display = "none";
+  }
+
+  toggleSound() {
+    const next = !this.audio.enabled;
+    this.audio.setEnabled(next);
+    this.refreshSoundButton();
+    this.announce(next ? "サウンドオン" : "サウンドオフ");
+  }
+
+  refreshSoundButton() {
+    ui.soundBtn.textContent = this.audio.enabled ? "🔊 Sound ON" : "🔇 Sound OFF";
+    ui.soundBtn.setAttribute("aria-pressed", this.audio.enabled ? "true" : "false");
+  }
+
+  announce(text) {
+    ui.srStatus.textContent = text;
+  }
+
+  updateCountdown(now) {
+    const remain = Math.ceil((this.countdownUntil - now) / 1000);
+    if (remain <= 0) {
+      this.beginRun(now);
+      return;
+    }
+    this.showOverlay(String(remain), "リズムを感じて、開始に備えてください。", false);
+  }
+
+  update(dt) {
+    const now = performance.now();
+
+    if (this.state === "countdown") {
+      this.updateCountdown(now);
+      return;
+    }
+
+    if (this.state !== "running") return;
+
+    if (this.judgeTimer > 0) this.judgeTimer -= dt;
+
+    this.jumpV += this.gravity * dt;
+    this.jumpY += this.jumpV * dt;
+    if (this.jumpY > 0) {
+      this.jumpY = 0;
+      this.jumpV = 0;
+    }
+
+    const elapsed = this.getElapsed(now);
+    const beatProgress = (elapsed % this.periodMs) / this.periodMs;
+    this.updateRhythmBar(beatProgress);
+
+    const beatIndex = Math.floor(elapsed / this.periodMs);
+    if (beatIndex > this.lastResolvedBeat + 1) {
+      this.totalAttempts += 1;
+      this.registerMiss("MISS", beatIndex - 1);
+      this.updateHUD();
+    }
+
+    if (beatIndex > this.lastTickBeat) {
+      this.lastTickBeat = beatIndex;
+      if (beatIndex >= 0) this.audio.tick();
+    }
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    const w = this.width;
+    const h = this.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const groundY = h * 0.75;
+    const centerX = w * 0.5;
+    const ropeR = Math.min(190, w * 0.25);
+
+    const elapsed = this.getElapsed(performance.now());
+    const phase = ((elapsed % this.periodMs) / this.periodMs) * Math.PI * 2;
+
+    ctx.fillStyle = "#19274f";
+    ctx.fillRect(0, groundY, w, h - groundY);
+
+    ctx.strokeStyle = "#ffd166";
+    ctx.setLineDash([6, 6]);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 140, groundY + 6);
+    ctx.lineTo(centerX + 140, groundY + 6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (this.state !== "ready") {
+      const ropeY = groundY - Math.sin(phase) * 82;
+      const depth = Math.max(0.4, 1 - (Math.sin(phase) + 1) * 0.2);
+      ctx.strokeStyle = "#ffe082";
+      ctx.lineWidth = 5 * depth;
+      ctx.beginPath();
+      ctx.moveTo(centerX - ropeR, ropeY);
+      ctx.quadraticCurveTo(centerX, ropeY + 58, centerX + ropeR, ropeY);
+      ctx.stroke();
+    }
+
+    const y = groundY + this.jumpY;
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath();
+    ctx.ellipse(centerX, groundY + 8, 36, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const boost = Math.min(1, this.streak / 20);
+    const g = Math.floor(240 - boost * 50);
+    const b = Math.floor(200 + boost * 40);
+    ctx.fillStyle = `rgb(90, ${g}, ${b})`;
+    ctx.fillRect(centerX - 24, y - 78, 48, 72);
+    if (boost > 0.4) {
+      ctx.strokeStyle = "rgba(255, 230, 120, 0.7)";
+      ctx.lineWidth = 2 + boost * 2;
+      ctx.strokeRect(centerX - 26, y - 80, 52, 76);
+    }
+    ctx.fillStyle = "#edf2ff";
+    ctx.beginPath();
+    ctx.arc(centerX, y - 96, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (this.judgeTimer > 0) {
+      ctx.globalAlpha = Math.min(1, this.judgeTimer + 0.12);
+      ctx.fillStyle = this.judgeText.includes("MISS") || this.judgeText.includes("EARLY") ? "#ff6b6b" : "#7dfc84";
+      ctx.font = "bold 30px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(this.judgeText, centerX, 80);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  loop() {
+    const frame = () => {
+      const now = performance.now();
+      const dt = (now - this.lastFrameAt) / 1000;
+      this.lastFrameAt = now;
+      this.update(dt);
+      this.draw();
+      requestAnimationFrame(frame);
     };
+    requestAnimationFrame(frame);
   }
 }
 
-// Drawing helpers
-function drawCharacter(ctx, x, y, dpr, jumpY){
-  ctx.save();
-  const shadowW = 120*dpr; const shadowH = 22*dpr;
-  const shadowAlpha = clamp(1 + jumpY/140, 0.25, 1);
-  ctx.fillStyle = `rgba(0,0,0,${0.25*shadowAlpha})`;
-  ctx.beginPath();
-  ctx.ellipse(x, y+8*dpr, shadowW, shadowH, 0, 0, Math.PI*2);
-  ctx.fill();
+const game = new RopeJumpGame(ui.canvas);
 
-  const bodyW = 80*dpr; const bodyH = 110*dpr;
-  const bodyX = x - bodyW/2; const bodyY = y - bodyH - 8*dpr;
-  const grd = ctx.createLinearGradient(x, bodyY, x, bodyY+bodyH);
-  grd.addColorStop(0, '#7cf4d3');
-  grd.addColorStop(1, '#4cd9bd');
-  ctx.fillStyle = grd;
-  roundRect(ctx, bodyX, bodyY, bodyW, bodyH, 16*dpr);
-  ctx.fill();
+ui.bpm.addEventListener("input", (e) => {
+  const value = Number(e.target.value);
+  ui.bpmValue.textContent = String(value);
+  game.setBpm(value);
+});
 
-  ctx.fillStyle = '#0d1022';
-  ctx.beginPath(); ctx.arc(x-18*dpr, bodyY+44*dpr, 6*dpr, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(x+18*dpr, bodyY+44*dpr, 6*dpr, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#0d1022';
-  ctx.beginPath(); ctx.arc(x, bodyY+64*dpr, 10*dpr, 0, Math.PI); ctx.fill();
+ui.easyBtn.addEventListener("click", () => game.setDifficulty("easy"));
+ui.normalBtn.addEventListener("click", () => game.setDifficulty("normal"));
+ui.hardBtn.addEventListener("click", () => game.setDifficulty("hard"));
 
-  ctx.fillStyle = '#e6e8ff';
-  roundRect(ctx, x-30*dpr, y-6*dpr, 24*dpr, 12*dpr, 6*dpr); ctx.fill();
-  roundRect(ctx, x+6*dpr, y-6*dpr, 24*dpr, 12*dpr, 6*dpr); ctx.fill();
-  ctx.restore();
-}
-function drawRope(ctx, cx, groundY, r, angle, missFlash){
-  ctx.save();
-  if(missFlash>0){
-    ctx.fillStyle = `rgba(255, 107, 107, ${0.25*missFlash})`;
-    ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height);
+ui.soundBtn.addEventListener("click", async () => {
+  await game.audio.ensure();
+  game.toggleSound();
+});
+
+ui.hapticBtn.addEventListener("click", () => game.toggleHaptic());
+
+ui.startBtn.addEventListener("click", () => game.start());
+ui.retryBtn.addEventListener("click", () => game.reset());
+ui.jumpBtn.addEventListener("click", () => game.onJump());
+ui.pauseBtn.addEventListener("click", () => game.togglePause());
+ui.resetBtn.addEventListener("click", () => game.reset());
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault();
+    game.onJump();
   }
-  const baseY = groundY - 10;
-  const a = angle;
-  const hx1 = cx - r*0.9 * Math.cos(a);
-  const hy1 = baseY - r*0.35 * Math.sin(a);
-  const hx2 = cx + r*0.9 * Math.cos(a);
-  const hy2 = baseY + r*0.35 * Math.sin(a);
-  ctx.lineWidth = 6; ctx.lineCap='round'; ctx.strokeStyle = getRopeGradient(ctx, cx, groundY, r);
-  ctx.beginPath();
-  ctx.moveTo(hx1, hy1);
-  const c1x = cx - r * Math.cos(a + Math.PI/2);
-  const c1y = baseY + r * 0.6;
-  const c2x = cx + r * Math.cos(a + Math.PI/2);
-  const c2y = baseY + r * 0.6;
-  ctx.bezierCurveTo(c1x, c1y, c2x, c2y, hx2, hy2);
-  ctx.stroke();
-  ctx.fillStyle = '#ffd37a';
-  ctx.beginPath(); ctx.arc(hx1, hy1, 8, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hx2, hy2, 8, 0, Math.PI*2); ctx.fill();
-  ctx.globalAlpha = 0.35; ctx.fillStyle = '#7cf4d3';
-  ctx.beginPath(); ctx.arc(cx, groundY-2, 8, 0, Math.PI*2); ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
-function getRopeGradient(ctx, cx, cy, r){
-  const g = ctx.createLinearGradient(cx, cy-r, cx, cy+r);
-  g.addColorStop(0, '#f7e88a');
-  g.addColorStop(1, '#d8c35a');
-  return g;
-}
-function roundRect(ctx, x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.arcTo(x+w, y, x+w, y+h, r);
-  ctx.arcTo(x+w, y+h, x, y+h, r);
-  ctx.arcTo(x, y+h, x, y, r);
-  ctx.arcTo(x, y, x+w, y, r);
-  ctx.closePath();
-}
+});
 
-// Toast & Overlay helpers
-const toastEl = document.getElementById('toast');
-let toastTimer = null;
-function showToast(text){
-  toastEl.textContent = text;
-  toastEl.style.display = 'block';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=> toastEl.style.display='none', 1800);
-}
-function hideOverlay(){ document.getElementById('overlay').style.display='none'; }
-function showOverlay(){ document.getElementById('overlay').style.display='flex'; }
+document.addEventListener("pointerdown", (e) => {
+  if (e.target.closest("button") || e.target.closest("input")) return;
+  game.onJump();
+});
 
-// Boot
-const game = new Game(document.getElementById('cv'));
-document.getElementById('bpmVal').textContent = document.getElementById('bpm').value;
-document.getElementById('combo').textContent = '0';
-document.getElementById('best').textContent = localStorage.getItem(LS.BEST)||'0';
-document.getElementById('judge').textContent = '-';
-if(localStorage.getItem(LS.SOUND)==='0'){
-  document.getElementById('sndOff').classList.add('active');
-  document.getElementById('sndOn').classList.remove('active');
-}
-// show learn card initially
-(function(){
-  const card = document.getElementById('learnCard');
-  if(card){ card.style.display = 'block'; }
-})();
+game.reset();
