@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>game69 - String Art Studio</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>String Art Studio</h1>
+      <div class="topbar-actions">
+        <button id="undoBtn">Undo</button>
+        <button id="clearBtn">Clear</button>
+        <button id="exportBtn">Export PNG</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel">
+        <section>
+          <h2>Segments</h2>
+          <p class="hint">キャンバスでドラッグして線分を作成</p>
+          <div class="legend">
+            <span><i class="dot start"></i>start点</span>
+            <span><i class="dot end"></i>end点</span>
+          </div>
+          <ul id="segmentList" class="segment-list"></ul>
+        </section>
+
+        <section>
+          <h2>Pair Settings</h2>
+          <label>
+            Segment A
+            <select id="segmentASelect"></select>
+          </label>
+          <label>
+            Direction A
+            <select id="directionASelect">
+              <option value="start_to_end">start → end</option>
+              <option value="end_to_start">end → start</option>
+            </select>
+          </label>
+          <label>
+            Segment B
+            <select id="segmentBSelect"></select>
+          </label>
+          <label>
+            Direction B
+            <select id="directionBSelect">
+              <option value="start_to_end">start → end</option>
+              <option value="end_to_start">end → start</option>
+            </select>
+          </label>
+          <label>
+            Divisions (2-300)
+            <input id="divisionsInput" type="number" min="2" max="300" value="30" />
+          </label>
+        </section>
+
+        <section>
+          <h2>Render Settings</h2>
+          <label>
+            Mode
+            <select id="modeSelect">
+              <option value="instant">Instant</option>
+              <option value="sequential">Sequential</option>
+            </select>
+          </label>
+          <label>
+            Interval (ms)
+            <input id="intervalInput" type="number" min="5" max="1000" value="30" />
+          </label>
+          <label>
+            String Color
+            <input id="stringColorInput" type="color" value="#8c3f2d" />
+          </label>
+          <label>
+            String Width
+            <input id="stringWidthInput" type="number" min="1" max="4" step="0.5" value="1.2" />
+          </label>
+        </section>
+
+        <section class="panel-actions">
+          <button id="generateBtn" class="primary">Generate</button>
+          <button id="stopBtn">Stop</button>
+          <button id="resetRenderBtn">Reset Render</button>
+          <button id="metricsBtn">Run Metrics</button>
+        </section>
+        <pre id="metricsOutput" class="metrics">Metrics: not run</pre>
+      </aside>
+
+      <section class="canvas-wrap">
+        <canvas id="canvas" width="1000" height="700" aria-label="string art canvas"></canvas>
+      </section>
+    </main>
+
+    <footer id="statusBar" class="status">Ready</footer>
+
+    <script src="./stringArtCore.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

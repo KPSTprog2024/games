@@ -1,0 +1,49 @@
+# NEXT_PROMPT
+
+## PROMPT-0004
+- Prompt-ID: PROMPT-0004
+- Created-At: 2026-04-18
+- Status: latest
+- Project Invariants:
+  - 任意線分2本 + 向き指定 + 分割補間 + 順次描画を維持。
+- Prior Learning Import:
+  - ENTRY-0006: Core分離 + 自動テストを標準構成とする。
+- PM Persona Carry-over:
+  - Persona Name: Aya Kisaragi
+  - Open Recommendations: PM-ENTRY-0008
+  - Latest Insight Report: PM-ENTRY-0006
+- Goal:
+  - Completion GateをGOへ更新し、Release/Closeを完了する。
+- Current Position:
+  - Current phase: Release/Close
+  - Next 1 action: Owner承認を取得してGate更新。
+- Scope:
+  - Ownerサイン取得、最終文書更新、クローズ報告。
+- Non-Scope:
+  - 新機能追加。
+- Constraints:
+  - 実装コードは変更しない。
+- DoD:
+  - Completion GateのDecisionをGOへ更新。
+- Fail Fast:
+  - Owner未承認のままCloseしない。
+- Metrics Plan:
+  - 指標: Sign-off完了有無
+  - 閾値: PM/Owner両サイン
+  - 観測: PROJECT_COMPLETION_GATE.md
+- Deliverables:
+  - `PROJECT_COMPLETION_GATE.md` 更新
+  - `PROJECT_PROGRESS_BOARD.md` 更新
+  - クローズ報告
+- PM Owner Channel Plan:
+  - Comment: 現在地共有
+  - Recommendation: GO判定提案
+  - Diary Note: 承認プロセス記録
+  - Insight Report: Close運用の改善点
+- Next:
+  - GOで正式クローズ。NO-GOならPROMPT-0005。
+- Carry-over Backlog:
+  - ✅ 完了: B-001, B-002, B-003, B-004, B-005
+  - ⏳ 継続: B-006
+  - 🧊 保留: なし
+  - 残タスク所在: `PROJECT_COMPLETION_GATE.md`
