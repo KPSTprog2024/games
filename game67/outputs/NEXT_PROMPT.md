@@ -1,0 +1,46 @@
+## PROMPT-0001
+- Prompt-ID: PROMPT-0001
+- Created-At: 2026-04-17
+- Status: latest
+- Project Invariants:
+  - 4x3グリッドを維持する
+  - 猫の移動中は一度消える
+  - 最終位置をプレイヤーが回答する
+- Prior Learning Import:
+  - ENTRY-0004: 状態分離先行でバグを抑える
+- PM Persona Carry-over:
+  - Persona Name: PM-Lead Kairo
+  - Open Recommendations: なし（2026-04-17時点）
+  - Latest Insight Report: PM-ENTRY-0004
+- Goal:
+  - 難易度と演出を調整可能にする
+- Scope:
+  - 表示時間カーブの設定UI追加
+  - 正解時/不正解時の演出追加
+- Non-Scope:
+  - ネットワーク保存
+- Constraints:
+  - Vanilla JS維持
+- DoD:
+  - 設定変更が即時反映される
+  - 既存8ラウンド進行が壊れない
+- Fail Fast:
+  - 追跡フローが破綻したら中止
+- Metrics Plan:
+  - 指標: 1プレイ完了率
+  - 閾値: 80%以上
+  - 観測: 手動5セッション
+- Deliverables:
+  - UI差分
+  - テスト結果
+- PM Owner Channel Plan:
+  - Comment: 1件
+  - Recommendation: 1件
+  - Diary Note: 1件
+  - Insight Report: 1件
+- Next:
+  - Sprint2着手
+- Carry-over Backlog:
+  - ✅ 完了: 基本版構築
+  - ⏳ 継続: 演出追加/難易度UI
+  - 残タスク所在: `game67/app.js`, `game67/style.css`
