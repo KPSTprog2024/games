@@ -72,6 +72,11 @@ body {
   gap: 10px;
 }
 
+.round-buttons {
+  display: flex;
+  gap: 8px;
+}
+
 .small-btn {
   border: none;
   border-radius: 9px;

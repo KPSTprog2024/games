@@ -22,6 +22,7 @@ const state = {
   currentDisplayMs: BASE_DISPLAY_MS,
   finalCellIndex: null,
   entities: [],
+  needsRetry: false,
 };
 
 const elements = {
@@ -33,6 +34,7 @@ const elements = {
   actionBtn: document.getElementById("action-btn"),
   resetBtn: document.getElementById("reset-btn"),
   prevRoundBtn: document.getElementById("prev-round-btn"),
+  nextRoundBtn: document.getElementById("next-round-btn"),
   disturbanceBtn: document.getElementById("disturbance-btn"),
 };
 
@@ -181,10 +183,18 @@ function moveEntities(currentEntities) {
 function updateButtonStates() {
   const canRunRound = !state.isAnimating && !state.isAnswering && state.round <= MAX_ROUND;
   elements.actionBtn.disabled = !canRunRound;
-  elements.actionBtn.textContent = state.round === 1 ? "スタート" : "つぎへ";
+  if (state.round === 1 && !state.needsRetry) {
+    elements.actionBtn.textContent = "スタート";
+  } else if (state.needsRetry) {
+    elements.actionBtn.textContent = "もういちど";
+  } else {
+    elements.actionBtn.textContent = "もういちど";
+  }
 
   elements.prevRoundBtn.disabled =
     state.isAnimating || state.isAnswering || state.round <= 1;
+  elements.nextRoundBtn.disabled =
+    state.isAnimating || state.isAnswering || state.round >= MAX_ROUND;
 
   elements.disturbanceBtn.disabled = state.isAnimating || state.isAnswering;
   elements.disturbanceBtn.textContent = state.isDisturbanceMode ? "お邪魔あり" : "お邪魔なし";
@@ -234,18 +244,21 @@ function completeRound(correct) {
 
   if (correct) {
     state.score += 1;
-  }
+    state.needsRetry = false;
 
-  if (state.round >= MAX_ROUND) {
-    elements.actionBtn.disabled = true;
+    if (state.round >= MAX_ROUND) {
+      elements.actionBtn.disabled = true;
+    } else {
+      const nextRound = state.round + 1;
+      const nextRoundRatio = getRoundDisplayRatio(nextRound);
+      state.round = nextRound;
+      state.currentDisplayMs = Math.max(
+        MIN_DISPLAY_MS,
+        truncateToTwoDecimals(state.currentDisplayMs * nextRoundRatio),
+      );
+    }
   } else {
-    const nextRound = state.round + 1;
-    const nextRoundRatio = getRoundDisplayRatio(nextRound);
-    state.round = nextRound;
-    state.currentDisplayMs = Math.max(
-      MIN_DISPLAY_MS,
-      truncateToTwoDecimals(state.currentDisplayMs * nextRoundRatio),
-    );
+    state.needsRetry = true;
   }
 
   syncStatus();
@@ -280,6 +293,23 @@ function stepBackRound() {
   state.currentDisplayMs = computeDisplayMsForRound(state.round);
   state.finalCellIndex = null;
   state.entities = [];
+  state.needsRetry = false;
+  clearEntities();
+  clearHighlights();
+  syncStatus();
+  updateButtonStates();
+}
+
+function stepForwardRound() {
+  if (state.isAnimating || state.isAnswering || state.round >= MAX_ROUND) {
+    return;
+  }
+
+  state.round += 1;
+  state.currentDisplayMs = computeDisplayMsForRound(state.round);
+  state.finalCellIndex = null;
+  state.entities = [];
+  state.needsRetry = false;
   clearEntities();
   clearHighlights();
   syncStatus();
@@ -296,6 +326,7 @@ function resetGame() {
   state.currentDisplayMs = BASE_DISPLAY_MS;
   state.finalCellIndex = null;
   state.entities = [];
+  state.needsRetry = false;
   syncStatus();
   updateButtonStates();
 }
@@ -309,6 +340,7 @@ elements.actionBtn.addEventListener("click", async () => {
 
 elements.resetBtn.addEventListener("click", resetGame);
 elements.prevRoundBtn.addEventListener("click", stepBackRound);
+elements.nextRoundBtn.addEventListener("click", stepForwardRound);
 elements.disturbanceBtn.addEventListener("click", () => {
   if (state.isAnimating || state.isAnswering) {
     return;
