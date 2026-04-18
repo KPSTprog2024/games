@@ -38,7 +38,26 @@ export class Field {
 
   isSafe(x, y) {
     const cell = this.getCell(x, y);
-    return cell === CELL.CAPTURED || cell === CELL.BOUNDARY;
+    if (cell === CELL.BOUNDARY) return true;
+    if (cell !== CELL.CAPTURED) return false;
+    return this.isCapturedEdge(x, y);
+  }
+
+  isCapturedEdge(x, y) {
+    if (this.getCell(x, y) !== CELL.CAPTURED) return false;
+    return (
+      this.getCell(x + 1, y) === CELL.UNCAPTURED
+      || this.getCell(x - 1, y) === CELL.UNCAPTURED
+      || this.getCell(x, y + 1) === CELL.UNCAPTURED
+      || this.getCell(x, y - 1) === CELL.UNCAPTURED
+    );
+  }
+
+  isWalkableForPlayer(x, y) {
+    const cell = this.getCell(x, y);
+    if (cell === CELL.UNCAPTURED || cell === CELL.BOUNDARY) return true;
+    if (cell !== CELL.CAPTURED) return false;
+    return this.isCapturedEdge(x, y);
   }
 
   isSolidForEnemy(x, y) {

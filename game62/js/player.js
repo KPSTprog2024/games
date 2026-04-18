@@ -56,6 +56,10 @@ export class Player {
       return false;
     }
 
+    if (!this.field.isWalkableForPlayer(nx, ny)) {
+      return false;
+    }
+
     const nextCell = this.field.getCell(nx, ny);
     const movingIntoUncaptured = nextCell === CELL.UNCAPTURED;
 
