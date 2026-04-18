@@ -1,62 +1,24 @@
-# 70_NEXT_PROMPT_TEMPLATE.md
+# 70_NEXT_PROMPT_TEMPLATE.md（簡潔版）
 
-次回実行用プロンプトを追記する時の汎用雛形。
+次回用の引き継ぎは、以下の最小形式を追記する。
 
 ```md
 ## PROMPT-XXXX
-- Prompt-ID: PROMPT-XXXX
-- Created-At: YYYY-MM-DD
-- Status: latest
-- Project Invariants:
-  -
-- Prior Learning Import:
-  - ENTRY-XXXX から再利用する知見
-- PM Persona Carry-over:
-  - Persona Name:
-  - Open Recommendations:
-  - Latest Insight Report:
+- Date: YYYY-MM-DD
+- Mode: @pm | @pm @fast | @pm @safe | @pm @plan
 - Goal:
-  -
 - Current Position:
-  - Current phase:
-  - Next 1 action:
-- Scope:
-  -
-- Non-Scope:
-  -
-- Constraints:
-  -
-- DoD:
-  -
-- Fail Fast:
-  -
-- Metrics Plan:
-  - 指標:
-  - 閾値:
-  - 観測:
-- Deliverables:
-  -
-- PM Owner Channel Plan:
-  - Comment:
-  - Recommendation:
-  - Diary Note:
-  - Insight Report:
-- Next:
-  -
-- Carry-over Backlog:
-  - ✅ 完了:
-  - ⏳ 継続:
-  - 🧊 保留:
-  - 残タスク所在:
+- Done:
+- Carry-over:
+- Risks:
+- Next 1 Action:
+- Recommended One-liner:
+  - `@pm ...`
 ```
 
-## 追記時チェック
+## チェック
 
-- [ ] 既存エントリ本文を編集していない
-- [ ] latest ポインタ/状態を更新した
-- [ ] Non-Scope / Fail Fast / Metrics Plan / Project Invariants を含めた
-- [ ] PM Persona Carry-over を更新した
-- [ ] デザイン関連タスクがある場合、`40_DESIGN_PROMPT_TEMPLATE.md` を注入した
-- [ ] Learning Ledgerから再利用知見を1つ以上注入した
-- [ ] `Carry-over Backlog` に `✅ / ⏳ / 🧊 / 残タスク所在` を記入した
-- [ ] `30_PROJECT_PROGRESS_BOARD_TEMPLATE.md` と整合している
+- [ ] Done と Carry-over が分離されている
+- [ ] 次の1アクションが1文で書かれている
+- [ ] 次回起動用の一行コマンドがある
+
