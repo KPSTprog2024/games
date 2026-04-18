@@ -1,4 +1,4 @@
-# LEARNING_SYSTEM.md（実行旅ごとの成長ログ設計）
+# 03_LEARNING_SYSTEM.md（実行旅ごとの成長ログ設計）
 
 ## 結論
 
@@ -41,11 +41,11 @@
 
 ## 4. ハーネスへの組み込みポイント
 
-1. 実行開始: `SESSION_BOOT_TEMPLATE.md` に「学習ログ追記」をDeliverablesで要求
-2. 実行終了: `SPRINT_REVIEW_TEMPLATE.md` で知見抽出を必須化
-3. 永続化: `learning/AGENT_GROWTH_LEDGER.md` に追記
-4. 次回反映: `NEXT_PROMPT_TEMPLATE.md` のGoal/Constraintsへ再注入
-5. PM連携: `PROJECT_MANAGER_PERSONA_TEMPLATE.md` のOpen Recommendationへ再注入
+1. 実行開始: `10_SESSION_BOOT_TEMPLATE.md` に「学習ログ追記」をDeliverablesで要求
+2. 実行終了: `50_SPRINT_REVIEW_TEMPLATE.md` で知見抽出を必須化
+3. 永続化: `learning/90_AGENT_GROWTH_LEDGER.md` に追記
+4. 次回反映: `70_NEXT_PROMPT_TEMPLATE.md` のGoal/Constraintsへ再注入
+5. PM連携: `20_PROJECT_MANAGER_PERSONA_TEMPLATE.md` のOpen Recommendationへ再注入
 
 ---
 

@@ -1,4 +1,4 @@
-# AGENT_GROWTH_LEDGER.md（追記専用）
+# 90_AGENT_GROWTH_LEDGER.md（追記専用）
 
 > 目的: 各実行旅で得た再利用知見を蓄積し、次回以降の精度と速度を上げる。
 > ルール: 追記専用。過去エントリの本文は編集しない。
@@ -84,7 +84,7 @@
 - Don’t:
   - 学習ログだけ追記してテンプレートに反映しない
 - Evidence:
-  - harnes/LEARNING_SYSTEM.md の PATTERN-UI-MULTI-TOUCH-CORNERS 追記
+  - harnes/03_LEARNING_SYSTEM.md の PATTERN-UI-MULTI-TOUCH-CORNERS 追記
   - harnes/templates/* への到達性チェック項目追加
 - Reuse Plan:
   - 今後の多人数スマホUI案件で、着手時から四隅到達性をDoD/回帰に組み込む

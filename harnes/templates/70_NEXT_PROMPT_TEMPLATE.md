@@ -1,4 +1,4 @@
-# NEXT_PROMPT_TEMPLATE.md
+# 70_NEXT_PROMPT_TEMPLATE.md
 
 次回実行用プロンプトを追記する時の汎用雛形。
 
@@ -17,6 +17,9 @@
   - Latest Insight Report:
 - Goal:
   -
+- Current Position:
+  - Current phase:
+  - Next 1 action:
 - Scope:
   -
 - Non-Scope:
@@ -43,6 +46,7 @@
 - Carry-over Backlog:
   - ✅ 完了:
   - ⏳ 継続:
+  - 🧊 保留:
   - 残タスク所在:
 ```
 
@@ -52,6 +56,7 @@
 - [ ] latest ポインタ/状態を更新した
 - [ ] Non-Scope / Fail Fast / Metrics Plan / Project Invariants を含めた
 - [ ] PM Persona Carry-over を更新した
-- [ ] デザイン関連タスクがある場合、`DESIGN_PROMPT_TEMPLATE.md` を注入した
+- [ ] デザイン関連タスクがある場合、`40_DESIGN_PROMPT_TEMPLATE.md` を注入した
 - [ ] Learning Ledgerから再利用知見を1つ以上注入した
-- [ ] `Carry-over Backlog` に `✅ / ⏳ / 残タスク所在` を記入した
+- [ ] `Carry-over Backlog` に `✅ / ⏳ / 🧊 / 残タスク所在` を記入した
+- [ ] `30_PROJECT_PROGRESS_BOARD_TEMPLATE.md` と整合している

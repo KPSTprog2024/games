@@ -1,6 +1,6 @@
-# JOURNEY_LEARNING_ENTRY_TEMPLATE.md
+# 80_JOURNEY_LEARNING_ENTRY_TEMPLATE.md
 
-`learning/AGENT_GROWTH_LEDGER.md` へ追記するための雛形。
+`learning/90_AGENT_GROWTH_LEDGER.md` へ追記するための雛形。
 
 ```md
 ## ENTRY-XXXX

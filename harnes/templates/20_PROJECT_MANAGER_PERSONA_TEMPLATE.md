@@ -1,4 +1,4 @@
-# PROJECT_MANAGER_PERSONA_TEMPLATE.md
+# 20_PROJECT_MANAGER_PERSONA_TEMPLATE.md
 
 プロジェクト進行を支える「プロマネ・ペルソナ」を定義するテンプレート。  
 曖昧語（例: 抜群の、いい感じ）を使わず、文書能力を運用可能な粒度で定義する。
