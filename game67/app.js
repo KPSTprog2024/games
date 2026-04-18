@@ -1,11 +1,11 @@
 const ROWS = 4;
 const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
-const MAX_ROUND = 8;
+const MAX_ROUND = 14;
 const BASE_DISPLAY_MS = 800;
 const DISPLAY_RATIO = 0.7;
 const MIN_DISPLAY_MS = 10;
-const HIDE_BETWEEN_MS = 260;
+const IN_ROUND_RATIO = 0.9;
 const MIN_SHOW_COUNT = 6;
 const MAX_SHOW_COUNT = 15;
 
@@ -113,15 +113,20 @@ async function runRound() {
 
   const showCount = randomInt(MIN_SHOW_COUNT, MAX_SHOW_COUNT);
   let current = Math.floor(Math.random() * TOTAL_CELLS);
+  let currentStepMs = state.currentDisplayMs;
 
   for (let show = 0; show < showCount; show += 1) {
     showCat(current);
-    await wait(state.currentDisplayMs);
+    await wait(currentStepMs);
     clearCat();
     if (show < showCount - 1) {
-      await wait(HIDE_BETWEEN_MS);
+      await wait(currentStepMs);
       current = randomNextIndex(current);
     }
+    currentStepMs = Math.max(
+      MIN_DISPLAY_MS,
+      truncateToTwoDecimals(currentStepMs * IN_ROUND_RATIO),
+    );
   }
 
   state.finalCellIndex = current;
