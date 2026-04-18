@@ -3,29 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Cat Tracker 4x3</title>
+    <title>猫を探せ</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="app">
       <header class="header">
-        <h1>🐈 Cat Tracker 4x3</h1>
-        <p class="subtitle">最後に猫がいたマスを当てよう</p>
+        <h1>🐈 猫を探せ</h1>
+        <button id="reset-btn" class="reset-btn" type="button">リセット</button>
       </header>
 
       <section class="status-panel" aria-live="polite">
         <p><strong>ラウンド:</strong> <span id="round">1</span> / <span id="max-round">8</span></p>
         <p><strong>スコア:</strong> <span id="score">0</span></p>
-        <p><strong>表示時間:</strong> <span id="display-ms">1000</span>ms</p>
-        <p id="message">「開始」でスタート</p>
+        <p><strong>表示時間:</strong> <span id="display-ms">800</span>ms</p>
       </section>
 
       <section class="grid" id="grid" aria-label="3列4行のマス"></section>
 
       <section class="controls">
-        <button id="start-btn" type="button">開始</button>
-        <button id="next-btn" type="button" disabled>次のラウンド</button>
-        <button id="reset-btn" type="button">リセット</button>
+        <button id="action-btn" type="button">開始</button>
       </section>
 
       <section class="help">

@@ -2,9 +2,12 @@ const ROWS = 4;
 const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
 const MAX_ROUND = 8;
-const BASE_DISPLAY_MS = 1000;
-const DISPLAY_RATIO = 0.8;
+const BASE_DISPLAY_MS = 800;
+const DISPLAY_RATIO = 0.7;
+const MIN_DISPLAY_MS = 10;
 const HIDE_BETWEEN_MS = 260;
+const MIN_SHOW_COUNT = 6;
+const MAX_SHOW_COUNT = 15;
 
 const state = {
   round: 1,
@@ -21,10 +24,8 @@ const elements = {
   maxRound: document.getElementById("max-round"),
   score: document.getElementById("score"),
   displayMs: document.getElementById("display-ms"),
-  message: document.getElementById("message"),
   grid: document.getElementById("grid"),
-  startBtn: document.getElementById("start-btn"),
-  nextBtn: document.getElementById("next-btn"),
+  actionBtn: document.getElementById("action-btn"),
   resetBtn: document.getElementById("reset-btn"),
 };
 
@@ -37,7 +38,7 @@ function createGrid() {
     btn.className = "cell";
     btn.dataset.index = String(index);
     btn.ariaLabel = `マス ${index + 1}`;
-    btn.textContent = String(index + 1);
+    btn.textContent = "";
     btn.disabled = true;
     btn.addEventListener("click", onAnswerClick);
     elements.grid.appendChild(btn);
@@ -47,10 +48,6 @@ function createGrid() {
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function setMessage(text) {
-  elements.message.textContent = text;
 }
 
 function syncStatus() {
@@ -71,7 +68,7 @@ function clearCat() {
     return;
   }
   const cell = cells[state.currentVisibleCellIndex];
-  cell.textContent = String(state.currentVisibleCellIndex + 1);
+  cell.textContent = "";
   state.currentVisibleCellIndex = null;
 }
 
@@ -94,12 +91,14 @@ function truncateToTwoDecimals(value) {
   return Math.floor(value * 100) / 100;
 }
 
-function updateButtonStates() {
-  const canStart = !state.isAnimating && !state.isAnswering && state.round === 1;
-  elements.startBtn.disabled = !canStart;
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-  const canNext = !state.isAnimating && !state.isAnswering && state.round > 1 && state.round <= MAX_ROUND;
-  elements.nextBtn.disabled = !canNext;
+function updateButtonStates() {
+  const canRunRound = !state.isAnimating && !state.isAnswering && state.round <= MAX_ROUND;
+  elements.actionBtn.disabled = !canRunRound;
+  elements.actionBtn.textContent = state.round === 1 ? "開始" : "次のラウンド";
 
   cells.forEach((cell) => {
     cell.disabled = !state.isAnswering;
@@ -112,27 +111,23 @@ async function runRound() {
   clearHighlights();
   updateButtonStates();
 
-  const hopCount = 2 + state.round;
+  const showCount = randomInt(MIN_SHOW_COUNT, MAX_SHOW_COUNT);
   let current = Math.floor(Math.random() * TOTAL_CELLS);
 
-  setMessage(`ラウンド ${state.round}: 猫の移動を追跡中...`);
-
-  for (let hop = 0; hop < hopCount; hop += 1) {
+  for (let show = 0; show < showCount; show += 1) {
     showCat(current);
     await wait(state.currentDisplayMs);
     clearCat();
-    await wait(HIDE_BETWEEN_MS);
-    current = randomNextIndex(current);
+    if (show < showCount - 1) {
+      await wait(HIDE_BETWEEN_MS);
+      current = randomNextIndex(current);
+    }
   }
 
-  state.finalCellIndex = randomNextIndex(current);
-  showCat(state.finalCellIndex);
-  await wait(state.currentDisplayMs);
-  clearCat();
+  state.finalCellIndex = current;
 
   state.isAnimating = false;
   state.isAnswering = true;
-  setMessage("最後に🐈がいたマス番号をクリックしてください");
   updateButtonStates();
 }
 
@@ -141,17 +136,16 @@ function completeRound(correct) {
 
   if (correct) {
     state.score += 1;
-    setMessage("正解！次のラウンドへ進めます。");
-  } else {
-    setMessage(`不正解。正しいマスは ${state.finalCellIndex + 1} でした。`);
   }
 
   if (state.round >= MAX_ROUND) {
-    setMessage(`終了！スコアは ${state.score}/${MAX_ROUND} です。リセットで再挑戦。`);
-    elements.nextBtn.disabled = true;
+    elements.actionBtn.disabled = true;
   } else {
     state.round += 1;
-    state.currentDisplayMs = truncateToTwoDecimals(state.currentDisplayMs * DISPLAY_RATIO);
+    state.currentDisplayMs = Math.max(
+      MIN_DISPLAY_MS,
+      truncateToTwoDecimals(state.currentDisplayMs * DISPLAY_RATIO),
+    );
   }
 
   syncStatus();
@@ -185,19 +179,11 @@ function resetGame() {
   state.isAnswering = false;
   state.currentDisplayMs = BASE_DISPLAY_MS;
   state.finalCellIndex = null;
-  setMessage("「開始」でスタート");
   syncStatus();
   updateButtonStates();
 }
 
-elements.startBtn.addEventListener("click", async () => {
-  if (state.round !== 1 || state.isAnimating || state.isAnswering) {
-    return;
-  }
-  await runRound();
-});
-
-elements.nextBtn.addEventListener("click", async () => {
+elements.actionBtn.addEventListener("click", async () => {
   if (state.round > MAX_ROUND || state.isAnimating || state.isAnswering) {
     return;
   }
