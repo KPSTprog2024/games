@@ -1,0 +1,136 @@
+:root {
+  --bg: #12141a;
+  --card: #1c2130;
+  --cell: #273047;
+  --cell-active: #344266;
+  --ok: #4ade80;
+  --ng: #f87171;
+  --text: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(160deg, #111827, #1f2937);
+  color: var(--text);
+  font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  min-height: 100vh;
+}
+
+.app {
+  width: min(820px, 94vw);
+  margin: 0 auto;
+  padding: 20px 0 28px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+}
+
+.subtitle {
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+.status-panel {
+  background: rgba(28, 33, 48, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 14px 0;
+}
+
+.status-panel p {
+  margin: 5px 0;
+}
+
+#message {
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.cell {
+  border: none;
+  border-radius: 10px;
+  min-height: 88px;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  background: var(--cell);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+
+.cell:hover:not(:disabled),
+.cell:focus-visible:not(:disabled) {
+  background: var(--cell-active);
+  transform: translateY(-2px);
+}
+
+.cell:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cell.correct {
+  outline: 3px solid var(--ok);
+}
+
+.cell.wrong {
+  outline: 3px solid var(--ng);
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.controls button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #374151;
+  color: #f9fafb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.help {
+  background: rgba(17, 24, 39, 0.85);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.help h2 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.help ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 520px) {
+  .cell {
+    min-height: 72px;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+  }
+}
