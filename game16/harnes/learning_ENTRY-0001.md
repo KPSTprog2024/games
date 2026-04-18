@@ -1,0 +1,22 @@
+## ENTRY-0001
+- Created-At: 2026-04-17
+- Journey-ID: GAME16-REBUILD
+- Context: 既存実装を全面刷新
+- Reusable Insight:
+  - 先に「何を上達させるゲームか」を固定すると設計が簡潔になる
+- Reasoning Pivot:
+  - 学習ツール中心の設計から、短尺アクション中心へ転換
+- Do:
+  - 目的→要件→実装の順に固定する
+- Don’t:
+  - 体験前に設定を増やしすぎない
+- Evidence:
+  - `GAME_ESSENCE.md`, `REQUIREMENTS.md`, `REDESIGN_NOTES.md`
+- Reuse Plan:
+  - 次スプリントの難易度設計に同じ順序を適用
+- Template Ops Insight:
+  - 使ったテンプレート: SESSION_BOOT / SPRINT_REVIEW / NEXT_PROMPT / JOURNEY
+  - 使わなかったテンプレートと理由: DESIGN（今回は見た目よりループ成立優先）
+  - 次回改善提案: 指標欄を実測値で埋める自動化
+- Confidence:
+  - medium
