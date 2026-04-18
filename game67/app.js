@@ -3,7 +3,8 @@ const COLS = 3;
 const TOTAL_CELLS = ROWS * COLS;
 const MAX_ROUND = 25;
 const BASE_DISPLAY_MS = 600;
-const DISPLAY_RATIO = 0.8;
+const EARLY_ROUND_DISPLAY_RATIO = 0.8;
+const LATE_ROUND_DISPLAY_RATIO = 0.9;
 const MIN_DISPLAY_MS = 10;
 const IN_ROUND_RATIO = 0.9;
 const MIN_SHOW_COUNT = 6;
@@ -86,10 +87,17 @@ function pickRandomUniqueItems(items, count) {
   return picked;
 }
 
+function getRoundDisplayRatio(round) {
+  return round <= 3 ? EARLY_ROUND_DISPLAY_RATIO : LATE_ROUND_DISPLAY_RATIO;
+}
+
 function computeDisplayMsForRound(round) {
   let displayMs = BASE_DISPLAY_MS;
-  for (let index = 1; index < round; index += 1) {
-    displayMs = Math.max(MIN_DISPLAY_MS, truncateToTwoDecimals(displayMs * DISPLAY_RATIO));
+  for (let roundNumber = 2; roundNumber <= round; roundNumber += 1) {
+    displayMs = Math.max(
+      MIN_DISPLAY_MS,
+      truncateToTwoDecimals(displayMs * getRoundDisplayRatio(roundNumber)),
+    );
   }
   return displayMs;
 }
@@ -231,10 +239,12 @@ function completeRound(correct) {
   if (state.round >= MAX_ROUND) {
     elements.actionBtn.disabled = true;
   } else {
-    state.round += 1;
+    const nextRound = state.round + 1;
+    const nextRoundRatio = getRoundDisplayRatio(nextRound);
+    state.round = nextRound;
     state.currentDisplayMs = Math.max(
       MIN_DISPLAY_MS,
-      truncateToTwoDecimals(state.currentDisplayMs * DISPLAY_RATIO),
+      truncateToTwoDecimals(state.currentDisplayMs * nextRoundRatio),
     );
   }
 
