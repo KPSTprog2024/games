@@ -1,4 +1,4 @@
-# SPRINT_REVIEW_TEMPLATE.md
+# 50_SPRINT_REVIEW_TEMPLATE.md
 
 実装完了後、必ずこの形式でレビューを残す。
 
@@ -62,6 +62,7 @@
 ## 11. 次回への引き継ぎ
 - 続行時の最小タスク:
 - 次回Prompt草案:
+- PROJECT_PROGRESS_BOARD更新内容:
 - Learning Ledger追記ID:
 - オープンなRecommendation:
 
@@ -71,6 +72,8 @@
   - PROJECT_MANAGER_PERSONA_TEMPLATE: Yes / No（理由）
   - DESIGN_PROMPT_TEMPLATE（デザイン対象時必須）: Yes / No（理由）
   - SPRINT_REVIEW_TEMPLATE: Yes / No（理由）
+  - PROJECT_PROGRESS_BOARD_TEMPLATE: Yes / No（理由）
+  - PROJECT_COMPLETION_GATE_TEMPLATE（完了判定時）: Yes / No（理由）
   - NEXT_PROMPT_TEMPLATE: Yes / No（理由）
   - JOURNEY_LEARNING_ENTRY_TEMPLATE: Yes / No（理由）
 - 使わなかったテンプレートの代替運用:

@@ -1,12 +1,12 @@
-# SESSION_BOOT_TEMPLATE.md
+# 10_SESSION_BOOT_TEMPLATE.md
 
 以下を埋めてからCodexへ投入する。
 
 ## 1) Context
 - 参照必須（必要に応じて置換）:
-  - `<PROJECT>/harnes/SOUL.md`
-  - `<PROJECT>/harnes/LEARNING_SYSTEM.md`
-  - `<PROJECT>/harnes/templates/PROJECT_MANAGER_PERSONA_TEMPLATE.md`
+  - `<PROJECT>/harnes/01_SOUL.md`
+  - `<PROJECT>/harnes/03_LEARNING_SYSTEM.md`
+  - `<PROJECT>/harnes/templates/20_PROJECT_MANAGER_PERSONA_TEMPLATE.md`
   - `<PROJECT>/PROJECT_CONTEXT.md`（任意）
   - `<PROJECT>/PROCESS_PLAYBOOK.md`（任意）
 - 対象スプリント:
@@ -30,7 +30,7 @@
 
 ## 6) Constraints
 -
-- デザイン関連タスクがある場合は `templates/DESIGN_PROMPT_TEMPLATE.md` を注入し、要件部分のみ差し替える
+- デザイン関連タスクがある場合は `templates/40_DESIGN_PROMPT_TEMPLATE.md` を注入し、要件部分のみ差し替える
 
 ## 7) PM Persona Activation（必須）
 - Persona Name:
@@ -57,8 +57,9 @@
 ## 11) Deliverables
 - 変更内容
 - 検証結果
+- PROJECT_PROGRESS_BOARD更新（現在地/残課題/次アクション）
 - 次回Prompt草案
-- 学習エントリ（`AGENT_GROWTH_LEDGER.md` 追記）
+- 学習エントリ（`90_AGENT_GROWTH_LEDGER.md` 追記）
 - バックログ更新（`✅/⏳` と残タスク所在）
 - PM Owner Channelログ（Comment / Recommendation / Diary Note / Insight Report）
 
@@ -68,12 +69,14 @@
 
 ## 13) テンプレート適用方針（必須）
 - 使用するテンプレート:
-  - `SESSION_BOOT_TEMPLATE`: Use / Skip（理由）
-  - `PROJECT_MANAGER_PERSONA_TEMPLATE`: Use / Skip（理由）
-  - `DESIGN_PROMPT_TEMPLATE`（デザイン対象時必須）: Use / Skip（理由）
-  - `SPRINT_REVIEW_TEMPLATE`: Use / Skip（理由）
-  - `NEXT_PROMPT_TEMPLATE`: Use / Skip（理由）
-  - `JOURNEY_LEARNING_ENTRY_TEMPLATE`: Use / Skip（理由）
+  - `10_SESSION_BOOT_TEMPLATE`: Use / Skip（理由）
+  - `20_PROJECT_MANAGER_PERSONA_TEMPLATE`: Use / Skip（理由）
+  - `40_DESIGN_PROMPT_TEMPLATE`（デザイン対象時必須）: Use / Skip（理由）
+  - `50_SPRINT_REVIEW_TEMPLATE`: Use / Skip（理由）
+  - `30_PROJECT_PROGRESS_BOARD_TEMPLATE`: Use / Skip（理由）
+  - `60_PROJECT_COMPLETION_GATE_TEMPLATE`（完了判定時）: Use / Skip（理由）
+  - `70_NEXT_PROMPT_TEMPLATE`: Use / Skip（理由）
+  - `80_JOURNEY_LEARNING_ENTRY_TEMPLATE`: Use / Skip（理由）
 - Skipがある場合の代替手段:
 
 ## 14) 出力フォーマット指定
