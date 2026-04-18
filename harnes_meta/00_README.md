@@ -10,6 +10,7 @@
 
 1. `20_HARNESS_UPDATE_POLICY.md`（更新方針・更新手順）
 2. `10_HARNESS_REVIEW_AND_CHANGE_PROPOSAL_2026-04-18.md`（評価・改善提案の具体例）
+3. `30_HARNESS_V2_RESTRUCTURE_2026-04-18.md`（v2構造変更の実施記録）
 
 ## 運用ルール
 

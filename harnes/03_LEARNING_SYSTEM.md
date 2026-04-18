@@ -45,7 +45,7 @@
 2. 実行終了: `50_SPRINT_REVIEW_TEMPLATE.md` で知見抽出を必須化
 3. 永続化: `learning/90_AGENT_GROWTH_LEDGER.md` に追記
 4. 次回反映: `70_NEXT_PROMPT_TEMPLATE.md` のGoal/Constraintsへ再注入
-5. PM連携: `20_PROJECT_MANAGER_PERSONA_TEMPLATE.md` のOpen Recommendationへ再注入
+5. モード連携: `02_RUN_MODES.md` の運用観点（speed/safe/plan）へ再注入
 
 ---
 

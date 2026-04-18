@@ -1,81 +1,59 @@
-# Codex Harness（汎用実行強化パッケージ）
+# Codex Harness v2（グローバル実行ハーネス）
 
-このディレクトリは、特定プロジェクトに依存しない形で、
-**毎回のCodex実行品質を揃えるためのハーネス**です。
+このハーネスは、**長い起動プロンプトを毎回書かなくてよい**状態を作るための実行基盤。
 
-## 目的
+狙いは 2 つだけ。
 
-- 実行者ごとの差を減らす（品質平準化）
-- 毎回同じ重要項目を最初に確認する（判断ドリフト防止）
-- Promptをテンプレート化し、改善サイクルを高速化する
-- 実行旅ごとの学習を蓄積し、次回精度を上げる
-- プロマネ視点の文書運用を標準化し、Ownerとの意思決定速度を上げる
+1. ハーネス側に標準ポリシーを内包する
+2. ユーザー入力を「一行コマンド」に縮約する
 
 ---
 
-## 読む順番（番号順で固定）
+## v2の考え方（重要）
 
-1. `01_SOUL.md`（原則・禁止・判定規律）
-2. `03_LEARNING_SYSTEM.md`（学習運用）
-3. `templates/20_PROJECT_MANAGER_PERSONA_TEMPLATE.md`（進行管理の責任境界）
-4. `templates/10_SESSION_BOOT_TEMPLATE.md`（今回スプリントの起動）
-5. `templates/30_PROJECT_PROGRESS_BOARD_TEMPLATE.md`（現在地・残課題の一枚管理）
-6. `templates/50_SPRINT_REVIEW_TEMPLATE.md`（実装後レビュー）
-7. `templates/60_PROJECT_COMPLETION_GATE_TEMPLATE.md`（完了判定）
-8. `templates/70_NEXT_PROMPT_TEMPLATE.md`（次回引き継ぎ）
-9. `templates/80_JOURNEY_LEARNING_ENTRY_TEMPLATE.md`（学習抽出）
-10. `learning/90_AGENT_GROWTH_LEDGER.md`（追記先）
+従来は、実行のたびに多くのテンプレートを都度注入する前提だった。
+v2では逆に、次を標準化する。
 
-> 迷ったら「小さい番号から読む」。生成AIもこの順で処理する。
+- 固定ルールは `harnes/` に保持（毎回書かない）
+- 毎回変わる情報だけを prompt で渡す
+  - 目標
+  - モード（speed/safe/plan）
+  - 制約（実装可否、期限など）
 
 ---
 
-## 運用モード
+## 最小運用（これだけ使う）
 
-### Core運用（最小セット）
-- `templates/10_SESSION_BOOT_TEMPLATE.md`
-- `templates/30_PROJECT_PROGRESS_BOARD_TEMPLATE.md`
-- `templates/50_SPRINT_REVIEW_TEMPLATE.md`
-- `templates/70_NEXT_PROMPT_TEMPLATE.md`
+1. `01_SOUL.md`（不変規律）
+2. `02_RUN_MODES.md`（モード定義）
+3. `templates/05_ONE_LINE_PROMPTS.md`（起動コマンド）
+4. `templates/10_SESSION_BOOT_TEMPLATE.md`（必要時のみ詳細化）
+5. `templates/70_NEXT_PROMPT_TEMPLATE.md`（引き継ぎ）
 
-### Full運用（推奨）
-- Core運用 +
-  - `templates/20_PROJECT_MANAGER_PERSONA_TEMPLATE.md`
-  - `templates/40_DESIGN_PROMPT_TEMPLATE.md`（デザイン対象時）
-  - `templates/60_PROJECT_COMPLETION_GATE_TEMPLATE.md`
-  - `templates/80_JOURNEY_LEARNING_ENTRY_TEMPLATE.md`
+> 原則、最初は 1 行コマンドで開始し、情報不足時だけ SESSION_BOOT を展開する。
 
 ---
 
-## ゲーム開発向けファイル構造テンプレート
+## 削除/縮退した運用思想
 
-ゲームごとの毎回のファイル設計をゼロから考えないために、
-`templates/35_GAME_CONTENT_FILE_STRUCTURE_TEMPLATE.md` を新設した。
-
-- 目的: 各プロジェクトの初期フォルダ構造を標準化
-- 適用タイミング: SESSION_BOOT作成時
-- 管理責任: PM Persona（構造逸脱の検知・是正）
+- 「毎回すべてのテンプレートを読む」運用を廃止
+- PM Personaの長文定義を廃止し、モード化へ移行
+- テンプレート選択判断の記述を削除（起動コスト削減）
 
 ---
 
-
-## メタコンテンツの配置
-
-ハーネス改善の提案・評価・更新方針は `harnes_meta/` で管理する。
-`harnes/` は実運用テンプレートのみを置く。
-
-## ディレクトリ構造（番号で意味付け）
+## ディレクトリ構造（v2）
 
 ```text
 harnes/
   00_README.md
   01_SOUL.md
+  02_RUN_MODES.md
   03_LEARNING_SYSTEM.md
   templates/
+    05_ONE_LINE_PROMPTS.md
     10_SESSION_BOOT_TEMPLATE.md
-    20_PROJECT_MANAGER_PERSONA_TEMPLATE.md
     30_PROJECT_PROGRESS_BOARD_TEMPLATE.md
-    35_GAME_CONTENT_FILE_STRUCTURE_TEMPLATE.md
     40_DESIGN_PROMPT_TEMPLATE.md
     50_SPRINT_REVIEW_TEMPLATE.md
     60_PROJECT_COMPLETION_GATE_TEMPLATE.md
@@ -87,9 +65,19 @@ harnes/
 
 ---
 
-## PM Personaが綱を持つための最小ルール
+## 実行フロー（標準）
 
-- Progress Boardの `You are here` は常に1つだけ
-- Master Backlogは `✅ / ⏳ / 🧊` を強制
-- Completion GateのGO/NO-GOをOwner承認付きで記録
-- 構造テンプレート逸脱は、次回Promptで必ず是正タスク化
+1. 一行コマンドで起動
+2. 不足情報があればSESSION_BOOTを埋める
+3. 実行・検証
+4. SPRINT_REVIEW + NEXT_PROMPT更新
+5. 学習ログ追記
+
+---
+
+## 使い分け
+
+- 速く進める: `@pm @fast 目標: ...`
+- 安全重視: `@pm @safe 目標: ...`
+- 今日は計画だけ: `@pm @plan 目標: ...`
+
