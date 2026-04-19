@@ -13,9 +13,7 @@ const stringColorInput = document.getElementById('stringColorInput');
 const stringWidthInput = document.getElementById('stringWidthInput');
 const statusBar = document.getElementById('statusBar');
 const metricsOutput = document.getElementById('metricsOutput');
-const addPairBtn = document.getElementById('addPairBtn');
 const clearQueueBtn = document.getElementById('clearQueueBtn');
-const chainModeCheckbox = document.getElementById('chainModeCheckbox');
 const pairQueueList = document.getElementById('pairQueueList');
 const shapeAssistCheckbox = document.getElementById('shapeAssistCheckbox');
 const shapeHint = document.getElementById('shapeHint');
@@ -83,35 +81,26 @@ function buildInterpolationLines(job) {
   return core.buildInterpolationLines(segA, segB, job.directionA, job.directionB, job.divisions);
 }
 
-function addPairToQueue(job) {
-  pairQueue.push({
-    segmentAId: job.segmentAId,
-    segmentBId: job.segmentBId,
-    directionA: job.directionA,
-    directionB: job.directionB,
-    divisions: job.divisions,
-  });
-}
-
 function resolveJobs(baseJob) {
   if (pairQueue.length) {
     return pairQueue.map((job) => ({ ...job, mode: baseJob.mode, intervalMs: baseJob.intervalMs }));
   }
 
-  if (chainModeCheckbox.checked) {
-    if (segments.length < 3) throw new Error('連鎖モードでは線分が3本以上必要です。');
-    return segments.slice(0, -1).map((segment, index) => ({
-      segmentAId: segment.id,
-      segmentBId: segments[index + 1].id,
-      directionA: baseJob.directionA,
-      directionB: baseJob.directionB,
-      divisions: baseJob.divisions,
-      mode: baseJob.mode,
-      intervalMs: baseJob.intervalMs,
-    }));
-  }
-
   return [baseJob];
+}
+
+function rebuildAutoPairQueue() {
+  const divisions = core.validateDivisions(divisionsInput.value);
+  pairQueue = [];
+  for (let i = 0; i + 1 < segments.length; i += 2) {
+    pairQueue.push({
+      segmentAId: segments[i].id,
+      segmentBId: segments[i + 1].id,
+      directionA: directionASelect.value,
+      directionB: directionBSelect.value,
+      divisions,
+    });
+  }
 }
 
 function drawPoint(point, color) {
@@ -217,6 +206,7 @@ function renderPairQueue() {
 }
 
 function refreshSegmentUI() {
+  rebuildAutoPairQueue();
   segmentListEl.innerHTML = '';
   segments.forEach((s) => {
     const li = document.createElement('li');
@@ -444,7 +434,7 @@ function runSequentialAnimation(intervalMs) {
 function startRender(job) {
   stopAnimation();
   const jobs = resolveJobs(job);
-  if (!pairQueue.length && !chainModeCheckbox.checked && (!job.segmentAId || !job.segmentBId)) {
+  if (!pairQueue.length && (!job.segmentAId || !job.segmentBId)) {
     throw new Error('Segment A/B を選択してください。');
   }
 
@@ -544,7 +534,12 @@ function onPointerUp(evt) {
   drawCurrent = null;
   refreshSegmentUI();
   applyShapeAssistIfNeeded();
-  if (!shapeRecommendation) setStatus(`${id} を追加しました。`);
+  if (!shapeRecommendation) {
+    const pairCount = pairQueue.length;
+    const remainder = segments.length % 2;
+    const remainderText = remainder ? '（末尾1本は次の線分待ち）' : '';
+    setStatus(`${id} を追加しました。自動ペア数: ${pairCount}${remainderText}`);
+  }
 }
 
 function runMetrics() {
@@ -603,25 +598,18 @@ canvas.addEventListener('pointerleave', onPointerUp);
   el.addEventListener('change', redraw);
 });
 
-addPairBtn.addEventListener('click', () => {
-  try {
-    const baseJob = validateBaseJob();
-    if (!baseJob.segmentAId || !baseJob.segmentBId) throw new Error('Segment A/B を選択してください。');
-    pushHistorySnapshot();
-    addPairToQueue(baseJob);
-    renderPairQueue();
-    setStatus(`Queueに追加: ${baseJob.segmentAId} ↔ ${baseJob.segmentBId}`);
-  } catch (error) {
-    setStatus(error.message);
-  }
-});
-
 clearQueueBtn.addEventListener('click', () => {
-  if (!pairQueue.length) return;
+  if (!segments.length) return;
   pushHistorySnapshot();
+  stopAnimation();
+  segments = [];
+  interpolationLines = [];
+  renderCursor = 0;
   pairQueue = [];
-  renderPairQueue();
-  setStatus('Queueをクリアしました。');
+  shapeRecommendation = null;
+  shapeHint.textContent = '形状判定: まだ候補はありません';
+  refreshSegmentUI();
+  setStatus('線分とQueueをクリアしました。');
 });
 
 generateBtn.addEventListener('click', () => {
@@ -646,6 +634,13 @@ metricsBtn.addEventListener('click', runMetrics);
 window.addEventListener('keydown', (evt) => {
   if (evt.key.toLowerCase() === 'g') generateBtn.click();
   if (evt.key.toLowerCase() === 'u') undoBtn.click();
+});
+
+[directionASelect, directionBSelect, divisionsInput].forEach((el) => {
+  el.addEventListener('change', () => {
+    rebuildAutoPairQueue();
+    renderPairQueue();
+  });
 });
 
 refreshSegmentUI();

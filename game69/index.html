@@ -57,13 +57,9 @@
             <input id="divisionsInput" type="number" min="2" max="300" value="30" />
           </label>
           <div class="pair-queue-actions">
-            <button id="addPairBtn" type="button">Add Pair to Queue</button>
             <button id="clearQueueBtn" type="button">Clear Queue</button>
           </div>
-          <label class="inline-toggle">
-            <input id="chainModeCheckbox" type="checkbox" />
-            連鎖モード（S01-S02, S02-S03...を自動生成）
-          </label>
+          <p class="hint">線分を描いた順に 2 本ずつ自動ペア化（S01-S02, S03-S04, ...）</p>
           <ul id="pairQueueList" class="segment-list"></ul>
         </section>
 
