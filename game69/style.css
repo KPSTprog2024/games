@@ -27,7 +27,7 @@ body {
 }
 
 .topbar h1 { margin: 0; font-size: 1.1rem; }
-.topbar-actions, .panel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.topbar-actions, .panel-actions, .pair-queue-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 button, input, select { font: inherit; }
 
 button {
@@ -76,6 +76,13 @@ button.primary { background: var(--accent); color: #fff; border-color: var(--acc
 .dot.end { background: #db2777; }
 
 label { display: grid; gap: 4px; font-size: 0.88rem; }
+
+.inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
 
 .segment-list {
   margin: 0;
