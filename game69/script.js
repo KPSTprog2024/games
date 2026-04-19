@@ -54,6 +54,8 @@ let animationState = {
   intervalMs: 100,
 };
 
+let pseudoFullscreen = false;
+
 function setStatus(message) {
   statusBar.textContent = message;
 }
@@ -734,22 +736,80 @@ togglePanelBtn.addEventListener('click', () => {
   settingsPanel.classList.toggle('hidden');
   togglePanelBtn.textContent = settingsPanel.classList.contains('hidden') ? '⚙ Settings' : '✕ Close Settings';
 });
+function setPseudoFullscreen(enabled) {
+  pseudoFullscreen = enabled;
+  canvasStage.classList.toggle('is-pseudo-fullscreen', enabled);
+  document.body.classList.toggle('pseudo-fullscreen-active', enabled);
+}
+
+function isCanvasInNativeFullscreen() {
+  return document.fullscreenElement === canvasStage;
+}
+
+async function enterNativeFullscreen() {
+  if (typeof canvasStage.requestFullscreen === 'function') {
+    await canvasStage.requestFullscreen();
+    return true;
+  }
+
+  const webkitRequest = canvasStage.webkitRequestFullscreen || canvasStage.webkitEnterFullscreen;
+  if (typeof webkitRequest === 'function') {
+    webkitRequest.call(canvasStage);
+    return true;
+  }
+
+  return false;
+}
+
+async function exitNativeFullscreen() {
+  if (typeof document.exitFullscreen === 'function' && document.fullscreenElement) {
+    await document.exitFullscreen();
+    return true;
+  }
+
+  if (typeof document.webkitExitFullscreen === 'function') {
+    document.webkitExitFullscreen();
+    return true;
+  }
+
+  return false;
+}
+
 fullscreenBtn.addEventListener('click', async () => {
   try {
-    if (document.fullscreenElement === canvasStage) {
-      await document.exitFullscreen();
-    } else {
-      await canvasStage.requestFullscreen();
+    if (isCanvasInNativeFullscreen()) {
+      await exitNativeFullscreen();
+      return;
+    }
+
+    if (pseudoFullscreen) {
+      setPseudoFullscreen(false);
+      fullscreenBtn.textContent = '⛶ Fullscreen';
+      resizeCanvasToStage();
+      setStatus('全画面表示を終了しました。');
+      return;
+    }
+
+    const entered = await enterNativeFullscreen();
+    if (!entered) {
+      setPseudoFullscreen(true);
+      fullscreenBtn.textContent = '🡼 Exit Fullscreen';
+      resizeCanvasToStage();
+      setStatus('全画面API非対応のため、擬似全画面モードで表示中です。');
     }
   } catch (error) {
-    setStatus(`Fullscreen切り替えに失敗: ${error.message}`);
+    setPseudoFullscreen(true);
+    fullscreenBtn.textContent = '🡼 Exit Fullscreen';
+    resizeCanvasToStage();
+    setStatus(`Fullscreen APIで失敗したため擬似全画面に切替: ${error.message}`);
   }
 });
 
 document.addEventListener('fullscreenchange', () => {
-  const inFullscreen = document.fullscreenElement === canvasStage;
+  const inFullscreen = isCanvasInNativeFullscreen();
+  if (inFullscreen && pseudoFullscreen) setPseudoFullscreen(false);
   canvasStage.classList.toggle('is-fullscreen', inFullscreen);
-  fullscreenBtn.textContent = inFullscreen ? '🡼 Exit Fullscreen' : '⛶ Fullscreen';
+  fullscreenBtn.textContent = (inFullscreen || pseudoFullscreen) ? '🡼 Exit Fullscreen' : '⛶ Fullscreen';
   resizeCanvasToStage();
 });
 
