@@ -7,29 +7,27 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <header class="topbar">
-      <h1>String Art Studio</h1>
-      <div class="topbar-actions">
-        <button id="undoBtn">Undo</button>
-        <button id="clearBtn">Clear</button>
-        <button id="exportBtn">Export PNG</button>
-      </div>
-    </header>
-
-    <main class="layout">
-      <aside class="panel">
-        <section>
-          <h2>Segments</h2>
-          <p class="hint">キャンバスでドラッグして線分を作成</p>
-          <div class="legend">
-            <span><i class="dot start"></i>start点</span>
-            <span><i class="dot end"></i>end点</span>
+    <main class="app-shell">
+      <section class="canvas-stage">
+        <div class="canvas-toolbar row1">
+          <div class="toolbar-left">
+            <button id="undoBtn">Undo</button>
+            <button id="redoBtn">Redo</button>
+            <button id="clearBtn">Clear</button>
           </div>
-          <ul id="segmentList" class="segment-list"></ul>
-        </section>
+          <button id="togglePanelBtn" class="icon-btn">⚙ Settings</button>
+        </div>
+        <div class="canvas-toolbar row2">
+          <div class="toolbar-left">
+            <button id="generateBtn" class="primary">Render Start</button>
+            <button id="resetRenderBtn">Render Reset</button>
+          </div>
+        </div>
+        <canvas id="canvas" width="1000" height="700" aria-label="string art canvas"></canvas>
+      </section>
 
-        <section>
-          <h2>Pair Settings</h2>
+      <aside id="settingsPanel" class="panel">
+        <section class="compact-grid">
           <label>
             Segment A
             <select id="segmentASelect"></select>
@@ -52,29 +50,30 @@
               <option value="end_to_start">end → start</option>
             </select>
           </label>
-          <label>
-            Divisions (2-300)
-            <input id="divisionsInput" type="number" min="2" max="300" value="30" />
-          </label>
-          <div class="pair-queue-actions">
-            <button id="clearQueueBtn" type="button">Clear Queue</button>
-          </div>
-          <p class="hint">線分を描いた順に 2 本ずつ自動ペア化（S01-S02, S03-S04, ...）</p>
-          <ul id="pairQueueList" class="segment-list"></ul>
         </section>
 
-        <section>
-          <h2>Render Settings</h2>
+        <section class="slider-grid">
+          <label>
+            Divisions: <strong id="divisionsValue">10</strong>
+            <input id="divisionsInput" type="range" min="2" max="300" value="10" />
+          </label>
+          <label>
+            Interval (ms): <strong id="intervalValue">100</strong>
+            <input id="intervalInput" type="range" min="5" max="1000" step="5" value="100" />
+          </label>
+          <label>
+            Grid mesh: <strong id="gridSizeValue">40</strong>
+            <input id="gridSizeInput" type="range" min="10" max="100" step="2" value="40" />
+          </label>
+        </section>
+
+        <section class="compact-grid">
           <label>
             Mode
             <select id="modeSelect">
+              <option value="sequential" selected>Sequential</option>
               <option value="instant">Instant</option>
-              <option value="sequential">Sequential</option>
             </select>
-          </label>
-          <label>
-            Interval (ms)
-            <input id="intervalInput" type="number" min="5" max="1000" value="30" />
           </label>
           <label>
             String Color
@@ -86,23 +85,28 @@
           </label>
           <label class="inline-toggle">
             <input id="shapeAssistCheckbox" type="checkbox" checked />
-            図形入力補助（頂点揃え＋正図形レコメンド）
+            図形入力補助
           </label>
-          <p id="shapeHint" class="hint">形状判定: まだ候補はありません</p>
         </section>
 
-        <section class="panel-actions">
-          <button id="generateBtn" class="primary">Generate</button>
-          <button id="stopBtn">Stop</button>
-          <button id="resetRenderBtn">Reset Render</button>
-          <button id="metricsBtn">Run Metrics</button>
+        <section>
+          <div class="topbar-actions">
+            <button id="stopBtn">Stop</button>
+            <button id="clearQueueBtn">Clear Queue</button>
+            <button id="metricsBtn">Run Metrics</button>
+            <button id="exportBtn">Export PNG</button>
+          </div>
+          <p id="shapeHint" class="hint">形状判定: まだ候補はありません</p>
+          <div class="legend">
+            <span><i class="dot start"></i>start点</span>
+            <span><i class="dot end"></i>end点</span>
+          </div>
+          <ul id="segmentList" class="segment-list"></ul>
+          <ul id="pairQueueList" class="segment-list"></ul>
         </section>
+
         <pre id="metricsOutput" class="metrics">Metrics: not run</pre>
       </aside>
-
-      <section class="canvas-wrap">
-        <canvas id="canvas" width="1000" height="700" aria-label="string art canvas"></canvas>
-      </section>
     </main>
 
     <footer id="statusBar" class="status">Ready</footer>

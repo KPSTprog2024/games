@@ -9,6 +9,10 @@ const directionBSelect = document.getElementById('directionBSelect');
 const divisionsInput = document.getElementById('divisionsInput');
 const modeSelect = document.getElementById('modeSelect');
 const intervalInput = document.getElementById('intervalInput');
+const gridSizeInput = document.getElementById('gridSizeInput');
+const divisionsValue = document.getElementById('divisionsValue');
+const intervalValue = document.getElementById('intervalValue');
+const gridSizeValue = document.getElementById('gridSizeValue');
 const stringColorInput = document.getElementById('stringColorInput');
 const stringWidthInput = document.getElementById('stringWidthInput');
 const statusBar = document.getElementById('statusBar');
@@ -22,14 +26,18 @@ const generateBtn = document.getElementById('generateBtn');
 const stopBtn = document.getElementById('stopBtn');
 const resetRenderBtn = document.getElementById('resetRenderBtn');
 const undoBtn = document.getElementById('undoBtn');
+const redoBtn = document.getElementById('redoBtn');
 const clearBtn = document.getElementById('clearBtn');
 const exportBtn = document.getElementById('exportBtn');
 const metricsBtn = document.getElementById('metricsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const togglePanelBtn = document.getElementById('togglePanelBtn');
 
 const core = window.StringArtCore;
 
 let segments = [];
 let history = [];
+let redoHistory = [];
 let interpolationLines = [];
 let renderCursor = 0;
 let pairQueue = [];
@@ -43,7 +51,7 @@ let animationState = {
   running: false,
   rafId: null,
   lastTick: 0,
-  intervalMs: 30,
+  intervalMs: 100,
 };
 
 function setStatus(message) {
@@ -52,7 +60,13 @@ function setStatus(message) {
 
 function pushHistorySnapshot() {
   history.push(JSON.stringify({ segments, pairQueue }));
+  redoHistory = [];
   if (history.length > 100) history.shift();
+}
+
+function pushRedoSnapshot() {
+  redoHistory.push(JSON.stringify({ segments, pairQueue }));
+  if (redoHistory.length > 100) redoHistory.shift();
 }
 
 function stopAnimation() {
@@ -72,6 +86,18 @@ function getPointerPos(evt) {
   return {
     x: ((evt.clientX - rect.left) / rect.width) * canvas.width,
     y: ((evt.clientY - rect.top) / rect.height) * canvas.height,
+  };
+}
+
+function getGridSize() {
+  return Math.max(10, Number(gridSizeInput.value) || 40);
+}
+
+function snapToGrid(point) {
+  const size = getGridSize();
+  return {
+    x: Math.round(point.x / size) * size,
+    y: Math.round(point.y / size) * size,
   };
 }
 
@@ -131,6 +157,29 @@ function drawBaseSegments() {
   });
 }
 
+function drawGrid() {
+  const step = getGridSize();
+  ctx.save();
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 0.8;
+
+  for (let x = 0; x <= canvas.width; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y <= canvas.height; y += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 function drawInterpolationLines() {
   ctx.strokeStyle = stringColorInput.value;
   ctx.lineWidth = Number(stringWidthInput.value);
@@ -183,6 +232,7 @@ function drawDraftSegment() {
 
 function redraw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGrid();
   drawBaseSegments();
   drawInterpolationLines();
   drawShapeRecommendation();
@@ -398,7 +448,7 @@ function validateBaseJob() {
     directionB: directionBSelect.value,
     divisions,
     mode: modeSelect.value,
-    intervalMs: Math.max(5, Number(intervalInput.value) || 30),
+    intervalMs: Math.max(5, Number(intervalInput.value) || 100),
   };
 }
 
@@ -457,6 +507,7 @@ function undo() {
     return;
   }
   stopAnimation();
+  pushRedoSnapshot();
   const previous = JSON.parse(history.pop());
   segments = previous.segments;
   pairQueue = previous.pairQueue || [];
@@ -466,6 +517,24 @@ function undo() {
   shapeHint.textContent = '形状判定: まだ候補はありません';
   refreshSegmentUI();
   setStatus('1操作戻しました。');
+}
+
+function redo() {
+  if (!redoHistory.length) {
+    setStatus('Redoできる操作がありません。');
+    return;
+  }
+  stopAnimation();
+  history.push(JSON.stringify({ segments, pairQueue }));
+  const next = JSON.parse(redoHistory.pop());
+  segments = next.segments;
+  pairQueue = next.pairQueue || [];
+  interpolationLines = [];
+  renderCursor = 0;
+  shapeRecommendation = null;
+  shapeHint.textContent = '形状判定: まだ候補はありません';
+  refreshSegmentUI();
+  setStatus('1操作進めました。');
 }
 
 function clearAll() {
@@ -501,7 +570,7 @@ function exportPng() {
 
 function onPointerDown(evt) {
   canvas.setPointerCapture(evt.pointerId);
-  drawStart = getPointerPos(evt);
+  drawStart = snapToGrid(getPointerPos(evt));
   drawCurrent = drawStart;
   drawing = true;
   redraw();
@@ -509,13 +578,13 @@ function onPointerDown(evt) {
 
 function onPointerMove(evt) {
   if (!drawing) return;
-  drawCurrent = getPointerPos(evt);
+  drawCurrent = snapToGrid(getPointerPos(evt));
   redraw();
 }
 
 function onPointerUp(evt) {
   if (!drawing) return;
-  const end = getPointerPos(evt);
+  const end = snapToGrid(getPointerPos(evt));
   drawing = false;
 
   const length = Math.hypot(end.x - drawStart.x, end.y - drawStart.y);
@@ -598,6 +667,17 @@ canvas.addEventListener('pointerleave', onPointerUp);
   el.addEventListener('change', redraw);
 });
 
+[divisionsInput, intervalInput, gridSizeInput].forEach((input) => {
+  input.addEventListener('input', () => {
+    divisionsValue.textContent = divisionsInput.value;
+    intervalValue.textContent = intervalInput.value;
+    gridSizeValue.textContent = gridSizeInput.value;
+    rebuildAutoPairQueue();
+    renderPairQueue();
+    redraw();
+  });
+});
+
 clearQueueBtn.addEventListener('click', () => {
   if (!segments.length) return;
   pushHistorySnapshot();
@@ -627,9 +707,14 @@ stopBtn.addEventListener('click', () => {
 
 resetRenderBtn.addEventListener('click', resetRender);
 undoBtn.addEventListener('click', undo);
+redoBtn.addEventListener('click', redo);
 clearBtn.addEventListener('click', clearAll);
 exportBtn.addEventListener('click', exportPng);
 metricsBtn.addEventListener('click', runMetrics);
+togglePanelBtn.addEventListener('click', () => {
+  settingsPanel.classList.toggle('hidden');
+  togglePanelBtn.textContent = settingsPanel.classList.contains('hidden') ? '⚙ Settings' : '✕ Close Settings';
+});
 
 window.addEventListener('keydown', (evt) => {
   if (evt.key.toLowerCase() === 'g') generateBtn.click();
@@ -643,5 +728,8 @@ window.addEventListener('keydown', (evt) => {
   });
 });
 
+divisionsValue.textContent = divisionsInput.value;
+intervalValue.textContent = intervalInput.value;
+gridSizeValue.textContent = gridSizeInput.value;
 refreshSegmentUI();
 setStatus('キャンバスをドラッグして線分を作成してください。');
