@@ -13,25 +13,25 @@ const gridSizeInput = document.getElementById('gridSizeInput');
 const divisionsValue = document.getElementById('divisionsValue');
 const intervalValue = document.getElementById('intervalValue');
 const gridSizeValue = document.getElementById('gridSizeValue');
+const stringStyleSelect = document.getElementById('stringStyleSelect');
 const stringColorInput = document.getElementById('stringColorInput');
+const stringColor2Input = document.getElementById('stringColor2Input');
 const stringWidthInput = document.getElementById('stringWidthInput');
 const statusBar = document.getElementById('statusBar');
-const metricsOutput = document.getElementById('metricsOutput');
-const clearQueueBtn = document.getElementById('clearQueueBtn');
 const pairQueueList = document.getElementById('pairQueueList');
 const shapeAssistCheckbox = document.getElementById('shapeAssistCheckbox');
 const shapeHint = document.getElementById('shapeHint');
+const canvasStage = document.getElementById('canvasStage');
 
 const generateBtn = document.getElementById('generateBtn');
-const stopBtn = document.getElementById('stopBtn');
 const resetRenderBtn = document.getElementById('resetRenderBtn');
 const undoBtn = document.getElementById('undoBtn');
 const redoBtn = document.getElementById('redoBtn');
 const clearBtn = document.getElementById('clearBtn');
 const exportBtn = document.getElementById('exportBtn');
-const metricsBtn = document.getElementById('metricsBtn');
 const settingsPanel = document.getElementById('settingsPanel');
 const togglePanelBtn = document.getElementById('togglePanelBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 
 const core = window.StringArtCore;
 
@@ -181,15 +181,56 @@ function drawGrid() {
 }
 
 function drawInterpolationLines() {
-  ctx.strokeStyle = stringColorInput.value;
   ctx.lineWidth = Number(stringWidthInput.value);
-
-  interpolationLines.slice(0, renderCursor).forEach((line) => {
+  const visibleLines = interpolationLines.slice(0, renderCursor);
+  const lineCount = Math.max(visibleLines.length - 1, 1);
+  visibleLines.forEach((line, index) => {
+    ctx.strokeStyle = resolveStringColor(index / lineCount);
     ctx.beginPath();
     ctx.moveTo(line.p0.x, line.p0.y);
     ctx.lineTo(line.p1.x, line.p1.y);
     ctx.stroke();
   });
+}
+
+function hexToRgb(hex) {
+  const normalized = hex.replace('#', '');
+  const value = normalized.length === 3
+    ? normalized.split('').map((char) => `${char}${char}`).join('')
+    : normalized;
+
+  return {
+    r: Number.parseInt(value.slice(0, 2), 16),
+    g: Number.parseInt(value.slice(2, 4), 16),
+    b: Number.parseInt(value.slice(4, 6), 16),
+  };
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function rgbToCss(color) {
+  return `rgb(${Math.round(color.r)}, ${Math.round(color.g)}, ${Math.round(color.b)})`;
+}
+
+function resolveStringColor(progress) {
+  if (stringStyleSelect.value === 'rainbow') {
+    const hue = (progress * 320 + 280) % 360;
+    return `hsl(${hue} 92% 60%)`;
+  }
+
+  if (stringStyleSelect.value === 'gradient') {
+    const c1 = hexToRgb(stringColorInput.value);
+    const c2 = hexToRgb(stringColor2Input.value);
+    return rgbToCss({
+      r: lerp(c1.r, c2.r, progress),
+      g: lerp(c1.g, c2.g, progress),
+      b: lerp(c1.b, c2.b, progress),
+    });
+  }
+
+  return stringColorInput.value;
 }
 
 function drawShapeRecommendation() {
@@ -237,6 +278,51 @@ function redraw() {
   drawInterpolationLines();
   drawShapeRecommendation();
   drawDraftSegment();
+}
+
+function scalePoint(point, scaleX, scaleY) {
+  return { x: point.x * scaleX, y: point.y * scaleY };
+}
+
+function scaleScene(oldWidth, oldHeight, newWidth, newHeight) {
+  if (!oldWidth || !oldHeight || oldWidth === newWidth && oldHeight === newHeight) return;
+  const scaleX = newWidth / oldWidth;
+  const scaleY = newHeight / oldHeight;
+
+  segments = segments.map((segment) => ({
+    ...segment,
+    start: scalePoint(segment.start, scaleX, scaleY),
+    end: scalePoint(segment.end, scaleX, scaleY),
+  }));
+
+  interpolationLines = interpolationLines.map((line) => ({
+    p0: scalePoint(line.p0, scaleX, scaleY),
+    p1: scalePoint(line.p1, scaleX, scaleY),
+  }));
+
+  if (drawStart) drawStart = scalePoint(drawStart, scaleX, scaleY);
+  if (drawCurrent) drawCurrent = scalePoint(drawCurrent, scaleX, scaleY);
+
+  if (shapeRecommendation?.idealVertices?.length) {
+    shapeRecommendation = {
+      ...shapeRecommendation,
+      idealVertices: shapeRecommendation.idealVertices.map((point) => scalePoint(point, scaleX, scaleY)),
+    };
+  }
+}
+
+function resizeCanvasToStage() {
+  const rect = canvas.getBoundingClientRect();
+  const newWidth = Math.max(640, Math.floor(rect.width));
+  const newHeight = Math.max(360, Math.floor(rect.height));
+  if (canvas.width === newWidth && canvas.height === newHeight) return;
+
+  const oldWidth = canvas.width;
+  const oldHeight = canvas.height;
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+  scaleScene(oldWidth, oldHeight, newWidth, newHeight);
+  redraw();
 }
 
 function renderPairQueue() {
@@ -611,59 +697,12 @@ function onPointerUp(evt) {
   }
 }
 
-function runMetrics() {
-  if (segments.length < 2 || !segmentASelect.value || !segmentBSelect.value) {
-    setStatus('Metrics実行には線分2本以上とA/B選択が必要です。');
-    return;
-  }
-
-  const cases = [50, 100, 200];
-  const output = [];
-
-  cases.forEach((divisions) => {
-    const job = {
-      segmentAId: segmentASelect.value,
-      segmentBId: segmentBSelect.value,
-      directionA: directionASelect.value,
-      directionB: directionBSelect.value,
-      divisions,
-    };
-
-    const t0 = performance.now();
-    const lines = buildInterpolationLines(job);
-    const t1 = performance.now();
-
-    const firstLine = lines[0];
-    const drawStartMs = performance.now();
-    ctx.beginPath();
-    ctx.moveTo(firstLine.p0.x, firstLine.p0.y);
-    ctx.lineTo(firstLine.p1.x, firstLine.p1.y);
-    ctx.stroke();
-    const drawEndMs = performance.now();
-
-    output.push({
-      divisions,
-      buildMs: (t1 - t0).toFixed(2),
-      firstDrawMs: (drawEndMs - drawStartMs).toFixed(2),
-      lineCount: lines.length,
-    });
-  });
-
-  metricsOutput.textContent = [
-    'Metrics Results (local runtime):',
-    ...output.map((r) => `N=${r.divisions}: build=${r.buildMs}ms, firstDraw=${r.firstDrawMs}ms, lines=${r.lineCount}`),
-  ].join('\n');
-
-  redraw();
-  setStatus('Metricsを更新しました。');
-}
-
 canvas.addEventListener('pointerdown', onPointerDown);
 canvas.addEventListener('pointermove', onPointerMove);
 canvas.addEventListener('pointerup', onPointerUp);
 canvas.addEventListener('pointerleave', onPointerUp);
 
-[segmentASelect, segmentBSelect, stringColorInput, stringWidthInput].forEach((el) => {
+[segmentASelect, segmentBSelect, stringColorInput, stringColor2Input, stringStyleSelect, stringWidthInput].forEach((el) => {
   el.addEventListener('change', redraw);
 });
 
@@ -678,20 +717,6 @@ canvas.addEventListener('pointerleave', onPointerUp);
   });
 });
 
-clearQueueBtn.addEventListener('click', () => {
-  if (!segments.length) return;
-  pushHistorySnapshot();
-  stopAnimation();
-  segments = [];
-  interpolationLines = [];
-  renderCursor = 0;
-  pairQueue = [];
-  shapeRecommendation = null;
-  shapeHint.textContent = '形状判定: まだ候補はありません';
-  refreshSegmentUI();
-  setStatus('線分とQueueをクリアしました。');
-});
-
 generateBtn.addEventListener('click', () => {
   try {
     startRender(validateBaseJob());
@@ -700,21 +725,35 @@ generateBtn.addEventListener('click', () => {
   }
 });
 
-stopBtn.addEventListener('click', () => {
-  stopAnimation();
-  setStatus('描画を停止しました。');
-});
-
 resetRenderBtn.addEventListener('click', resetRender);
 undoBtn.addEventListener('click', undo);
 redoBtn.addEventListener('click', redo);
 clearBtn.addEventListener('click', clearAll);
 exportBtn.addEventListener('click', exportPng);
-metricsBtn.addEventListener('click', runMetrics);
 togglePanelBtn.addEventListener('click', () => {
   settingsPanel.classList.toggle('hidden');
   togglePanelBtn.textContent = settingsPanel.classList.contains('hidden') ? '⚙ Settings' : '✕ Close Settings';
 });
+fullscreenBtn.addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement === canvasStage) {
+      await document.exitFullscreen();
+    } else {
+      await canvasStage.requestFullscreen();
+    }
+  } catch (error) {
+    setStatus(`Fullscreen切り替えに失敗: ${error.message}`);
+  }
+});
+
+document.addEventListener('fullscreenchange', () => {
+  const inFullscreen = document.fullscreenElement === canvasStage;
+  canvasStage.classList.toggle('is-fullscreen', inFullscreen);
+  fullscreenBtn.textContent = inFullscreen ? '🡼 Exit Fullscreen' : '⛶ Fullscreen';
+  resizeCanvasToStage();
+});
+
+window.addEventListener('resize', resizeCanvasToStage);
 
 window.addEventListener('keydown', (evt) => {
   if (evt.key.toLowerCase() === 'g') generateBtn.click();
@@ -731,5 +770,6 @@ window.addEventListener('keydown', (evt) => {
 divisionsValue.textContent = divisionsInput.value;
 intervalValue.textContent = intervalInput.value;
 gridSizeValue.textContent = gridSizeInput.value;
+resizeCanvasToStage();
 refreshSegmentUI();
 setStatus('キャンバスをドラッグして線分を作成してください。');

@@ -8,14 +8,17 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="canvas-stage">
+      <section id="canvasStage" class="canvas-stage">
         <div class="canvas-toolbar row1">
           <div class="toolbar-left">
             <button id="undoBtn">Undo</button>
             <button id="redoBtn">Redo</button>
             <button id="clearBtn">Clear</button>
           </div>
-          <button id="togglePanelBtn" class="icon-btn">⚙ Settings</button>
+          <div class="toolbar-right">
+            <button id="togglePanelBtn" class="icon-btn">⚙ Settings</button>
+            <button id="fullscreenBtn">⛶ Fullscreen</button>
+          </div>
         </div>
         <div class="canvas-toolbar row2">
           <div class="toolbar-left">
@@ -24,89 +27,96 @@
           </div>
         </div>
         <canvas id="canvas" width="1000" height="700" aria-label="string art canvas"></canvas>
+
+        <aside id="settingsPanel" class="panel hidden">
+          <section class="compact-grid">
+            <label>
+              Segment A
+              <select id="segmentASelect"></select>
+            </label>
+            <label>
+              Direction A
+              <select id="directionASelect">
+                <option value="start_to_end">start → end</option>
+                <option value="end_to_start">end → start</option>
+              </select>
+            </label>
+            <label>
+              Segment B
+              <select id="segmentBSelect"></select>
+            </label>
+            <label>
+              Direction B
+              <select id="directionBSelect">
+                <option value="start_to_end">start → end</option>
+                <option value="end_to_start">end → start</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="slider-grid">
+            <label>
+              Divisions: <strong id="divisionsValue">10</strong>
+              <input id="divisionsInput" type="range" min="2" max="300" value="10" />
+            </label>
+            <label>
+              Interval (ms): <strong id="intervalValue">100</strong>
+              <input id="intervalInput" type="range" min="5" max="1000" step="5" value="100" />
+            </label>
+            <label>
+              Grid mesh: <strong id="gridSizeValue">40</strong>
+              <input id="gridSizeInput" type="range" min="10" max="100" step="2" value="40" />
+            </label>
+          </section>
+
+          <section class="compact-grid">
+            <label>
+              Mode
+              <select id="modeSelect">
+                <option value="sequential" selected>Sequential</option>
+                <option value="instant">Instant</option>
+              </select>
+            </label>
+            <label>
+              String style
+              <select id="stringStyleSelect">
+                <option value="solid" selected>Solid</option>
+                <option value="gradient">Gradient</option>
+                <option value="rainbow">Rainbow</option>
+              </select>
+            </label>
+            <label>
+              Color A
+              <input id="stringColorInput" type="color" value="#8c3f2d" />
+            </label>
+            <label>
+              Color B
+              <input id="stringColor2Input" type="color" value="#22d3ee" />
+            </label>
+            <label>
+              String Width
+              <input id="stringWidthInput" type="number" min="1" max="4" step="0.5" value="1.2" />
+            </label>
+            <label class="inline-toggle">
+              <input id="shapeAssistCheckbox" type="checkbox" checked />
+              図形入力補助
+            </label>
+          </section>
+
+          <section>
+            <div class="topbar-actions">
+              <button id="exportBtn">Export PNG</button>
+            </div>
+            <p id="shapeHint" class="hint">形状判定: まだ候補はありません</p>
+            <div class="legend">
+              <span><i class="dot start"></i>start点</span>
+              <span><i class="dot end"></i>end点</span>
+            </div>
+            <ul id="segmentList" class="segment-list"></ul>
+            <ul id="pairQueueList" class="segment-list"></ul>
+          </section>
+        </aside>
       </section>
-
-      <aside id="settingsPanel" class="panel">
-        <section class="compact-grid">
-          <label>
-            Segment A
-            <select id="segmentASelect"></select>
-          </label>
-          <label>
-            Direction A
-            <select id="directionASelect">
-              <option value="start_to_end">start → end</option>
-              <option value="end_to_start">end → start</option>
-            </select>
-          </label>
-          <label>
-            Segment B
-            <select id="segmentBSelect"></select>
-          </label>
-          <label>
-            Direction B
-            <select id="directionBSelect">
-              <option value="start_to_end">start → end</option>
-              <option value="end_to_start">end → start</option>
-            </select>
-          </label>
-        </section>
-
-        <section class="slider-grid">
-          <label>
-            Divisions: <strong id="divisionsValue">10</strong>
-            <input id="divisionsInput" type="range" min="2" max="300" value="10" />
-          </label>
-          <label>
-            Interval (ms): <strong id="intervalValue">100</strong>
-            <input id="intervalInput" type="range" min="5" max="1000" step="5" value="100" />
-          </label>
-          <label>
-            Grid mesh: <strong id="gridSizeValue">40</strong>
-            <input id="gridSizeInput" type="range" min="10" max="100" step="2" value="40" />
-          </label>
-        </section>
-
-        <section class="compact-grid">
-          <label>
-            Mode
-            <select id="modeSelect">
-              <option value="sequential" selected>Sequential</option>
-              <option value="instant">Instant</option>
-            </select>
-          </label>
-          <label>
-            String Color
-            <input id="stringColorInput" type="color" value="#8c3f2d" />
-          </label>
-          <label>
-            String Width
-            <input id="stringWidthInput" type="number" min="1" max="4" step="0.5" value="1.2" />
-          </label>
-          <label class="inline-toggle">
-            <input id="shapeAssistCheckbox" type="checkbox" checked />
-            図形入力補助
-          </label>
-        </section>
-
-        <section>
-          <div class="topbar-actions">
-            <button id="stopBtn">Stop</button>
-            <button id="clearQueueBtn">Clear Queue</button>
-            <button id="metricsBtn">Run Metrics</button>
-            <button id="exportBtn">Export PNG</button>
-          </div>
-          <p id="shapeHint" class="hint">形状判定: まだ候補はありません</p>
-          <div class="legend">
-            <span><i class="dot start"></i>start点</span>
-            <span><i class="dot end"></i>end点</span>
-          </div>
-          <ul id="segmentList" class="segment-list"></ul>
-          <ul id="pairQueueList" class="segment-list"></ul>
-        </section>
-
-        <pre id="metricsOutput" class="metrics">Metrics: not run</pre>
-      </aside>
     </main>
 
     <footer id="statusBar" class="status">Ready</footer>
