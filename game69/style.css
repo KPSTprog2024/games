@@ -63,6 +63,7 @@ button.primary { background: var(--accent); color: #fff; border-color: var(--acc
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
   z-index: 3;
 }
 
@@ -74,12 +75,16 @@ button.primary { background: var(--accent); color: #fff; border-color: var(--acc
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 canvas {
@@ -215,5 +220,15 @@ body.pseudo-fullscreen-active {
     left: 10px;
     width: auto;
     max-height: calc(100dvh - 120px);
+  }
+}
+
+@media (max-width: 560px) {
+  .canvas-stage {
+    padding-top: 118px;
+  }
+
+  .canvas-toolbar.row2 {
+    top: 74px;
   }
 }
