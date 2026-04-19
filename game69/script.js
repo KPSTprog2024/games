@@ -282,41 +282,42 @@ function redraw() {
   drawDraftSegment();
 }
 
-function scalePoint(point, scaleX, scaleY) {
-  return { x: point.x * scaleX, y: point.y * scaleY };
-}
-
 function scaleScene(oldWidth, oldHeight, newWidth, newHeight) {
   if (!oldWidth || !oldHeight || oldWidth === newWidth && oldHeight === newHeight) return;
-  const scaleX = newWidth / oldWidth;
-  const scaleY = newHeight / oldHeight;
+  const uniformScale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
+  const offsetX = (newWidth - oldWidth * uniformScale) / 2;
+  const offsetY = (newHeight - oldHeight * uniformScale) / 2;
+  const scalePointWithOffset = (point) => ({
+    x: point.x * uniformScale + offsetX,
+    y: point.y * uniformScale + offsetY,
+  });
 
   segments = segments.map((segment) => ({
     ...segment,
-    start: scalePoint(segment.start, scaleX, scaleY),
-    end: scalePoint(segment.end, scaleX, scaleY),
+    start: scalePointWithOffset(segment.start),
+    end: scalePointWithOffset(segment.end),
   }));
 
   interpolationLines = interpolationLines.map((line) => ({
-    p0: scalePoint(line.p0, scaleX, scaleY),
-    p1: scalePoint(line.p1, scaleX, scaleY),
+    p0: scalePointWithOffset(line.p0),
+    p1: scalePointWithOffset(line.p1),
   }));
 
-  if (drawStart) drawStart = scalePoint(drawStart, scaleX, scaleY);
-  if (drawCurrent) drawCurrent = scalePoint(drawCurrent, scaleX, scaleY);
+  if (drawStart) drawStart = scalePointWithOffset(drawStart);
+  if (drawCurrent) drawCurrent = scalePointWithOffset(drawCurrent);
 
   if (shapeRecommendation?.idealVertices?.length) {
     shapeRecommendation = {
       ...shapeRecommendation,
-      idealVertices: shapeRecommendation.idealVertices.map((point) => scalePoint(point, scaleX, scaleY)),
+      idealVertices: shapeRecommendation.idealVertices.map((point) => scalePointWithOffset(point)),
     };
   }
 }
 
 function resizeCanvasToStage() {
   const rect = canvas.getBoundingClientRect();
-  const newWidth = Math.max(640, Math.floor(rect.width));
-  const newHeight = Math.max(360, Math.floor(rect.height));
+  const newWidth = Math.max(280, Math.floor(rect.width));
+  const newHeight = Math.max(220, Math.floor(rect.height));
   if (canvas.width === newWidth && canvas.height === newHeight) return;
 
   const oldWidth = canvas.width;
