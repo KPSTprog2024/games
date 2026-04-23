@@ -28,7 +28,8 @@ v2では逆に、次を標準化する。
 2. `02_RUN_MODES.md`（モード定義）
 3. `templates/05_ONE_LINE_PROMPTS.md`（起動コマンド）
 4. `templates/10_SESSION_BOOT_TEMPLATE.md`（必要時のみ詳細化）
-5. `templates/70_NEXT_PROMPT_TEMPLATE.md`（引き継ぎ）
+5. `templates/30_PROJECT_PROGRESS_BOARD_TEMPLATE.md`（残件・進捗の見える化）
+6. `templates/70_NEXT_PROMPT_TEMPLATE.md`（引き継ぎ）
 
 > 原則、最初は 1 行コマンドで開始し、情報不足時だけ SESSION_BOOT を展開する。
 
@@ -69,9 +70,19 @@ harness/
 
 1. 一行コマンドで起動
 2. 不足情報があればSESSION_BOOTを埋める
-3. 実行・検証
-4. SPRINT_REVIEW + NEXT_PROMPT更新
-5. 学習ログ追記
+3. **開始前にアウトライン（Phase/Backlog）をPROGRESS_BOARDへ記載**
+4. 実行・検証（進捗はBacklogの Status を更新）
+5. SPRINT_REVIEW + NEXT_PROMPT更新
+6. 学習ログ追記
+
+---
+
+## 残件を迷子にしない運用ルール（追加）
+
+- 毎セッションの最初に「残件あり/なし」を明示する
+- 残件ありの場合、`30_PROJECT_PROGRESS_BOARD_TEMPLATE.md` の `Master Backlog` に必ずID付きで列挙する
+- 最終報告では `✅完了` / `⏳残件` / `🧊保留` を分けて記載する
+- `NEXT_PROMPT` には `⏳残件` のみを転記する（DONEは転記しない）
 
 ---
 
@@ -80,4 +91,3 @@ harness/
 - 速く進める: `@pm @fast 目標: ...`
 - 安全重視: `@pm @safe 目標: ...`
 - 今日は計画だけ: `@pm @plan 目標: ...`
-

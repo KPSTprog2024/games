@@ -25,6 +25,15 @@
 - Next 1 action（24h以内）:
 - ETA to next phase:
 
+## 3.5) Session Outline（毎セッション開始時に更新）
+| Step | Task | Status (TODO/IN_PROGRESS/DONE/BLOCKED) | Checkpoint |
+|---|---|---|---|
+| 1 |  |  |  |
+| 2 |  |  |  |
+| 3 |  |  |  |
+
+> Checkpoint には「どの時点で進捗報告するか」を短く書く（例: 実装前 / UI後 / 検証後）。
+
 ## 4) Master Backlog（プロジェクト横断で一元管理）
 | ID | Task | Status (✅/⏳/🧊) | Owner | Due | Dependency | Source File |
 |---|---|---|---|---|---|---|
@@ -48,3 +57,7 @@
 - DONEのみ `✅`
 - 未完了は必ず `⏳` で残し、次回Promptへ転記
 - 保留は `🧊` とし、解除条件を併記
+
+## 9) End-of-Session Report Rule（必須）
+- `✅完了` / `⏳残件` / `🧊保留` を分けて報告する
+- 「残件なし」で終了する場合は、その根拠（Backlogに`⏳`が無いこと）を明記する
