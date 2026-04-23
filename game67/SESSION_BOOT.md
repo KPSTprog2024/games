@@ -2,9 +2,9 @@
 
 ## 1) Context
 - 参照:
-  - `game67/harnes/SOUL.md`
-  - `game67/harnes/LEARNING_SYSTEM.md`
-  - `game67/harnes/templates/PROJECT_MANAGER_PERSONA_TEMPLATE.md`
+  - `game67/harness/SOUL.md`
+  - `game67/harness/LEARNING_SYSTEM.md`
+  - `game67/harness/templates/PROJECT_MANAGER_PERSONA_TEMPLATE.md`
 - 対象スプリント: Sprint 1
 - 対象ファイル: `index.html`, `style.css`, `app.js`, `README.md`, `outputs/*`
 - 非対象ファイル: 他gameディレクトリ

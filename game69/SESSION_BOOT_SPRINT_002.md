@@ -2,8 +2,8 @@
 
 ## 1) Context
 - 参照:
-  - `game69/harnes/01_SOUL.md`
-  - `game69/harnes/03_LEARNING_SYSTEM.md`
+  - `game69/harness/01_SOUL.md`
+  - `game69/harness/03_LEARNING_SYSTEM.md`
   - `game69/PROJECT_MANAGER_PERSONA.md`
   - `game69/REQUIREMENTS.md`
   - `game69/DESIGN_SPEC.md`
@@ -16,7 +16,7 @@
   - `game69/PROJECT_PROGRESS_BOARD.md`
   - `game69/NEXT_PROMPT.md`
 - 非対象ファイル:
-  - `game69/harnes/templates/*`
+  - `game69/harness/templates/*`
 
 ## 2) Project Invariants
 - 任意線分を2本選択し、各線分の向きを指定して補間生成できること。

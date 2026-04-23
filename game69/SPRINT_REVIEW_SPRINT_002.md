@@ -9,7 +9,7 @@
   - `game69/script.js`
   - `game69/README.md`
 - 非変更ファイル:
-  - `game69/harnes/templates/*`
+  - `game69/harness/templates/*`
 
 ## 2. Project Invariants 整合
 - [x] Invariant-1: 任意線分2本の選択

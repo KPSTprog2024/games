@@ -21,7 +21,7 @@
 
 ### Scope
 - game68を新規作成。
-- global harnessを `game68/harnes` に複製して運用する。
+- global harnessを `game68/harness` に複製して運用する。
 - Insight Metrics（比率・複雑度・閉曲線予測）を追加する。
 - メタ認知パネル（仮説/観測/次アクション）を追加する。
 - プリセット導線で比較実験を高速化する。
