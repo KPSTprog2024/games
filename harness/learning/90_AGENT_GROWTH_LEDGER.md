@@ -6,8 +6,8 @@
 ---
 
 ## LATEST_ENTRY
-- ENTRY_ID: ENTRY-0003
-- UPDATED_AT: 2026-04-16
+- ENTRY_ID: ENTRY-0006
+- UPDATED_AT: 2026-04-23
 
 ---
 
@@ -88,5 +88,68 @@
   - harness/templates/* への到達性チェック項目追加
 - Reuse Plan:
   - 今後の多人数スマホUI案件で、着手時から四隅到達性をDoD/回帰に組み込む
+- Confidence:
+  - high
+
+
+## ENTRY-0004
+- Created-At: 2026-04-23
+- Journey-ID: game70-3d-laser-billiards-safe-retrospective
+- Context: game24の本質を3Dへ拡張した実装後、@pm @safe観点で振り返りを構造化
+- Reusable Insight:
+  - 「本質抽出」タスクは、見た目要件より先に**由来機能の要件マップ（挙動・操作・表現）**を固定すると完成定義のズレを抑制できる
+- Reasoning Pivot:
+  - 「3Dとして成立していれば十分」から「game24由来の操作語彙を保持しつつ3D化する」に評価軸を変更
+- Do:
+  - 実装前に元作品の必須要素（例: 配置モード、プリセット、計測UI）をチェックリスト化する
+- Don’t:
+  - 先に新規表現へ寄せて、元作品の再現要素を暗黙のまま進めない
+- Evidence:
+  - game70/RETROSPECTIVE.md の Not Done / Carry-over に未導入要素を明記
+- Reuse Plan:
+  - 次回の「既存ゲーム本質抽出→別次元拡張」案件で、SESSION_BOOTに由来機能チェックリストを必須項目として注入
+- Confidence:
+  - high
+
+
+## ENTRY-0005
+- Created-At: 2026-04-23
+- Journey-ID: game70-3d-presets-and-placement-modes
+- Context: harnessのCarry-overに沿って、game24由来の操作語彙（配置モード/プリセット）を3D版へ追加
+- Reusable Insight:
+  - 「本質移植」では、まず操作語彙を揃えるとユーザーが“同系作品の進化版”として認識しやすい
+- Reasoning Pivot:
+  - 先にレンダリング高度化を進める方針から、先に操作モデル互換（配置モード/プリセット）を優先する方針へ変更
+- Do:
+  - Carry-over項目はUI操作に見える形で最初に回収する
+- Don’t:
+  - 技術的改善のみ先行して、ユーザーが触って違いを実感できる改善を後回しにしない
+- Evidence:
+  - game70/index.html の `preset` / `placement` / `maxBounce` コントロール追加
+  - game70/app.js の `presets` / `getPlacementPos` / `getPlacementVel` / `reflectAxis` 追加
+- Reuse Plan:
+  - 今後の2D→3D拡張案件でも「操作語彙互換レイヤ」を実装チェックリストの先頭に置く
+- Confidence:
+  - high
+
+
+## ENTRY-0006
+- Created-At: 2026-04-23
+- Journey-ID: harness-outline-and-remaining-visibility
+- Context: 「残件があるのか分からない」課題に対応するため、harnessのREADME/テンプレートを進捗可視化中心へ更新
+- Reusable Insight:
+  - 実装品質より前に、**残件の可視化フォーマット**を固定するとレビューの齟齬が大きく減る
+- Reasoning Pivot:
+  - 口頭での進捗共有に頼る運用から、Session開始時アウトライン + 終了時3区分報告（✅/⏳/🧊）へ移行
+- Do:
+  - セッション開始時に「残件あり/なし」を宣言し、残件ありならBacklogへID登録する
+- Don’t:
+  - Done/Carry-overを同じ箇条書きで混在させない
+- Evidence:
+  - harness/00_README.md に残件可視化ルール追記
+  - harness/templates/10_SESSION_BOOT_TEMPLATE.md に Execution Outline / Remaining Work Declaration 追記
+  - harness/templates/30_PROJECT_PROGRESS_BOARD_TEMPLATE.md に Session Outline / End-of-Session Report Rule 追記
+- Reuse Plan:
+  - 次回以降の全案件で「残件なし」の根拠をBacklog状態で示す
 - Confidence:
   - high
