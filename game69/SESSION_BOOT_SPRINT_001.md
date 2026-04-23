@@ -2,9 +2,9 @@
 
 ## 1) Context
 - 参照:
-  - `game69/harnes/01_SOUL.md`
-  - `game69/harnes/03_LEARNING_SYSTEM.md`
-  - `game69/harnes/templates/20_PROJECT_MANAGER_PERSONA_TEMPLATE.md`
+  - `game69/harness/01_SOUL.md`
+  - `game69/harness/03_LEARNING_SYSTEM.md`
+  - `game69/harness/templates/20_PROJECT_MANAGER_PERSONA_TEMPLATE.md`
   - `game69/PROJECT_CONTEXT.md`
   - `game69/PROCESS_PLAYBOOK.md`
 - 対象スプリント: Sprint 001（Discovery + Planning）

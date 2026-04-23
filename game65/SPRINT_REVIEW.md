@@ -10,7 +10,7 @@
   - `game65/REQUIREMENTS.md`
   - `game65/SESSION_BOOT.md`
   - `game65/NEXT_PROMPT.md`
-  - `harnes/learning/AGENT_GROWTH_LEDGER.md`（追記）
+  - `harness/learning/AGENT_GROWTH_LEDGER.md`（追記）
 - 非変更ファイル:
   - `game60/*` ほか既存ゲーム
 

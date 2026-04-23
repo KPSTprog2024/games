@@ -2,8 +2,8 @@
 
 ## 1) Context
 - 参照必須:
-  - `/workspace/games/harnes/SOUL.md`
-  - `/workspace/games/harnes/LEARNING_SYSTEM.md`
+  - `/workspace/games/harness/SOUL.md`
+  - `/workspace/games/harness/LEARNING_SYSTEM.md`
 - 対象スプリント:
   - game65 新規作成（4人対戦 反射神経ゲーム）
 - 対象ファイル:
@@ -13,7 +13,7 @@
   - `game65/REQUIREMENTS.md`
   - `game65/SPRINT_REVIEW.md`
   - `game65/NEXT_PROMPT.md`
-  - `harnes/learning/AGENT_GROWTH_LEDGER.md`（追記のみ）
+  - `harness/learning/AGENT_GROWTH_LEDGER.md`（追記のみ）
 - 非対象ファイル:
   - 既存 `game60/*`
   - 他ゲームディレクトリ
