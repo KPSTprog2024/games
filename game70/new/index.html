@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>game70 new - 3D Laser Billiards Cube</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="layout" id="layoutRoot">
+    <section class="stage-wrap" id="stageWrap">
+      <canvas id="stage" width="1280" height="720" aria-label="3D laser billiards cube"></canvas>
+      <div class="overlay" id="hud"></div>
+    </section>
+
+    <aside class="panel">
+      <h1>game70 / new</h1>
+      <p class="lead">old参照で再構成。iPhone疑似フルスクリーン + 線の表現強化 + 慣性カメラ。</p>
+
+      <label>色モード
+        <select id="colorMode">
+          <option value="rainbow">レインボー</option>
+          <option value="mono">単色</option>
+          <option value="monoGradient">単色グラデーション</option>
+        </select>
+      </label>
+
+      <label>単色色相 <span id="monoHueValue">200</span>
+        <input id="monoHue" type="range" min="0" max="360" step="1" value="200" />
+      </label>
+
+      <label>線幅ゆらぎ <span id="lineVarValue">0.9</span>
+        <input id="lineVar" type="range" min="0" max="2.5" step="0.1" value="0.9" />
+      </label>
+
+      <label>基本線幅 <span id="lineBaseValue">1.0</span>
+        <input id="lineBase" type="range" min="0.4" max="3" step="0.1" value="1.0" />
+      </label>
+
+      <label>レーザー本数 <span id="laserCountValue">8</span>
+        <input id="laserCount" type="range" min="1" max="24" step="1" value="8" />
+      </label>
+
+      <label>速度 <span id="speedValue">1.05</span>
+        <input id="speed" type="range" min="0.2" max="2" step="0.05" value="1.05" />
+      </label>
+
+      <label>残像フェード <span id="fadeValue">0.10</span>
+        <input id="fade" type="range" min="0" max="0.35" step="0.01" value="0.10" />
+      </label>
+
+      <div class="row">
+        <button id="toggle">Pause</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="row">
+        <button id="snapshot">Snapshot</button>
+        <button id="fullscreen">Fullscreen</button>
+      </div>
+
+      <p class="tips">操作: ドラッグ回転（慣性あり）/ ホイールでズーム / Shift+ドラッグで平行移動</p>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game70 - 3D Laser Billiards Cube</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="stage-wrap">
+      <canvas id="stage" width="1280" height="720" aria-label="3D laser billiards cube"></canvas>
+      <div class="overlay" id="hud"></div>
+    </section>
+
+    <aside class="panel">
+      <h1>game70</h1>
+      <p class="lead">game24 の“反射の陶酔”を 3D キューブへ拡張。</p>
+
+      <label>3Dプリセット
+        <select id="preset">
+          <option value="custom">カスタム</option>
+          <option value="core5">Core-5（標準）</option>
+          <option value="symmetric8">Symmetric-8（対称）</option>
+          <option value="orbit12">Orbit-12（密度高）</option>
+          <option value="chaos16">Chaos-16（混沌）</option>
+        </select>
+      </label>
+
+      <label>配置モード
+        <select id="placement">
+          <option value="random">ランダム</option>
+          <option value="radial">中心放射</option>
+          <option value="grid">グリッド</option>
+          <option value="ring">リング</option>
+        </select>
+      </label>
+
+      <label>レーザー本数 <span id="laserCountValue">5</span>
+        <input id="laserCount" type="range" min="1" max="20" step="1" value="5" />
+      </label>
+
+      <label>角度分散 <span id="fanValue">120</span>°
+        <input id="fan" type="range" min="10" max="360" step="5" value="120" />
+      </label>
+
+      <label>速度 <span id="speedValue">0.95</span>
+        <input id="speed" type="range" min="0.2" max="2" step="0.05" value="0.95" />
+      </label>
+
+      <label>残像フェード <span id="fadeValue">0.12</span>
+        <input id="fade" type="range" min="0" max="0.35" step="0.01" value="0.12" />
+      </label>
+
+      <label>視点距離 <span id="distanceValue">4.6</span>
+        <input id="distance" type="range" min="2.8" max="7" step="0.1" value="4.6" />
+      </label>
+
+      <label>最大反射回数 <span id="maxBounceValue">1400</span>
+        <input id="maxBounce" type="range" min="200" max="5000" step="100" value="1400" />
+      </label>
+
+      <div class="row">
+        <button id="toggle">Pause</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="row">
+        <button id="snapshot">Snapshot</button>
+        <button id="fullscreen">Fullscreen</button>
+      </div>
+
+      <p class="tips">操作: ドラッグで回転 / ホイールでズーム / Shift+ドラッグで平行移動</p>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
