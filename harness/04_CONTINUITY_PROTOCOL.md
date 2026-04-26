@@ -19,6 +19,19 @@
 
 ---
 
+## 1.5 クイックロード順（3分以内）
+
+開始時に情報過多を防ぐため、読み込み順を固定する。
+
+1. `01_SOUL.md`（原則）
+2. `02_RUN_MODES.md`（今回の実行モード）
+3. `development/NEXT_PROMPT.md` 最新エントリ（ある場合）
+4. 本ファイルの「2. State Contract」だけ確認
+
+> これ以外は必要時のみ開く（既定で全部は読まない）。
+
+---
+
 ## 2. 連続プロンプトの最小データ契約（State Contract）
 
 各ターンの終端で、次ターンに渡す最小情報を必ず固定フォーマットで残す。
@@ -49,6 +62,12 @@
 3. `Carry-over IDs` から当ターンの作業集合を確定
 4. 非対象タスクを `Non-Scope` に明記
 
+### 開始時ワンライン宣言（必須）
+
+次の1行を開始時に必ず出す。
+
+`Mode=<...> / Goal=<...> / Loaded NEXT_PROMPT=<yes|no> / Carry-over=<IDs|none>`
+
 ---
 
 ## 4. セッション終了時プロトコル（3分）
@@ -58,6 +77,12 @@
 3. 保留項目を `🧊` に変更し解除条件を書く
 4. `NEXT_PROMPT` を更新し、`Carry-over IDs` と `Next 1 Action` を1つに絞る
 5. `learning/90_AGENT_GROWTH_LEDGER.md` に1エントリ追記
+
+### 終了時ワンライン宣言（必須）
+
+次の1行を終了時に必ず出す。
+
+`Done=<IDs> / Carry-over=<IDs|none> / Blockers=<count> / Next1=<...>`
 
 ---
 
