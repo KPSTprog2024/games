@@ -41,9 +41,10 @@ v2では逆に、次を標準化する。
 3. `templates/05_ONE_LINE_PROMPTS.md`（起動コマンド）
 4. `templates/10_SESSION_BOOT_TEMPLATE.md`（必要時のみ詳細化）
 5. `templates/30_PROJECT_PROGRESS_BOARD_TEMPLATE.md`（残件・進捗の見える化）
-6. `templates/70_NEXT_PROMPT_TEMPLATE.md`（引き継ぎ）
-7. `04_CONTINUITY_PROTOCOL.md`（連続プロンプト運用）
-8. `templates/72_PROMPT_BRIDGE_WORKFLOW.md`（NEXT_PROMPTの保存/再注入手順）
+6. `templates/32_PROMPT_ACTIVITY_LOG_TEMPLATE.md`（プロンプト単位の活動ログ）
+7. `templates/70_NEXT_PROMPT_TEMPLATE.md`（引き継ぎ）
+8. `04_CONTINUITY_PROTOCOL.md`（連続プロンプト運用）
+9. `templates/72_PROMPT_BRIDGE_WORKFLOW.md`（NEXT_PROMPTの保存/再注入手順）
 
 > 原則、最初は 1 行コマンドで開始し、情報不足時だけ SESSION_BOOT を展開する。
 
@@ -92,6 +93,7 @@ harness/
 6. 学習ログ追記
 7. Continuity Protocolで次ターンへの状態契約を固定
 8. 次回実行時は `development/NEXT_PROMPT.md` を読み、ユーザー指示と統合して開始
+9. `harness/00_README.md` 指示で起動した場合は、指定サブフォルダに `PROMPT_ACTIVITY_LOG.md` を作成/追記し、**プロンプト単位**でアウトライン・進捗・残タスクを残す
 
 ---
 
@@ -101,6 +103,53 @@ harness/
 - 残件ありの場合、`30_PROJECT_PROGRESS_BOARD_TEMPLATE.md` の `Master Backlog` に必ずID付きで列挙する
 - 最終報告では `✅完了` / `⏳残件` / `🧊保留` を分けて記載する
 - `NEXT_PROMPT` には `⏳残件` のみを転記する（DONEは転記しない）
+
+---
+
+## `00_README` 指示時の活動ログ契約（新規）
+
+ユーザーが次のような指示を出した場合を対象とする。
+
+> 「`harness/00_README.md` を読み、そこに書かれている進め方・優先順位・安全重視のルールに従ってください。」
+
+この場合、エージェントは**開始時に明示的に約束**し、指名された**対象プロジェクト配下のサブフォルダ**に活動ログを追記する。
+
+### 必須ルール
+
+1. 対象プロジェクトのルートを確定する（例: `game80/`）
+2. 対象サブフォルダを確定する（例: `development/`）
+3. `<project>/<対象サブフォルダ>/PROMPT_ACTIVITY_LOG.md` を作成（無ければ新規）
+4. 各ユーザープロンプトごとに、以下の3項目を1エントリとして追記する
+   - `Outline`（着手前の作業アウトライン）
+   - `Progress`（実施中/実施後の進捗）
+   - `Remaining`（次ターンに残るタスク）
+5. エントリは時系列で識別可能にする（Date/Prompt-ID/Session-ID）
+6. 最終報告の `⏳残件` とログの `Remaining` を一致させる
+
+### 配置ルール（誤配置防止）
+
+- ✅ 正: `game80/development/PROMPT_ACTIVITY_LOG.md`
+- ❌ 誤: `harness/development/PROMPT_ACTIVITY_LOG.md`
+
+### 追記フォーマット（最小）
+
+```md
+## Prompt Entry: <Prompt-ID> (<YYYY-MM-DD>)
+- Prompt Summary:
+- Mode:
+- Scope Folder:
+
+### Outline
+- ...
+
+### Progress
+- ...
+
+### Remaining
+- [ ] ...
+```
+
+> これにより「どのプロンプトで何を約束し、どこまで進んだか」をサブフォルダ内で監査可能に保てる。
 
 ---
 
