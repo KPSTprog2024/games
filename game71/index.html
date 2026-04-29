@@ -18,6 +18,7 @@
 
       <section class="viewer-card">
         <p id="prompt" class="prompt">△のほうから見るとどれかな？</p>
+        <p id="symbolGuide" class="symbol-guide">○=正面 / △=右 / □=左 / ×=うしろ / ☆=上</p>
         <div id="scene" class="scene" aria-label="3Dキューブ表示"></div>
         <p id="feedback" class="feedback">テンポよくいこう！</p>
       </section>
@@ -41,6 +42,11 @@
     </main>
 
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="logic.js"></script>
+    <script src="modules/generation.js"></script>
+    <script src="modules/session.js"></script>
+    <script src="modules/ui.js"></script>
+    <script src="modules/view3d.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
