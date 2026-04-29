@@ -45,6 +45,13 @@ h1 { font-size: 1.1rem; margin: 0; }
   font-weight: 700;
   text-align: center;
 }
+.symbol-guide {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: #526089;
+}
+.symbol-guide.hidden { display: none; }
 .scene {
   width: 100%;
   aspect-ratio: 1.4 / 1;
