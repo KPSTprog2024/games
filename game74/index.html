@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>game74 | Tap BPM Detector</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: radial-gradient(circle at top, #253046 0%, #131722 60%, #0b0d13 100%);
+        color: #f1f5ff;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+      }
+      main { width: min(92vw, 560px); text-align: center; }
+      h1 { margin-bottom: .2rem; }
+      p { opacity: .85; }
+      .pad {
+        width: 100%;
+        margin-top: 1rem;
+        aspect-ratio: 1.8 / 1;
+        border-radius: 20px;
+        border: 2px solid #8ea7ff;
+        background: linear-gradient(180deg, #40518d, #2b3660);
+        color: white;
+        font-size: clamp(1.2rem, 3vw, 1.8rem);
+        font-weight: 700;
+        letter-spacing: .08em;
+        user-select: none;
+      }
+      .pad:active, .pad.active { transform: scale(0.99); filter: brightness(1.2); }
+      .bpm { font-size: clamp(2rem, 8vw, 4rem); margin: 1rem 0 .5rem; font-weight: 800; }
+      .meta { display: flex; justify-content: center; gap: 1.5rem; font-size: .95rem; opacity: .9; flex-wrap: wrap; }
+      .actions { margin-top: 1rem; }
+      button.reset { padding: .5rem .8rem; border-radius: 9px; border: 1px solid #8692bb; background:#1f2743; color:#f5f7ff; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Tap BPM Detector</h1>
+      <p>同じリズムでタップすると、直近の間隔からBPMを推定します。</p>
+      <div class="bpm" id="bpm">-- BPM</div>
+      <div class="meta">
+        <span id="tapCount">タップ数: 0</span>
+        <span id="stability">安定度: --</span>
+      </div>
+      <button class="pad" id="tapPad" aria-label="tap area">TAP</button>
+      <div class="actions">
+        <button class="reset" id="resetBtn">リセット</button>
+      </div>
+    </main>
+
+    <script>
+      const taps = [];
+      const intervals = [];
+      const maxWindow = 8;
+      const timeoutMs = 4000;
+      let lastTap = 0;
+      let timeoutId;
+
+      const bpmEl = document.getElementById('bpm');
+      const tapCountEl = document.getElementById('tapCount');
+      const stabilityEl = document.getElementById('stability');
+      const tapPad = document.getElementById('tapPad');
+
+      const median = (arr) => {
+        const sorted = [...arr].sort((a,b)=>a-b);
+        const m = Math.floor(sorted.length / 2);
+        return sorted.length % 2 ? sorted[m] : (sorted[m-1] + sorted[m]) / 2;
+      };
+
+      function clearState() {
+        taps.length = 0;
+        intervals.length = 0;
+        lastTap = 0;
+        bpmEl.textContent = '-- BPM';
+        tapCountEl.textContent = 'タップ数: 0';
+        stabilityEl.textContent = '安定度: --';
+      }
+
+      function scheduleAutoReset() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(clearState, timeoutMs);
+      }
+
+      function updateView() {
+        tapCountEl.textContent = `タップ数: ${taps.length}`;
+        if (intervals.length < 2) return;
+
+        const med = median(intervals);
+        const bpm = Math.round(60000 / med);
+        const deviation = intervals.map(v => Math.abs(v - med));
+        const mad = median(deviation);
+        const stability = Math.max(0, 100 - Math.round((mad / med) * 200));
+
+        bpmEl.textContent = `${bpm} BPM`;
+        stabilityEl.textContent = `安定度: ${stability}%`;
+      }
+
+      function onTap() {
+        const now = performance.now();
+        taps.push(now);
+        if (lastTap > 0) {
+          const d = now - lastTap;
+          if (d > 180 && d < 2000) {
+            intervals.push(d);
+            if (intervals.length > maxWindow) intervals.shift();
+          }
+        }
+        lastTap = now;
+        updateView();
+        scheduleAutoReset();
+      }
+
+      ['pointerdown', 'keydown'].forEach((eventName) => {
+        tapPad.addEventListener(eventName, (event) => {
+          if (eventName === 'keydown' && ![' ', 'Enter'].includes(event.key)) return;
+          if (eventName === 'keydown') event.preventDefault();
+          tapPad.classList.add('active');
+          onTap();
+          setTimeout(() => tapPad.classList.remove('active'), 80);
+        });
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', clearState);
+    </script>
+  </body>
+</html>
