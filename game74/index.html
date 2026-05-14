@@ -34,7 +34,9 @@
       .pad:active, .pad.active { transform: scale(0.99); filter: brightness(1.2); }
       .bpm { font-size: clamp(2rem, 8vw, 4rem); margin: 1rem 0 .5rem; font-weight: 800; }
       .meta { display: flex; justify-content: center; gap: 1.5rem; font-size: .95rem; opacity: .9; flex-wrap: wrap; }
-      .actions { margin-top: 1rem; }
+      .actions { margin-top: 1rem; display: flex; justify-content: center; }
+      button.copy { padding: .5rem .8rem; border-radius: 9px; border: 1px solid #9db8ff; background:#2a3a6a; color:#f5f7ff; }
+      .reset-wrap { margin-top: 2.5rem; display: flex; justify-content: center; }
       button.reset { padding: .5rem .8rem; border-radius: 9px; border: 1px solid #8692bb; background:#1f2743; color:#f5f7ff; }
     </style>
   </head>
@@ -49,6 +51,9 @@
       </div>
       <button class="pad" id="tapPad" aria-label="tap area">TAP</button>
       <div class="actions">
+        <button class="copy" id="copyBpmBtn">BPMコピー</button>
+      </div>
+      <div class="reset-wrap">
         <button class="reset" id="resetBtn">リセット</button>
       </div>
     </main>
@@ -65,6 +70,8 @@
       const tapCountEl = document.getElementById('tapCount');
       const stabilityEl = document.getElementById('stability');
       const tapPad = document.getElementById('tapPad');
+      const copyBpmBtn = document.getElementById('copyBpmBtn');
+      let currentBpm = null;
 
       const median = (arr) => {
         const sorted = [...arr].sort((a,b)=>a-b);
@@ -77,6 +84,7 @@
         intervals.length = 0;
         lastTap = 0;
         bpmEl.textContent = '-- BPM';
+        currentBpm = null;
         tapCountEl.textContent = 'タップ数: 0';
         stabilityEl.textContent = '安定度: --';
       }
@@ -97,6 +105,7 @@
         const stability = Math.max(0, 100 - Math.round((mad / med) * 200));
 
         bpmEl.textContent = `${bpm} BPM`;
+        currentBpm = bpm;
         stabilityEl.textContent = `安定度: ${stability}%`;
       }
 
@@ -123,6 +132,14 @@
           onTap();
           setTimeout(() => tapPad.classList.remove('active'), 80);
         });
+      });
+
+      copyBpmBtn.addEventListener('click', async () => {
+        if (!Number.isFinite(currentBpm)) return;
+        const text = `BPM ${currentBpm}`;
+        await navigator.clipboard.writeText(text);
+        copyBpmBtn.textContent = 'コピー済み';
+        setTimeout(() => { copyBpmBtn.textContent = 'BPMコピー'; }, 1000);
       });
 
       document.getElementById('resetBtn').addEventListener('click', clearState);
