@@ -173,6 +173,7 @@ function startMode(mode) {
   document.getElementById("round-total").textContent = meta.total;
   renderRoundTrack();
   showScreen("play-screen");
+  scrollPlayTop();
   renderQuestion();
 }
 
@@ -206,6 +207,7 @@ function renderQuestion() {
   if (question.type === "season") renderSeasonQuestion(question.item);
   if (question.type === "name") renderNameQuestion(question.item);
   if (question.type === "match") renderMatchQuestion(question.item);
+  scrollPlayTop();
 }
 
 function renderSeasonQuestion(item) {
@@ -401,6 +403,7 @@ function renderFeedback(isCorrect, item, selectedItem, customDescription) {
     ${customDescription || item.description}
     ${selectedLine ? `<br>${selectedLine}` : ""}
   `;
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function nextQuestion() {
@@ -410,6 +413,10 @@ function nextQuestion() {
     return;
   }
   renderQuestion();
+}
+
+function scrollPlayTop() {
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function showResult() {
