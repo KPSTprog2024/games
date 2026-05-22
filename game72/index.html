@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game72 暗記ゲーム</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>game72 暗記ゲーム</h1>
+      <p class="howto">遊び方: 光った順番を覚えて、同じ順番でボタンを押そう！</p>
+    </header>
+
+    <section class="status-panel" aria-live="polite">
+      <p>現在のステージ: <strong id="stage">0</strong></p>
+      <p>最高到達ステージ: <strong id="bestStage">0</strong></p>
+      <p>状態: <strong id="status">スタートを押してください</strong></p>
+      <p>スコア: <strong id="score">0</strong></p>
+    </section>
+
+    <section class="pad-wrap" aria-label="暗記ボタンエリア">
+      <button class="pad pad-0" data-id="0" aria-label="左上"></button>
+      <button class="pad pad-1" data-id="1" aria-label="右上"></button>
+      <button class="pad pad-2" data-id="2" aria-label="中央"></button>
+      <button class="pad pad-3" data-id="3" aria-label="左下"></button>
+      <button class="pad pad-4" data-id="4" aria-label="右下"></button>
+      <div id="celebrate" class="celebrate" aria-hidden="true"></div>
+    </section>
+
+    <section class="controls">
+      <button id="startBtn" class="btn btn-primary">スタート</button>
+      <button id="replayBtn" class="btn">もう一度再生</button>
+      <button id="resetBtn" class="btn btn-subtle">リセット</button>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

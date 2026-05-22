@@ -32,8 +32,14 @@
 - `対象:` 変更対象のフォルダ/ファイル
 - `非対象:` 今回触らない範囲
 - `期限:` YYYY-MM-DD
+- `活動ログ先:` 対象プロジェクト配下でプロンプト単位ログを追記するサブフォルダ（例: `development`）
 
 例:
 
 `@pm @safe 目標: 検索精度改善 対象: app/search 制約: 期限 2026-04-20`
 
+### `00_README`準拠 + 活動ログ強制の例
+
+`@pm @safe 目標: checkout不具合の切り分け 対象: services/checkout 活動ログ先: development 指示: harness/00_README.md準拠`
+
+> この形式で起動した場合、`<project>/development/PROMPT_ACTIVITY_LOG.md` へのプロンプト単位追記（Outline/Progress/Remaining）を必須にする。

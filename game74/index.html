@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>game74 | なわとびBPMチェッカー</title>
+    <style>
+      :root {
+        --bg: #e9eaee;
+        --ink: #0e1830;
+        --sub: #7e8697;
+        --accent: #6164e3;
+        --accent-2: #4e45db;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      .app {
+        min-height: 100vh;
+        padding-bottom: 18px;
+      }
+
+      .titlebar {
+        height: clamp(58px, 10vh, 80px);
+        background: #fff;
+        border-bottom: 1px solid #e5e6ea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-size: clamp(20px, 4.8vw, 40px);
+        font-weight: 800;
+        color: #384156;
+      }
+
+      .titlebar .wave {
+        color: var(--accent);
+        font-size: clamp(18px, 5vw, 30px);
+      }
+
+      main {
+        width: min(760px, 100vw - 28px);
+        margin: 0 auto;
+        text-align: center;
+        padding-top: clamp(18px, 4vh, 34px);
+      }
+
+      .label {
+        font-size: clamp(18px, 4vw, 34px);
+        color: #727b8f;
+        font-weight: 700;
+      }
+
+      .bpm {
+        margin-top: clamp(8px, 1.6vh, 14px);
+        font-size: clamp(54px, 16vw, 112px);
+        font-weight: 900;
+        letter-spacing: 0.01em;
+        color: #0b1630;
+      }
+
+      .bpm span {
+        font-size: 0.38em;
+        color: #99a0af;
+        font-weight: 700;
+        margin-left: 0.12em;
+      }
+
+      .pad {
+        touch-action: manipulation;
+        margin: clamp(18px, 4vh, 30px) auto clamp(16px, 3vh, 24px);
+        width: min(430px, 68vw);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        border: 0;
+        background: var(--accent);
+        color: #f4f5ff;
+        box-shadow: 0 22px 34px rgba(58, 63, 173, 0.22);
+        display: grid;
+        place-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: transform 80ms ease, filter 80ms ease;
+      }
+
+      .pad:active,
+      .pad.active {
+        transform: scale(0.985);
+        filter: brightness(1.06);
+      }
+
+      .tap-title {
+        font-size: clamp(36px, 9vw, 72px);
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .tap-sub {
+        font-size: clamp(14px, 3.7vw, 28px);
+        color: #ccd0e8;
+        font-weight: 700;
+      }
+
+      .action-btn,
+      .reset-btn {
+        touch-action: manipulation;
+        width: 100%;
+        border-radius: 26px;
+        padding: clamp(12px, 2.2vh, 18px) 18px;
+        font-size: clamp(19px, 4.5vw, 30px);
+        font-weight: 800;
+      }
+
+      .action-btn {
+        border: 0;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        color: #f0f2ff;
+        box-shadow: 0 8px 20px rgba(46, 41, 142, 0.28);
+      }
+
+      .reset-btn {
+        margin-top: 12px;
+        border: 3px solid #d4d7de;
+        background: transparent;
+        color: #596276;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="titlebar"><span class="wave">〰</span>なわとびBPMチェッカー</header>
+      <main>
+        <div class="label">現在のテンポ</div>
+        <div class="bpm" id="bpm">--<span>BPM</span></div>
+
+        <button class="pad" id="tapPad" aria-label="tap area">
+          <div class="tap-title">TAP</div>
+          <div class="tap-sub">ジャンプに合わせて押す</div>
+        </button>
+
+        <button class="action-btn" id="copyBpmBtn">⧉ BPMをコピーする</button>
+        <button class="reset-btn" id="resetBtn">⟲ リセット</button>
+      </main>
+    </div>
+
+    <script>
+      const taps = [];
+      const intervals = [];
+      const maxWindow = 8;
+      const timeoutMs = 4000;
+      let lastTap = 0;
+      let timeoutId;
+
+      const bpmEl = document.getElementById('bpm');
+      const tapPad = document.getElementById('tapPad');
+      const copyBpmBtn = document.getElementById('copyBpmBtn');
+      let currentBpm = null;
+
+      const median = (arr) => {
+        const sorted = [...arr].sort((a, b) => a - b);
+        const m = Math.floor(sorted.length / 2);
+        return sorted.length % 2 ? sorted[m] : (sorted[m - 1] + sorted[m]) / 2;
+      };
+
+      function clearState() {
+        taps.length = 0;
+        intervals.length = 0;
+        lastTap = 0;
+        bpmEl.innerHTML = '--<span>BPM</span>';
+        currentBpm = null;
+      }
+
+      function scheduleAutoReset() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(clearState, timeoutMs);
+      }
+
+      function updateView() {
+        if (intervals.length < 2) return;
+        const med = median(intervals);
+        const bpm = Math.round(60000 / med);
+        bpmEl.innerHTML = `${bpm}<span>BPM</span>`;
+        currentBpm = bpm;
+      }
+
+      function onTap() {
+        const now = performance.now();
+        taps.push(now);
+        if (lastTap > 0) {
+          const d = now - lastTap;
+          if (d > 180 && d < 2000) {
+            intervals.push(d);
+            if (intervals.length > maxWindow) intervals.shift();
+          }
+        }
+        lastTap = now;
+        updateView();
+        scheduleAutoReset();
+      }
+
+      ['pointerdown', 'keydown'].forEach((eventName) => {
+        tapPad.addEventListener(eventName, (event) => {
+          if (eventName === 'keydown' && ![' ', 'Enter'].includes(event.key)) return;
+          if (eventName === 'keydown') event.preventDefault();
+          tapPad.classList.add('active');
+          onTap();
+          setTimeout(() => tapPad.classList.remove('active'), 80);
+        });
+      });
+
+      copyBpmBtn.addEventListener('click', async () => {
+        if (!Number.isFinite(currentBpm)) return;
+        const text = `BPM ${currentBpm}`;
+        await navigator.clipboard.writeText(text);
+        copyBpmBtn.textContent = '✓ コピーしました';
+        setTimeout(() => {
+          copyBpmBtn.textContent = '⧉ BPMをコピーする';
+        }, 1000);
+      });
+
+      document.getElementById('resetBtn').addEventListener('click', clearState);
+    </script>
+  </body>
+</html>

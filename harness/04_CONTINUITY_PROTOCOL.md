@@ -19,6 +19,19 @@
 
 ---
 
+## 1.5 クイックロード順（3分以内）
+
+開始時に情報過多を防ぐため、読み込み順を固定する。
+
+1. `01_SOUL.md`（原則）
+2. `02_RUN_MODES.md`（今回の実行モード）
+3. `development/NEXT_PROMPT.md` 最新エントリ（ある場合）
+4. 本ファイルの「2. State Contract」だけ確認
+
+> これ以外は必要時のみ開く（既定で全部は読まない）。
+
+---
+
 ## 2. 連続プロンプトの最小データ契約（State Contract）
 
 各ターンの終端で、次ターンに渡す最小情報を必ず固定フォーマットで残す。
@@ -48,6 +61,13 @@
 2. `30_PROJECT_PROGRESS_BOARD_TEMPLATE.md` の `You are here` と `Master Backlog` を同期
 3. `Carry-over IDs` から当ターンの作業集合を確定
 4. 非対象タスクを `Non-Scope` に明記
+5. `00_README` 指示で開始した場合は、対象サブフォルダの `PROMPT_ACTIVITY_LOG.md` を読んで最新エントリを確認
+
+### 開始時ワンライン宣言（必須）
+
+次の1行を開始時に必ず出す。
+
+`Mode=<...> / Goal=<...> / Loaded NEXT_PROMPT=<yes|no> / Carry-over=<IDs|none>`
 
 ---
 
@@ -58,6 +78,13 @@
 3. 保留項目を `🧊` に変更し解除条件を書く
 4. `NEXT_PROMPT` を更新し、`Carry-over IDs` と `Next 1 Action` を1つに絞る
 5. `learning/90_AGENT_GROWTH_LEDGER.md` に1エントリ追記
+6. `PROMPT_ACTIVITY_LOG.md` の当該Promptエントリに `Progress` と `Remaining` を追記/更新
+
+### 終了時ワンライン宣言（必須）
+
+次の1行を終了時に必ず出す。
+
+`Done=<IDs> / Carry-over=<IDs|none> / Blockers=<count> / Next1=<...>`
 
 ---
 
@@ -109,3 +136,20 @@
 - `development/NEXT_PROMPT.md` が無い場合は新規作成し、通常起動する
 - NEXT_PROMPTの内容が今回Goalと衝突する場合は、衝突点を明示して採用/破棄を宣言する
 - 実行開始時の出力に `Loaded NEXT_PROMPT: yes/no` を必ず含める
+
+---
+
+## 8. Prompt Activity Log運用（プロンプト単位の進捗契約）
+
+`00_README` 準拠を明示するプロンプトで起動した場合、以下を必須とする。
+
+1. ログ先は**対象プロジェクト配下**のユーザー指定サブフォルダ（未指定時は `<project>/development/`）
+2. ファイル名は `PROMPT_ACTIVITY_LOG.md` に統一
+3. 各ターンで `Outline -> Progress -> Remaining` を同一Prompt-IDで追記
+4. `Remaining` は `Master Backlog` の `⏳` と整合させる
+5. 次ターン開始時は最新 `Remaining` をCarry-over候補として評価する
+
+### 例
+
+- 対象プロジェクトが `game80` の場合、ログ先は `game80/development/PROMPT_ACTIVITY_LOG.md`
+- `harness/` 配下にログを書かない（テンプレート置き場と実ログ置き場を分離）

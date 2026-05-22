@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ポチポチメモリー</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Fonts: Dela Gothic One (Title), M PLUS 1 Code (UI/Numbers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+1+Code:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           1. Base & Typography
+           ========================================= */
+        :root {
+            --bg-color: #12131c;
+            --device-bg: #1e202d;
+            --device-border: #2a2d3e;
+
+            --color-blue-off: #163a7a;
+            --color-blue-on: #4facfe;
+            --color-blue-glow: rgba(79, 172, 254, 0.7);
+
+            --color-yellow-off: #8a6408;
+            --color-yellow-on: #fceabb;
+            --color-yellow-glow: rgba(252, 234, 187, 0.7);
+
+            --color-red-off: #7a1616;
+            --color-red-on: #ff4b4b;
+            --color-red-glow: rgba(255, 75, 75, 0.7);
+
+            --color-green-off: #135227;
+            --color-green-on: #43e97b;
+            --color-green-glow: rgba(67, 233, 123, 0.7);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #e2e8f0;
+            font-family: 'M PLUS 1 Code', monospace;
+            touch-action: none;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-title {
+            font-family: 'Dela Gothic One', cursive;
+            letter-spacing: 0.02em;
+        }
+
+        /* =========================================
+           2. Textures & Environment
+           ========================================= */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .ambient-light {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            max-width: 600px;
+            height: 80vw;
+            max-height: 600px;
+            background: radial-gradient(circle, rgba(42, 45, 62, 0.4) 0%, rgba(18, 19, 28, 0) 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           3. Material & Device Design
+           ========================================= */
+        .device-chassis {
+            background-color: var(--device-bg);
+            border: 1px solid var(--device-border);
+            box-shadow:
+                inset 0 2px 4px rgba(255, 255, 255, 0.05),
+                inset 0 -8px 12px rgba(0, 0, 0, 0.6),
+                0 20px 40px -10px rgba(0, 0, 0, 0.8),
+                0 0 0 8px rgba(18, 19, 28, 0.5);
+        }
+
+        .info-panel {
+            background: rgba(15, 16, 23, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        /* =========================================
+           4. Tactile Buttons
+           ========================================= */
+        .btn-game {
+            position: relative;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow:
+                inset 0 4px 6px rgba(255, 255, 255, 0.15),
+                inset 0 -6px 8px rgba(0, 0, 0, 0.4),
+                0 6px 10px rgba(0, 0, 0, 0.4),
+                0 2px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-pressed {
+            transform: translateY(4px) scale(0.98);
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.4),
+                inset 0 -2px 4px rgba(255, 255, 255, 0.05),
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                0 0 0 rgba(0, 0, 0, 0);
+        }
+
+        .color-0 {
+            background: var(--color-blue-off);
+            border-radius: 12px 12px 48px 12px;
+        }
+
+        .active-0 {
+            background: var(--color-blue-on);
+            box-shadow:
+                inset 0 0 15px rgba(255,255,255,0.8),
+                0 0 30px var(--color-blue-glow),
+                0 0 60px var(--color-blue-glow);
+            z-index: 10;
+        }
+
+        .color-1 {
+            background: var(--color-yellow-off);
+            border-radius: 12px 12px 12px 48px;
+        }
+
+        .active-1 {
+            background: var(--color-yellow-on);
+            box-shadow:
+                inset 0 0 15px rgba(255,255,255,0.8),
+                0 0 30px var(--color-yellow-glow),
+                0 0 60px var(--color-yellow-glow);
+            z-index: 10;
+        }
+
+        .color-2 {
+            background: var(--color-red-off);
+            border-radius: 12px 48px 12px 12px;
+        }
+
+        .active-2 {
+            background: var(--color-red-on);
+            box-shadow:
+                inset 0 0 15px rgba(255,255,255,0.8),
+                0 0 30px var(--color-red-glow),
+                0 0 60px var(--color-red-glow);
+            z-index: 10;
+        }
+
+        .color-3 {
+            background: var(--color-green-off);
+            border-radius: 48px 12px 12px 12px;
+        }
+
+        .active-3 {
+            background: var(--color-green-on);
+            box-shadow:
+                inset 0 0 15px rgba(255,255,255,0.8),
+                0 0 30px var(--color-green-glow),
+                0 0 60px var(--color-green-glow);
+            z-index: 10;
+        }
+
+        /* =========================================
+           5. The Center Button
+           ========================================= */
+        .center-btn {
+            background: linear-gradient(145deg, #3a3f58, #2a2d3e);
+            border-radius: 12px;
+            box-shadow:
+                inset 0 2px 2px rgba(255,255,255,0.1),
+                0 4px 6px rgba(0,0,0,0.4),
+                0 2px 0 #151722;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .center-btn::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .center-btn:active {
+            transform: translateY(2px);
+            box-shadow:
+                inset 0 2px 4px rgba(0,0,0,0.5),
+                0 1px 2px rgba(0,0,0,0.2),
+                0 0 0 #151722;
+        }
+
+        /* =========================================
+           6. Dramatic Effects
+           ========================================= */
+        @keyframes glitch-red {
+            0%, 100% {
+                filter: contrast(1) brightness(1);
+                transform: translateX(0);
+            }
+
+            20% {
+                filter: contrast(1.5) brightness(1.2);
+                transform: translateX(-4px);
+                background-color: #2b0808;
+            }
+
+            40% {
+                transform: translateX(4px);
+            }
+
+            60% {
+                filter: contrast(0.8) brightness(2) hue-rotate(-10deg);
+                transform: translateX(-2px);
+            }
+
+            80% {
+                transform: translateX(2px);
+            }
+        }
+
+        .glitch-error {
+            animation: glitch-red 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes ambient-gold {
+            0%, 100% {
+                background: var(--bg-color);
+            }
+
+            50% {
+                background: #2c2510;
+            }
+        }
+
+        .celebrate-bg {
+            animation: ambient-gold 2s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen relative">
+
+    <div class="noise-overlay"></div>
+    <div class="ambient-light"></div>
+
+    <!-- UI Header -->
+    <div class="mb-8 w-full max-w-sm px-6 z-10 relative">
+        <h1 class="font-title text-[2rem] leading-none text-center mb-6 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+            ポチポチ<br>
+            <span class="text-xl text-gray-400 tracking-[0.2em] opacity-80" style="font-family: 'M PLUS 1 Code', monospace;">
+                MEMORY
+            </span>
+        </h1>
+
+        <!-- Info Panel / HUD -->
+        <div class="info-panel flex justify-between items-center p-4 rounded-2xl">
+            <div class="flex flex-col items-center w-16">
+                <span class="text-[0.6rem] text-gray-500 font-bold mb-1 tracking-widest">レベル</span>
+                <span id="level-display" class="text-2xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">00</span>
+            </div>
+
+            <div class="flex-1 flex justify-center px-2">
+                <span id="status-display" class="text-xs font-bold text-gray-400 tracking-wider">スタンバイ</span>
+            </div>
+
+            <div class="flex flex-col items-center w-16">
+                <span class="text-[0.6rem] text-gray-500 font-bold mb-1 tracking-widest">ベスト</span>
+                <span id="highscore-display" class="text-xl font-bold text-gray-300">00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Device -->
+    <div class="device-chassis p-7 sm:p-8 rounded-[2.5rem] relative z-10">
+        <div class="grid grid-cols-[1fr_0.4fr_1fr] grid-rows-[1fr_0.4fr_1fr] gap-3 w-72 h-72 sm:w-[22rem] sm:h-[22rem]">
+
+            <div id="btn-0" data-color="0" class="btn-game color-0 col-start-1 row-start-1"></div>
+            <div id="btn-1" data-color="1" class="btn-game color-1 col-start-3 row-start-1"></div>
+
+            <!-- Center Core Button -->
+            <div id="btn-center" class="center-btn col-start-2 row-start-2 cursor-pointer group">
+                <span id="center-btn-text" class="text-[0.7rem] sm:text-xs font-bold text-gray-300 group-hover:text-white transition-colors tracking-widest">
+                    スタート
+                </span>
+            </div>
+
+            <div id="btn-2" data-color="2" class="btn-game color-2 col-start-1 row-start-3"></div>
+            <div id="btn-3" data-color="3" class="btn-game color-3 col-start-3 row-start-3"></div>
+
+        </div>
+    </div>
+
+    <!-- Footer Guide -->
+    <div class="mt-12 text-gray-500 text-xs tracking-widest text-center z-10 opacity-60">
+        <p>ヒカリ ト オト ヲ キオクシテ タップ</p>
+    </div>
+
+    <script>
+        
+        /**
+         * ポチポチメモリー
+         * リファクタリング完全版
+         *
+         * - 機能は元版を維持
+         * - 状態・音声・HUD・ボタン制御を責務分離
+         * - runToken による非同期キャンセルを導入
+         * - ハイスコア「タイ」で新記録表示されるRegressionを修正
+         * - 入力フラッシュやお手本再生の消灯漏れ・タイマー残留を修正
+         * - ゲームオーバー演出中に即再スタートした場合の古い非同期処理も抑止
+         */
+
+        const STATE = Object.freeze({IDLE:'IDLE',PLAYING_SEQUENCE:'PLAYING_SEQUENCE',WAITING_INPUT:'WAITING_INPUT',CELEBRATING:'CELEBRATING',GAME_OVER:'GAME_OVER'});
+        const CONFIG = Object.freeze({buttonCount:4,storageKey:'simonTactileBest',inputTimeoutMs:5000,sequenceStartDelayMs:1000,tapFlashMs:200,gameOverFlashMs:400,normalClearDelayMs:800,milestoneDelayMs:3000,milestoneEvery:5,baseSequenceOnMs:400,baseSequenceOffMs:250,minSpeedMultiplier:0.5,speedDecayPerLevel:0.03,tones:[329.63,392.00,261.63,196.00]});
+        const $=(selector)=>document.querySelector(selector);
+        const byId=(id)=>document.getElementById(id);
+        const sleep=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
+        const pad2=(num)=>String(num).padStart(2,'0');
+        const storage={getNumber(key,fallback=0){try{const value=Number(localStorage.getItem(key));return Number.isFinite(value)?value:fallback;}catch{return fallback;}},setNumber(key,value){try{localStorage.setItem(key,String(value));}catch{}}};
+        class AudioEngine { constructor(tones){this.tones=tones;this.ctx=null;this.AudioContextClass=window.AudioContext||window.webkitAudioContext;} init(){if(!this.AudioContextClass)return;if(!this.ctx){this.ctx=new this.AudioContextClass();} if(this.ctx.state==='suspended'){this.ctx.resume();}} playButtonTone(buttonId,durationMs=500){const freq=this.tones[buttonId]; if(!freq)return; this.playTone(freq,durationMs);} playTone(freq,durationMs=400){if(!this.ctx)return; const now=this.ctx.currentTime; const durationSec=durationMs/1000; const osc=this.ctx.createOscillator(); const oscSub=this.ctx.createOscillator(); const filter=this.ctx.createBiquadFilter(); const gain=this.ctx.createGain(); osc.type='triangle'; osc.frequency.value=freq; oscSub.type='sine'; oscSub.frequency.value=freq/2; filter.type='lowpass'; filter.frequency.setValueAtTime(2000,now); filter.frequency.exponentialRampToValueAtTime(400,now+durationSec); gain.gain.setValueAtTime(0,now); gain.gain.linearRampToValueAtTime(0.4,now+0.05); gain.gain.exponentialRampToValueAtTime(0.001,now+durationSec); osc.connect(filter); oscSub.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination); osc.start(now); oscSub.start(now); osc.stop(now+durationSec); oscSub.stop(now+durationSec);} playGameOverSound(){if(!this.ctx)return; const now=this.ctx.currentTime; const osc=this.ctx.createOscillator(); const gain=this.ctx.createGain(); osc.type='square'; osc.frequency.setValueAtTime(80,now); osc.frequency.exponentialRampToValueAtTime(30,now+0.5); gain.gain.setValueAtTime(0.3,now); gain.gain.exponentialRampToValueAtTime(0.001,now+1); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now+1);} playMilestoneSound(){if(!this.ctx)return; const now=this.ctx.currentTime; const fanfare=[261.63,329.63,392.00,523.25]; fanfare.forEach((freq,index)=>{const start=now+index*0.1; const osc=this.ctx.createOscillator(); const gain=this.ctx.createGain(); osc.type='sine'; osc.frequency.value=freq; gain.gain.setValueAtTime(0,start); gain.gain.linearRampToValueAtTime(0.2,start+0.05); gain.gain.exponentialRampToValueAtTime(0.001,start+0.5); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(start); osc.stop(start+1);});}}
+        class HUD { constructor(){this.level=byId('level-display');this.highScore=byId('highscore-display');this.status=byId('status-display');this.centerText=byId('center-btn-text');} setLevel(level){this.level.textContent=pad2(level);} setHighScore(score){this.highScore.textContent=pad2(score);} setStatus(message,colorClass){this.status.textContent=message;this.status.className=`text-xs font-bold tracking-wider ${colorClass}`;} setCenterText(text){this.centerText.textContent=text;} setCenterOpacity(value){this.centerText.style.opacity=String(value);} }
+        class ButtonPad { constructor(audio){this.audio=audio;this.deviceChassis=$('.device-chassis');this.colorButtons=document.querySelectorAll('.btn-game');this.centerButton=byId('btn-center');this.flashTimers=new Map();} bind({onColorButtonDown,onCenterButtonDown}){this.colorButtons.forEach(button=>{button.addEventListener('pointerdown',(event)=>{event.preventDefault();const id=Number(button.dataset.color);onColorButtonDown(id,button);});['pointerup','pointerleave','pointercancel'].forEach(e=>button.addEventListener(e,()=>this.release(button)));});this.centerButton.addEventListener('pointerdown',(event)=>{event.preventDefault();onCenterButtonDown();});} press(button){button.classList.add('btn-pressed');} release(button){button.classList.remove('btn-pressed');} activate(id,{withSound=true}={}){const button=byId(`btn-${id}`);if(!button)return;button.classList.add(`active-${id}`);this.applyDeviceGlow();if(withSound){this.audio.playButtonTone(id,500);}} deactivate(id){const button=byId(`btn-${id}`);if(!button)return;button.classList.remove(`active-${id}`);this.clearDeviceGlow();} activateAll(){this.clearFlashTimers();for(let id=0;id<CONFIG.buttonCount;id++)this.activate(id,{withSound:false});} deactivateAll(){this.clearFlashTimers();for(let id=0;id<CONFIG.buttonCount;id++)this.deactivate(id);} flashInput(id){this.clearFlashTimer(id);this.activate(id);const timerId=setTimeout(()=>{this.flashTimers.delete(id);this.deactivate(id);},CONFIG.tapFlashMs);this.flashTimers.set(id,timerId);} clearFlashTimer(id){const timerId=this.flashTimers.get(id);if(timerId){clearTimeout(timerId);this.flashTimers.delete(id);}} clearFlashTimers(){for(const timerId of this.flashTimers.values())clearTimeout(timerId);this.flashTimers.clear();} applyDeviceGlow(){this.deviceChassis.style.boxShadow=`inset 0 2px 4px rgba(255, 255, 255, 0.05),inset 0 -8px 12px rgba(0, 0, 0, 0.6),0 20px 40px -10px rgba(0, 0, 0, 0.8),0 0 40px rgba(255,255,255,0.05)`;} clearDeviceGlow(){this.deviceChassis.style.boxShadow='';}}
+        class MemoryGame { constructor(){this.audio=new AudioEngine(CONFIG.tones);this.hud=new HUD();this.pad=new ButtonPad(this.audio);this.sequence=[];this.playerStep=0;this.level=0;this.highScore=storage.getNumber(CONFIG.storageKey,0);this.state=STATE.IDLE;this.inputTimer=null;this.runToken=0;this.init();} init(){this.hud.setHighScore(this.highScore);this.hud.setLevel(this.level);this.hud.setStatus('スタンバイ','text-gray-400');this.pad.bind({onColorButtonDown:(id,button)=>this.handleColorButtonDown(id,button),onCenterButtonDown:()=>this.handleCenterButtonDown()});} handleCenterButtonDown(){if(this.state===STATE.IDLE||this.state===STATE.GAME_OVER){this.startGame();return;} if(this.state!==STATE.CELEBRATING){this.gameOver('リセット');}} handleColorButtonDown(id,button){if(this.state!==STATE.WAITING_INPUT)return;this.pad.press(button);this.handlePlayerInput(id);} startGame(){this.audio.init();this.cancelPendingWork();this.sequence=[];this.playerStep=0;this.level=0;this.hud.setLevel(this.level);this.hud.setCenterText('ストップ');this.hud.setCenterOpacity(1);this.nextLevel();} nextLevel(){this.level++;this.playerStep=0;this.hud.setLevel(this.level);const nextButton=Math.floor(Math.random()*CONFIG.buttonCount);this.sequence.push(nextButton);this.playCurrentSequence();} async playCurrentSequence(){const token=this.runToken;this.state=STATE.PLAYING_SEQUENCE;this.hud.setStatus('オテホン','text-yellow-400 animate-pulse');this.hud.setCenterText('マチ');this.hud.setCenterOpacity(0.3);await sleep(CONFIG.sequenceStartDelayMs);if(!this.isCurrentRun(token))return;for(const id of this.sequence){if(!this.isCurrentRun(token))return;const speed=this.getSequenceSpeedMultiplier();try{this.pad.activate(id);await sleep(CONFIG.baseSequenceOnMs*speed);}finally{if(this.isCurrentRun(token)){this.pad.deactivate(id);}} if(!this.isCurrentRun(token))return;await sleep(CONFIG.baseSequenceOffMs*speed);} if(!this.isCurrentRun(token))return;this.state=STATE.WAITING_INPUT;this.playerStep=0;this.hud.setStatus('アナタノバン','text-green-400');this.startInputTimer();} getSequenceSpeedMultiplier(){return Math.max(CONFIG.minSpeedMultiplier,1-this.level*CONFIG.speedDecayPerLevel);} handlePlayerInput(id){if(this.state!==STATE.WAITING_INPUT)return;this.clearInputTimer();this.pad.flashInput(id);const expectedId=this.sequence[this.playerStep];if(id!==expectedId){this.gameOver('ミス...');return;} this.playerStep++;if(this.playerStep<this.sequence.length){this.startInputTimer();return;} this.clearLevel();} clearLevel(){this.state=STATE.CELEBRATING;if(this.level%CONFIG.milestoneEvery===0){this.triggerMilestone();return;} const token=this.runToken;this.hud.setStatus('クリア','text-blue-300');setTimeout(()=>{if(!this.isCurrentRun(token))return;if(this.state!==STATE.CELEBRATING)return;this.nextLevel();},CONFIG.normalClearDelayMs);} startInputTimer(){this.clearInputTimer();this.inputTimer=setTimeout(()=>{if(this.state===STATE.WAITING_INPUT){this.gameOver('タイムアウト');}},CONFIG.inputTimeoutMs);} clearInputTimer(){if(!this.inputTimer)return;clearTimeout(this.inputTimer);this.inputTimer=null;} async gameOver(reason){const completedAtGameOver=this.completedLevelCount();this.cancelPendingWork();const token=this.runToken;const isNewRecord=this.updateHighScoreIfNeeded(completedAtGameOver);this.state=STATE.GAME_OVER;this.audio.playGameOverSound();this.hud.setStatus('ミス...','text-red-500');this.hud.setCenterText('スタート');this.hud.setCenterOpacity(1);document.body.classList.add('glitch-error');this.pad.activateAll();await sleep(CONFIG.gameOverFlashMs);if(!this.isCurrentRun(token))return;if(this.state!==STATE.GAME_OVER)return;document.body.classList.remove('glitch-error');this.pad.deactivateAll();setTimeout(()=>{if(!this.isCurrentRun(token))return;if(this.state!==STATE.GAME_OVER)return;if(!isNewRecord)return;this.hud.setStatus('シンキロク！','text-cyan-400');},1500);} updateHighScoreIfNeeded(score=this.completedLevelCount()){if(score<=this.highScore){return false;} this.highScore=score;storage.setNumber(CONFIG.storageKey,this.highScore);this.hud.setHighScore(this.highScore);return true;} completedLevelCount(){return Math.max(0,this.level-1);} triggerMilestone(){const token=this.runToken;this.hud.setStatus('エクセレント！','text-amber-300');document.body.classList.add('celebrate-bg');this.audio.playMilestoneSound();this.fireConfetti();setTimeout(()=>{if(!this.isCurrentRun(token))return;if(this.state!==STATE.CELEBRATING)return;document.body.classList.remove('celebrate-bg');this.nextLevel();},CONFIG.milestoneDelayMs);} fireConfetti(){if(typeof confetti!=='function')return;confetti({particleCount:100,spread:70,origin:{y:0.6},colors:['#FFE400','#FFBD00','#E89400','#FFCA6C','#FDFFB8'],disableForReducedMotion:true});} cancelPendingWork(){this.runToken++;this.clearInputTimer();this.pad.deactivateAll();document.body.classList.remove('glitch-error');document.body.classList.remove('celebrate-bg');} isCurrentRun(token){return token===this.runToken;}}
+        new MemoryGame();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>きせつまなび</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section id="home-screen" class="screen is-active" aria-labelledby="home-title">
+      <header class="home-header">
+        <p class="eyebrow">みて、えらんで、おぼえる</p>
+        <h1 id="home-title">きせつまなび</h1>
+        <div class="progress-card" aria-label="これまでのきろく">
+          <div>
+            <span class="metric-label">ほし</span>
+            <strong id="stars-value">0</strong>
+          </div>
+          <div>
+            <span class="metric-label">れんぞく</span>
+            <strong id="streak-value">0</strong>
+          </div>
+          <div>
+            <span class="metric-label">おぼえた</span>
+            <strong><span id="learned-value">0</span>/<span id="total-value">38</span></strong>
+          </div>
+        </div>
+      </header>
+
+      <div class="mode-grid" aria-label="あそびをえらぶ">
+        <button class="mode-card spring" data-mode="season">
+          <span class="mode-kana">きせつ</span>
+          <strong>どの季節かな</strong>
+          <small>絵をみて季節をえらぼう</small>
+        </button>
+        <button class="mode-card summer" data-mode="name">
+          <span class="mode-kana">なまえ</span>
+          <strong>これはなあに</strong>
+          <small>絵のなまえをあてよう</small>
+        </button>
+        <button class="mode-card autumn" data-mode="match">
+          <span class="mode-kana">なかま</span>
+          <strong>同じ季節さがし</strong>
+          <small>同じ季節の絵をみつけよう</small>
+        </button>
+        <button class="mode-card winter" data-mode="order">
+          <span class="mode-kana">じゅん</span>
+          <strong>季節のならび</strong>
+          <small>春、夏、秋、冬に並べよう</small>
+        </button>
+        <button class="mode-card challenge" data-mode="challenge">
+          <span class="mode-kana">おさらい</span>
+          <strong>きせつチャレンジ</strong>
+          <small>いろんな問題にちょうせん</small>
+        </button>
+      </div>
+
+      <section class="badge-panel" aria-labelledby="badge-title">
+        <h2 id="badge-title">バッジ</h2>
+        <div id="badge-list" class="badge-list"></div>
+      </section>
+
+      <section class="library-panel" aria-labelledby="library-title">
+        <div class="section-heading">
+          <h2 id="library-title">きせつずかん</h2>
+          <button id="shuffle-library" class="text-button" type="button">ならびかえ</button>
+        </div>
+        <div id="library-grid" class="library-grid"></div>
+      </section>
+    </section>
+
+    <section id="play-screen" class="screen" aria-live="polite">
+      <header class="play-header">
+        <button id="back-home" class="icon-button" type="button" aria-label="ホームにもどる">←</button>
+        <div>
+          <p id="mode-label" class="eyebrow">きせつ</p>
+          <h2 id="question-title">どの季節かな？</h2>
+        </div>
+        <div class="round-pill"><span id="round-now">1</span>/<span id="round-total">5</span></div>
+      </header>
+
+      <div id="round-track" class="round-track" aria-hidden="true"></div>
+
+      <div id="question-stage" class="question-stage"></div>
+
+      <div id="feedback-panel" class="feedback-panel" hidden>
+        <div id="feedback-mark" class="feedback-mark"></div>
+        <div id="feedback-copy" class="feedback-copy"></div>
+        <button id="next-question" class="primary-button" type="button">つぎへ</button>
+      </div>
+
+      <div id="answer-area" class="answer-area"></div>
+    </section>
+
+    <section id="result-screen" class="screen">
+      <div class="result-card">
+        <p class="eyebrow">けっか</p>
+        <h2 id="result-title">よくできました</h2>
+        <p id="result-score" class="result-score"></p>
+        <p id="result-message" class="result-message"></p>
+        <button id="result-home" class="primary-button" type="button">ホームにもどる</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
