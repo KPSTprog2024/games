@@ -1,0 +1,811 @@
+/* ==========================================================================
+   Gear: Waka-Zen - プレミアム和モダン デザインシステム
+   ========================================================================== */
+
+/* 変数定義 */
+:root {
+  --font-serif: 'Noto Serif JP', serif;
+  --font-brush: 'Yuji Syuku', serif;
+  --font-eng: 'Montserrat', sans-serif;
+  --bg-dark-washi: rgba(26, 26, 26, 0.95);
+  --color-gold: #c3a775;
+  --color-text-light: #f5f5f0;
+  --color-text-muted: rgba(245, 245, 240, 0.6);
+  --card-width: clamp(280px, 85vw, 420px);
+  --card-height: clamp(400px, 65vh, 620px);
+}
+
+/* 基本リセット & ページスクロールのバウンス無効化 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed; /* iOSでのバウンススクロール防止 */
+  font-family: var(--font-serif);
+  color: var(--color-text-light);
+  background-color: #5c6352; /* 初期背景色：草色 */
+  transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 長押し（爆速自動巡回）時に背景色遷移の遅延を無くし、0ms描画を維持するためのクラス */
+body.fast-mode {
+  transition: background-color 0s !important;
+}
+
+/* 和紙テクスチャオーバーレイ */
+.washi-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0),
+                    radial-gradient(rgba(0, 0, 0, 0.3) 1px, transparent 0);
+  background-size: 8px 8px, 12px 12px;
+  background-position: 0 0, 4px 4px;
+}
+
+/* メインアプリケーションコンテナ */
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* ヘッダーデザイン */
+.app-header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.logo .eng {
+  font-family: var(--font-eng);
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+}
+
+.logo .jp {
+  font-family: var(--font-brush);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+/* 季節フィルタータブ */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  max-width: 60%;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  padding: 4px 0;
+}
+
+.filter-tabs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.tab-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-serif);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-light);
+}
+
+.tab-btn.active {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: #1a1a1a;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(195, 167, 117, 0.3);
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+}
+
+/* アイコンボタン一般 */
+.icon-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-light);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* カード表示エリア */
+#cardViewport {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1500px;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   カードの3Dフリップ構造
+   ========================================================================== */
+.waka-card {
+  position: absolute;
+  width: var(--card-width);
+  height: var(--card-height);
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 仮想ウィンドウ（DOMリサイクリング用配置クラス） */
+.waka-card.state-current {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateY(0deg);
+  z-index: 5;
+  pointer-events: auto;
+}
+
+/* 先読み待機状態 (NEXT +1) - 画面右奥へ小さく配置 */
+.waka-card.state-next-1 {
+  opacity: 0.4;
+  transform: translate3d(60px, 0, -100px) rotateY(-15deg);
+  z-index: 4;
+}
+
+/* 先読み待機状態 (NEXT +2) - さらに奥へ */
+.waka-card.state-next-2 {
+  opacity: 0.1;
+  transform: translate3d(120px, 0, -200px) rotateY(-30deg);
+  z-index: 3;
+}
+
+/* キャッシュ状態 (PREV -1) - 画面左奥へ退避 */
+.waka-card.state-prev-1 {
+  opacity: 0.4;
+  transform: translate3d(-60px, 0, -100px) rotateY(15deg);
+  z-index: 4;
+}
+
+/* 範囲外（即座にリリース） */
+.waka-card.state-hidden {
+  opacity: 0;
+  transform: scale(0.8) translate3d(0, 0, -300px);
+  z-index: 1;
+}
+
+/* 長押し爆速巡回中の瞬間切り替えアニメーション（トランジションを0msにして超高速追従） */
+body.fast-mode .waka-card {
+  transition: transform 0s, opacity 0s !important;
+}
+
+/* カードの表裏の中身 */
+.card-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 16px;
+  background: var(--bg-dark-washi);
+  border: 1px solid rgba(195, 167, 117, 0.35);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  padding: 30px;
+  overflow: hidden;
+}
+
+/* 表カード（上の句） */
+.card-front {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.waka-id {
+  font-family: var(--font-eng);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--color-gold);
+  border-bottom: 1px solid rgba(195, 167, 117, 0.4);
+  padding-bottom: 4px;
+  margin-top: 5px;
+}
+
+/* 縦書きの和歌表示部 */
+.waka-text-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100% - 60px); /* カードの上下ヘッダー・フッターを考慮し高さを確保 */
+  padding: 10px 0;
+}
+
+.waka-kami-wrapper {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  height: 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.waka-kami-no-ku {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+}
+
+.waka-kami-no-ku span {
+  display: block; /* inline-blockからblockに変更し、各句を確実に独立した列（改行）にする */
+  font-family: var(--font-brush);
+  font-size: clamp(1.4rem, 3.8vh, 1.9rem); /* 画面サイズに追従しつつ見切れないフォントサイズ */
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--color-text-light);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+  margin-left: clamp(1.2rem, 4vw, 2.5rem); /* 句ごとの左右の十分な間隔 */
+  letter-spacing: 0.1em;
+}
+
+/* 階段状の配置下げ調整（見切れない安全な値に抑制） */
+.waka-kami-no-ku span:nth-child(2) {
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.waka-kami-no-ku span:nth-child(3) {
+  margin-top: clamp(3rem, 8vh, 5rem);
+}
+
+.waka-kami-no-ku .waka-poet-signature {
+  display: block; /* blockに変更し、上の句の左側に4列目の列として確実に並べる */
+  font-family: var(--font-serif) !important;
+  font-size: clamp(0.85rem, 2vh, 1.05rem) !important;
+  font-weight: 300 !important;
+  color: var(--color-gold) !important;
+  text-shadow: none !important;
+  margin-left: 0 !important;
+  margin-right: clamp(1.5rem, 5vw, 3rem) !important; /* 3句目の左側の間隔 */
+  margin-top: clamp(5rem, 14vh, 9.5rem) !important; /* 上の句に対して適度に下げる安全なマージン */
+  border-right: 1px dashed rgba(195, 167, 117, 0.4) !important;
+  padding-right: 8px !important;
+  letter-spacing: 0.05em !important;
+}
+
+.action-tip {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 5px;
+}
+
+/* 裏カード（詳細・下の句・訳） */
+.card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.back-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(195, 167, 117, 0.3);
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.back-poet {
+  font-family: var(--font-brush);
+  font-size: 1.4rem;
+  color: var(--color-gold);
+}
+
+.back-season-tag {
+  background: rgba(195, 167, 117, 0.15);
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  border-radius: 12px;
+}
+
+/* 裏面の全体レイアウト */
+.back-main-layout {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 45px);
+  gap: 15px;
+}
+
+/* 裏面和歌全体表示ゾーン（縦書き） */
+.back-waka-full-container {
+  height: 48%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px dashed rgba(195, 167, 117, 0.25);
+  padding-bottom: 15px;
+}
+
+.back-waka-full {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  height: 100%;
+  text-align: center;
+}
+
+.back-waka-kami, .back-waka-shimo {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.back-waka-kami {
+  color: var(--color-text-muted); /* 上の句は薄く表示 */
+  margin-left: clamp(1.5rem, 5vw, 3rem); /* 上の句と下の句の間の十分な余白 */
+}
+
+.back-waka-shimo {
+  color: var(--color-gold); /* 下の句は強調表示 */
+}
+
+.back-waka-kami span, .back-waka-shimo span {
+  display: block; /* blockにすることで各句を独立した列として綺麗に並べる */
+  font-family: var(--font-brush);
+  font-size: clamp(1.2rem, 2.4vh, 1.5rem);
+  line-height: 1.4;
+  margin-left: clamp(0.5rem, 2vw, 1rem); /* 句ごとの間隔 */
+}
+
+/* 句の下げ配置調整（情緒感） */
+.back-waka-kami span:nth-child(2) { margin-top: 1rem; }
+.back-waka-kami span:nth-child(3) { margin-top: 2rem; }
+.back-waka-shimo span:nth-child(2) { margin-top: 1rem; }
+
+/* 横書き解説ゾーン */
+.back-explanation-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  writing-mode: horizontal-tb;
+  -webkit-writing-mode: horizontal-tb;
+  padding-right: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(195, 167, 117, 0.3) transparent;
+}
+
+.back-explanation-box::-webkit-scrollbar {
+  width: 4px;
+}
+.back-explanation-box::-webkit-scrollbar-thumb {
+  background: rgba(195, 167, 117, 0.3);
+  border-radius: 2px;
+}
+
+/* AI解説プロンプトコピーボタン */
+.prompt-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(195, 167, 117, 0.08);
+  border: 1px solid rgba(195, 167, 117, 0.35);
+  color: var(--color-gold);
+  border-radius: 8px;
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-bottom: 4px;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.prompt-copy-btn:hover {
+  background: rgba(195, 167, 117, 0.18);
+  border-color: var(--color-gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(195, 167, 117, 0.2);
+}
+
+.prompt-copy-btn:active {
+  transform: translateY(0);
+}
+
+.prompt-copy-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.prompt-copy-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* コピー完了状態 */
+.prompt-copy-btn.copied {
+  background: rgba(78, 124, 89, 0.25) !important; /* 抹茶色（安心グリーン） */
+  border-color: #4e7c59 !important;
+  color: #a8d3b2 !important;
+  box-shadow: 0 4px 12px rgba(78, 124, 89, 0.2) !important;
+}
+
+.back-content-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.back-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+}
+
+.back-translation {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-light);
+  font-weight: 300;
+}
+
+.back-note {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(245, 245, 240, 0.75);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* 3Dカードの反転状態クラス */
+.waka-card.flipped {
+  transform: translate3d(0, 0, 0) rotateY(180deg) !important;
+}
+
+/* ==========================================================================
+   フッターコントロールパネル
+   ========================================================================== */
+.app-controls {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  gap: 20px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-group label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.control-group select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-light);
+  padding: 6px 12px;
+  border-radius: 8px;
+  outline: none;
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.audio-controls {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.audio-controls input[type="range"] {
+  width: 80px;
+  accent-color: var(--color-gold);
+  cursor: pointer;
+}
+
+/* プログレス表示 */
+.progress-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-gold);
+  transition: width 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 0 8px rgba(195, 167, 117, 0.6);
+}
+
+.progress-text {
+  font-family: var(--font-eng);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   親指操作用トリガーゾーン (画面に覆うオーバーレイ)
+   ========================================================================== */
+#triggerOverlay {
+  position: absolute;
+  top: 60px; /* headerの下 */
+  bottom: 80px; /* footerの上 */
+  left: 0;
+  width: 100%;
+  z-index: 100; /* 最前面 */
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none; /* 子要素（左右のトリガー）以外はイベントを通す */
+}
+
+.trigger-zone {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-color 0.1s ease;
+  pointer-events: auto; /* ここでタップイベントを受け取る */
+}
+
+#triggerPrev {
+  width: 25%;
+  border-right: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+#triggerNext {
+  width: 25%;
+  border-left: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+/* 操作ガイド用ラベル（薄く表示） */
+.trigger-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--color-text-muted);
+  opacity: 0; /* 通常は見えないようにし、画面をスッキリ見せる */
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+/* ホバーまたは長押しガイド表示用（該当するゾーンのみ表示） */
+.trigger-zone:hover .trigger-label {
+  opacity: 0.4;
+}
+
+/* タップ・クリックした瞬間の波紋アニメーション */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(0);
+  animation: ripple-effect 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   ウェルカムモーダル
+   ========================================================================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.modal.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #1e1e1e;
+  border: 1px solid var(--color-gold);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+
+.modal-content h2 {
+  font-family: var(--font-brush);
+  font-size: 2.2rem;
+  color: var(--color-gold);
+  margin-bottom: 8px;
+}
+
+.modal-lead {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin-bottom: 30px;
+}
+
+.help-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+  margin-bottom: 35px;
+}
+
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.help-icon {
+  font-size: 1.5rem;
+  background: rgba(195, 167, 117, 0.1);
+  color: var(--color-gold);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.help-item h3 {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  margin-bottom: 4px;
+}
+
+.help-item p {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(245, 245, 240, 0.65);
+}
+
+.cta-btn {
+  background: var(--color-gold);
+  color: #111;
+  border: none;
+  padding: 12px 36px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 20px rgba(195, 167, 117, 0.4);
+}
+
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(195, 167, 117, 0.6);
+}
+
+/* ==========================================================================
+   レスポンシブ微調整
+   ========================================================================== */
+@media (max-width: 600px) {
+  .app-header {
+    padding: 0 12px;
+  }
+  .filter-tabs {
+    max-width: 50%;
+  }
+  .app-controls {
+    padding: 0 12px;
+    height: 70px;
+  }
+  #triggerOverlay {
+    top: 60px;
+    bottom: 70px;
+  }
+  .modal-content {
+    padding: 25px 20px;
+  }
+  .audio-controls input[type="range"] {
+    width: 60px;
+  }
+}
