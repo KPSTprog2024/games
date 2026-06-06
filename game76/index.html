@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Color Gear — 爆速色彩巡回エンジン</title>
+  <meta name="description" content="0msのページめくり体験で、世界中の伝統色と脳が痺れる歴史トリビアに出逢う色彩ハック。">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="viewport">
+    
+    <!-- background color rendering layer (directly changes color) -->
+    <div id="bg-layer" class="color-bg-layer"></div>
+
+    <!-- 3D Card structure -->
+    <div id="card-wrapper" class="card-wrapper">
+      
+      <!-- FRONT FACE (Pure Color Impact) -->
+      <div class="card-face card-front">
+        <div class="front-hud">
+          <span class="color-hint" id="hud-index-display">0 / 0</span>
+          <span class="color-hint" id="hud-tag-display">ALL COLORS</span>
+        </div>
+        
+        <!-- Animated tap prompt to help users understand -->
+        <div class="front-center-prompt">
+          <p>TAP CENTER TO REVEAL TRIVIA</p>
+        </div>
+
+        <div class="front-hud" style="justify-content: flex-end;">
+          <span class="color-hint" id="hud-region-display">伝統色</span>
+        </div>
+      </div>
+
+      <!-- BACK FACE (Trivia & Info Details) -->
+      <div class="card-face card-back">
+        <div class="trivia-header">
+          <div class="trivia-tag-container" id="trivia-tags">
+            <!-- Dynamic tags -->
+          </div>
+          <h1 class="color-title-ja" id="trivia-title">色名</h1>
+          <div class="color-code-display" id="trivia-hex">#000000</div>
+        </div>
+
+        <div class="trivia-content" id="trivia-text">
+          <!-- Trivia paragraph -->
+        </div>
+
+        <div class="back-hud">
+          <div class="back-hud-actions">
+            <button class="back-btn" id="btn-flip-back">TAP TO HIDE</button>
+            <button class="back-btn btn-ai-prompt" id="btn-copy-prompt">AI PROMPT</button>
+          </div>
+          <div class="back-hud-info">
+            <span class="color-hint" id="trivia-index-display">000 / 000</span>
+            <span class="color-hint" style="letter-spacing: 0.1em;" id="trivia-category-info">WESTERN TRADITIONAL</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Touch interactive Zones (NEXT / PREV / ACTION) -->
+    <div id="tap-zones" class="tap-zones-container">
+      <div class="tap-zone zone-prev" id="zone-prev"></div>
+      <div class="tap-zone zone-action" id="zone-action"></div>
+      <div class="tap-zone zone-next" id="zone-next"></div>
+    </div>
+
+    <!-- Floating HUD Controls (Top Left: Menu/Filter, Top Right: Like, Center Bottom: Auto-play) -->
+    <button class="hud-btn" id="btn-menu" aria-label="Menu and Settings">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+    </button>
+
+    <button class="hud-btn" id="btn-like-toggle" aria-label="Like this Color">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </button>
+
+    <button class="hud-btn" id="btn-autoplay" aria-label="Autoplay mode">
+      <svg viewBox="0 0 24 24" style="width: 14px; height: 14px;">
+        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm-6.8 5.2L3.74 7.74C2.9 9.17 2.5 10.63 2.5 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8z"/>
+      </svg>
+      <span id="autoplay-text">AUTO</span>
+    </button>
+
+    <!-- Overlay Panel: Menu & Settings -->
+    <div class="glass-panel" id="panel-menu">
+      <div class="panel-header">
+        <h2 class="panel-title">Settings & Filters</h2>
+        <button class="panel-close" id="btn-close-menu">&times;</button>
+      </div>
+      <div class="panel-content">
+        
+        <!-- Autoplay FPS Setting -->
+        <div class="setting-row">
+          <label class="setting-label">Autoplay Frame Rate (FPS)</label>
+          <div class="segment-control" id="fps-control">
+            <button class="segment-btn" data-fps="1">1</button>
+            <button class="segment-btn" data-fps="5">5</button>
+            <button class="segment-btn" data-fps="12">12</button>
+            <button class="segment-btn is-active" data-fps="24">24</button>
+            <button class="segment-btn" data-fps="60">60</button>
+          </div>
+        </div>
+
+        <!-- Touch Zone Helpers -->
+        <div class="setting-row">
+          <label class="setting-label">Tap Zone Guide Lines</label>
+          <div class="segment-control" id="guide-control">
+            <button class="segment-btn is-active" data-guide="hide">Hide</button>
+            <button class="segment-btn" data-guide="show">Show</button>
+          </div>
+        </div>
+
+        <!-- Color Tag Filters -->
+        <div class="setting-row">
+          <label class="setting-label">Filter by Collection / Hue</label>
+          <div class="filter-tags-grid" id="tags-grid">
+            <button class="filter-tag-btn is-active" data-tag="all">All Colors</button>
+            <button class="filter-tag-btn" data-tag="japan">日本の伝統色</button>
+            <button class="filter-tag-btn" data-tag="west">西洋の伝統色</button>
+            <button class="filter-tag-btn" data-tag="red">赤系 (Red)</button>
+            <button class="filter-tag-btn" data-tag="blue">青系 (Blue)</button>
+            <button class="filter-tag-btn" data-tag="green">緑系 (Green)</button>
+            <button class="filter-tag-btn" data-tag="yellow">黄系 (Yellow)</button>
+            <button class="filter-tag-btn" data-tag="purple">紫系 (Purple)</button>
+            <button class="filter-tag-btn" data-tag="brown">茶・黒 (Brown/Black)</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Overlay Panel: Liked Colors (Collection) -->
+    <div class="glass-panel" id="panel-likes">
+      <div class="panel-header">
+        <h2 class="panel-title">My Color Palette</h2>
+        <button class="panel-close" id="btn-close-likes">&times;</button>
+      </div>
+      <div class="panel-content">
+        <div class="likes-list" id="likes-container">
+          <!-- Dynamic like items -->
+          <div class="empty-likes">No liked colors yet.<br>Double-tap screen center to save!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast message (e.g., Color code copied) -->
+    <div class="toast" id="toast-notify">COLOR CODE COPIED</div>
+
+  </div>
+
+  <!-- Load script files (split into parts for token safety & organization) -->
+  <script src="colors_part1.js"></script>
+  <script src="colors_part2.js"></script>
+  <script src="colors_part3.js"></script>
+  <script src="colors_part4.js"></script>
+  <script src="colors_part5.js"></script>
+  <script src="colors_part6.js"></script>
+  <script src="colors_part7.js"></script>
+  <script src="colors_part8.js"></script>
+  <script src="colors_part9.js"></script>
+  <script src="colors_part10.js"></script>
+  <script src="colors_part11.js"></script>
+  <script src="colors_part12.js"></script>
+  <script src="colors_part13.js"></script>
+  <script src="colors_part14.js"></script>
+  <script src="colors.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

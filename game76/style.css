@@ -1,0 +1,660 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Shippori+Mincho:wght@400;700&display=swap');
+
+:root {
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Shippori Mincho', serif;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: rgba(0, 0, 0, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent-color: #ffd700;
+  --transition-speed: 0.2s;
+}
+
+/* Base Styles & Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #0b0c10;
+  color: var(--text-primary);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Main Viewport Container */
+#viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 480px; /* スマホサイズに最大幅を制限してプレミアム感を演出 */
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  overflow: hidden;
+  background-color: #121212;
+  perspective: 1500px;
+}
+
+/* Background Color Layer (The core color being rendered) */
+.color-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: background-color 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+/* Card Flipping Mechanism */
+.card-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card-wrapper.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* Card Face Template */
+.card-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Front Face: Pure Color Experience */
+.card-front {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px 30px;
+  z-index: 2;
+  background: transparent; /* Underneath background layer shows through */
+}
+
+/* Small hints overlayed cleanly */
+.color-hint {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+
+/* Floating HUD layout on front */
+.front-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.front-center-prompt {
+  align-self: center;
+  margin-top: auto;
+  margin-bottom: 80px;
+  text-align: center;
+  opacity: 0;
+  animation: pulse-fade 3s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.front-center-prompt p {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.6);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+@keyframes pulse-fade {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.7; }
+}
+
+/* Back Face: Trivia and Details (Glassmorphic & Floating Window) */
+.card-back {
+  transform: rotateY(180deg);
+  background: rgba(10, 12, 18, 0.65); /* 透明度をやや上げ、元の色が透けるように調整 */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  /* 画面全体ではなく一回り小さく配置し、上下左右の「窓」から背後の色を露出させる */
+  position: absolute;
+  top: 6%;
+  left: 6%;
+  width: 88%;
+  height: 88%;
+  border-radius: 24px; /* 美しい浮遊感を与える角丸 */
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); /* 影をつけて立体感を強調 */
+  
+  padding: 35px 25px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  overflow-y: auto;
+}
+
+/* Typography on Back */
+.trivia-header {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.trivia-tag-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.trivia-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.trivia-tag.tag-japan {
+  background: rgba(235, 97, 1, 0.15);
+  border-color: rgba(235, 97, 1, 0.3);
+  color: #ff9f68;
+}
+
+.trivia-tag.tag-west {
+  background: rgba(0, 122, 135, 0.15);
+  border-color: rgba(0, 122, 135, 0.3);
+  color: #79f2ff;
+}
+
+.color-title-ja {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.color-code-display {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--accent-color);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity var(--transition-speed);
+}
+
+.color-code-display:active {
+  opacity: 0.5;
+}
+
+.color-code-display::after {
+  content: 'COPY';
+  font-size: 9px;
+  font-weight: 400;
+  border: 1px solid var(--accent-color);
+  padding: 1px 4px;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.trivia-content {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 5px;
+}
+
+.trivia-content p {
+  margin-bottom: 15px;
+}
+
+/* Back HUD (Like state, Flip Back) */
+.back-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.back-hud-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.back-hud-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.back-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 8px 14px;
+  border-radius: 30px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all var(--transition-speed);
+}
+
+.back-btn:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.95);
+}
+
+.btn-ai-prompt {
+  border-color: rgba(255, 215, 0, 0.35);
+  color: var(--accent-color);
+}
+
+.btn-ai-prompt:active {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+/* Tap Zones - Overlaying all */
+.tap-zones-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.tap-zones-container.disabled-for-flip {
+  pointer-events: none;
+}
+
+.tap-zone {
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s ease;
+}
+
+.tap-zone.zone-prev {
+  width: 32.5%;
+}
+
+.tap-zone.zone-action {
+  width: 35%;
+}
+
+.tap-zone.zone-next {
+  width: 32.5%;
+}
+
+/* Tap Feedbacks */
+.tap-zone::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  pointer-events: none;
+}
+
+.tap-zone:active::before {
+  opacity: 1;
+}
+
+/* Debbugging visual borders (Optional) */
+.tap-zones-container.show-borders .tap-zone {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.tap-zones-container.show-borders .tap-zone::after {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.tap-zones-container.show-borders .zone-prev::after { content: 'PREV'; }
+.tap-zones-container.show-borders .zone-action::after { content: 'ACTION'; }
+.tap-zones-container.show-borders .zone-next::after { content: 'NEXT'; }
+
+/* UI Overlay Control HUDs */
+.hud-btn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 15px var(--glass-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all var(--transition-speed);
+}
+
+.hud-btn:active {
+  transform: scale(0.9) translateY(2px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hud-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--text-primary);
+}
+
+/* Positioning HUD buttons */
+#btn-menu {
+  top: 25px;
+  left: 25px;
+}
+
+#btn-like-toggle {
+  top: 25px;
+  right: 25px;
+}
+
+#btn-like-toggle.is-liked svg {
+  fill: #ff4757;
+}
+
+#btn-autoplay {
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  padding: 0 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  gap: 8px;
+}
+
+#btn-autoplay.is-playing {
+  background: rgba(255, 71, 87, 0.2);
+  border-color: rgba(255, 71, 87, 0.5);
+  color: #ff4757;
+}
+
+#btn-autoplay.is-playing svg {
+  fill: #ff4757;
+  animation: rotate-inf 3s infinite linear;
+}
+
+@keyframes rotate-inf {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Glass Panels (Settings, Menu, Like List) */
+.glass-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 12, 18, 0.85);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  z-index: 20;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-top: 1px solid var(--glass-border);
+}
+
+.glass-panel.is-active {
+  transform: translateY(0);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.panel-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Settings Form elements */
+.setting-row {
+  margin-bottom: 25px;
+}
+
+.setting-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* Toggle buttons or Segment controls */
+.segment-control {
+  display: flex;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.segment-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.segment-btn.is-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Tag buttons list */
+.filter-tags-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.filter-tag-btn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-speed);
+}
+
+.filter-tag-btn.is-active {
+  background: var(--text-primary);
+  color: #000000;
+  border-color: var(--text-primary);
+}
+
+/* Liked Colors List */
+.likes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.like-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--glass-border);
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform var(--transition-speed);
+}
+
+.like-item:active {
+  transform: scale(0.98);
+}
+
+.like-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.like-color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.4);
+}
+
+.like-color-name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.like-color-code {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.empty-likes {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 40px;
+}
+
+/* Toast Notification for Copies */
+.toast {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid var(--glass-border);
+  color: var(--accent-color);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  opacity: 0;
+  z-index: 30;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Custom scrollbar for panels */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Utility to disable active transition during continuous auto-scroll */
+.no-transition {
+  transition: none !important;
+}
