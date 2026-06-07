@@ -113,27 +113,6 @@ body {
   width: 100%;
 }
 
-.front-center-prompt {
-  align-self: center;
-  margin-top: auto;
-  margin-bottom: 80px;
-  text-align: center;
-  opacity: 0;
-  animation: pulse-fade 3s infinite ease-in-out;
-  pointer-events: none;
-}
-
-.front-center-prompt p {
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  color: rgba(255,255,255,0.6);
-  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-}
-
-@keyframes pulse-fade {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.7; }
-}
 
 /* Back Face: Trivia and Details (Glassmorphic & Floating Window) */
 .card-back {
@@ -398,46 +377,8 @@ body {
 
 /* Positioning HUD buttons */
 #btn-menu {
-  top: 25px;
-  left: 25px;
-}
-
-#btn-like-toggle {
-  top: 25px;
-  right: 25px;
-}
-
-#btn-like-toggle.is-liked svg {
-  fill: #ff4757;
-}
-
-#btn-autoplay {
   bottom: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: auto;
-  padding: 0 20px;
-  border-radius: 30px;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  gap: 8px;
-}
-
-#btn-autoplay.is-playing {
-  background: rgba(255, 71, 87, 0.2);
-  border-color: rgba(255, 71, 87, 0.5);
-  color: #ff4757;
-}
-
-#btn-autoplay.is-playing svg {
-  fill: #ff4757;
-  animation: rotate-inf 3s infinite linear;
-}
-
-@keyframes rotate-inf {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  left: 25px;
 }
 
 /* Glass Panels (Settings, Menu, Like List) */

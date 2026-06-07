@@ -15,7 +15,6 @@ const state = {
   currentIndex: 0,      // Active index in dataSource
   targetFPS: 24,        // Frames per second for auto-scroll (default: 24)
   isLongPressing: false,
-  isAutoplayOn: false,  // Toggle for persistent auto-scroll without holding
   currentFilter: 'all',
   likedIds: [],         // IDs of liked colors stored in LocalStorage
   isFlipped: false      // Whether the card is currently showing trivia (back face)
@@ -33,21 +32,16 @@ const dom = {
   
   // HUD Displays
   hudIndex: document.getElementById('hud-index-display'),
-  hudTag: document.getElementById('hud-tag-display'),
-  hudRegion: document.getElementById('hud-region-display'),
   
   // Trivia Elements
   triviaTags: document.getElementById('trivia-tags'),
   triviaTitle: document.getElementById('trivia-title'),
   triviaHex: document.getElementById('trivia-hex'),
   triviaText: document.getElementById('trivia-text'),
-  triviaCategoryInfo: document.getElementById('trivia-category-info'),
   triviaIndex: document.getElementById('trivia-index-display'),
   
   // Interactive Buttons
   btnMenu: document.getElementById('btn-menu'),
-  btnLikeToggle: document.getElementById('btn-like-toggle'),
-  btnAutoplay: document.getElementById('btn-autoplay'),
   btnFlipBack: document.getElementById('btn-flip-back'),
   btnCopyPrompt: document.getElementById('btn-copy-prompt'),
   
@@ -89,7 +83,6 @@ function loadLikes() {
 function saveLikes() {
   localStorage.setItem('color_gear_likes', JSON.stringify(state.likedIds));
   renderLikesPanel();
-  updateLikeButtonUI();
 }
 
 function toggleLike(id) {
@@ -145,7 +138,6 @@ function changeCard(nextIndex, force = false) {
   requestAnimationFrame(() => {
     updateMemoryWindow();
     updateHUD();
-    updateLikeButtonUI();
   });
 }
 
@@ -182,10 +174,6 @@ function updateMemoryWindow() {
     dom.triviaTags.appendChild(span);
   });
 
-  // Display category info on bottom right of back card
-  const isJapan = currentCard.tags.includes('japan');
-  dom.triviaCategoryInfo.textContent = isJapan ? 'JAPANESE TRADITIONAL' : 'WESTERN TRADITIONAL';
-
   // Display padded index (e.g. 001 / 500)
   const currentNum = String(curr + 1).padStart(3, '0');
   const totalNum = String(len).padStart(3, '0');
@@ -203,36 +191,10 @@ function updateMemoryWindow() {
 function updateHUD() {
   if (state.dataSource.length === 0) return;
   
-  const currentCard = state.dataSource[state.currentIndex];
   dom.hudIndex.textContent = `${state.currentIndex + 1} / ${state.dataSource.length}`;
   
-  // Filter tag display
-  const filterNames = {
-    all: 'ALL COLORS',
-    japan: '日本の伝統色',
-    west: '西洋の伝統色',
-    red: '赤系 (RED)',
-    blue: '青系 (BLUE)',
-    green: '緑系 (GREEN)',
-    yellow: '黄系 (YELLOW)',
-    purple: '紫系 (PURPLE)',
-    brown: '茶・黒 (BROWN/BLACK)'
-  };
-  dom.hudTag.textContent = filterNames[state.currentFilter] || 'FILTERED';
-  
-  const isJapan = currentCard.tags.includes('japan');
-  dom.hudRegion.textContent = isJapan ? 'JAPANESE' : 'WESTERN';
 }
 
-function updateLikeButtonUI() {
-  if (state.dataSource.length === 0) return;
-  const currentCard = state.dataSource[state.currentIndex];
-  if (state.likedIds.includes(currentCard.id)) {
-    dom.btnLikeToggle.classList.add('is-liked');
-  } else {
-    dom.btnLikeToggle.classList.remove('is-liked');
-  }
-}
 
 // --- 2-Page Step Navigation (0ms Trigger Logic) ---
 function executeSingleTapStep(direction) {
@@ -264,10 +226,6 @@ function executeSingleTapStep(direction) {
 
 // --- Long Press Auto-Scroll Loop (Core Logic 5.2.③) ---
 function handlePointerDown(direction) {
-  if (state.isAutoplayOn) {
-    stopAutoplay();
-  }
-
   // 1. Immediately run single tap action (0ms response)
   executeSingleTapStep(direction);
 
@@ -299,40 +257,6 @@ function handlePointerUp() {
   dom.bgLayer.classList.remove('no-transition');
 }
 
-// --- Autoplay Toggle (Persistent hands-free slideshow) ---
-function toggleAutoplay() {
-  if (state.isAutoplayOn) {
-    stopAutoplay();
-  } else {
-    startAutoplay();
-  }
-}
-
-function startAutoplay() {
-  state.isAutoplayOn = true;
-  dom.btnAutoplay.classList.add('is-playing');
-  document.getElementById('autoplay-text').textContent = 'PLAYING';
-  
-  if (state.isFlipped) {
-    setFlip(false);
-  }
-  
-  dom.bgLayer.classList.add('no-transition');
-  
-  const intervalMs = 1000 / state.targetFPS;
-  frameInterval = setInterval(() => {
-    changeCard(state.currentIndex + 1);
-  }, intervalMs);
-}
-
-function stopAutoplay() {
-  state.isAutoplayOn = false;
-  dom.btnAutoplay.classList.remove('is-playing');
-  document.getElementById('autoplay-text').textContent = 'AUTO';
-  
-  clearInterval(frameInterval);
-  dom.bgLayer.classList.remove('no-transition');
-}
 
 // --- Filter Database ---
 function applyFilter(filterTag) {
@@ -503,11 +427,6 @@ function initEventListeners() {
   dom.zoneAction.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     
-    // Stop autoplay if playing
-    if (state.isAutoplayOn) {
-      stopAutoplay();
-    }
-
     const now = Date.now();
     const timeDiff = now - lastTapTime;
     
@@ -547,26 +466,10 @@ function initEventListeners() {
     copyAIPrompt();
   });
 
-  // Toggle Like button
-  dom.btnLikeToggle.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const currentCard = state.dataSource[state.currentIndex];
-    toggleLike(currentCard.id);
-  });
-
-  // Autoplay Button
-  dom.btnAutoplay.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleAutoplay();
-  });
-
   // Menu / Filter Button
   dom.btnMenu.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (state.isAutoplayOn) stopAutoplay();
     dom.panelMenu.classList.add('is-active');
   });
 
@@ -577,7 +480,6 @@ function initEventListeners() {
   // Open Likes Panel (via Index Display or Like Button holding)
   dom.hudIndex.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    if (state.isAutoplayOn) stopAutoplay();
     renderLikesPanel();
     dom.panelLikes.classList.add('is-active');
   });
@@ -598,11 +500,6 @@ function initEventListeners() {
     dom.fpsControl.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('is-active'));
     btn.classList.add('is-active');
 
-    // If currently autoplaying, restart timer with new FPS interval
-    if (state.isAutoplayOn) {
-      stopAutoplay();
-      startAutoplay();
-    }
     triggerHaptic();
   });
 
