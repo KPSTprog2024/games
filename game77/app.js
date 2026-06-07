@@ -19,7 +19,6 @@ const state = {
 const dom = {
   viewport: null,
   progressBar: null,
-  progressText: null,
   fpsSelector: null,
   audioToggleBtn: null,
   audioIconOn: null,
@@ -296,7 +295,6 @@ function stepCard(direction) {
 function updateProgressBar() {
   if (state.dataSource.length === 0) {
     dom.progressBar.style.width = '0%';
-    dom.progressText.textContent = '0 / 0';
     return;
   }
   const currentNum = state.currentIndex + 1;
@@ -304,7 +302,6 @@ function updateProgressBar() {
   const percentage = (currentNum / totalNum) * 100;
   
   dom.progressBar.style.width = `${percentage}%`;
-  dom.progressText.textContent = `${currentNum} / ${totalNum}`;
 }
 
 // --------------------------------------------------------------------------
@@ -551,7 +548,6 @@ function setupEventListeners() {
 function initApp() {
   dom.viewport = document.getElementById('cardViewport');
   dom.progressBar = document.getElementById('progressBar');
-  dom.progressText = document.getElementById('progressText');
   dom.fpsSelector = document.getElementById('fpsSelector');
   dom.audioToggleBtn = document.getElementById('audioToggleBtn');
   dom.audioIconOn = document.getElementById('audioIconOn');
