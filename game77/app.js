@@ -148,7 +148,6 @@ function createCardDOM(waka) {
           </div>
         </div>
       </div>
-      <div class="action-tip">右側タップで下の句へ</div>
     </div>
     
     <!-- カード裏面（解説・上の句＋下の句併記） -->

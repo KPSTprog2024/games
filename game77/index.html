@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Gear: Waka-Zen - 超高速百人一首巡回エンジン</title>
+  <title>Waka-Junkai 百人一首</title>
   
   <!-- Google Fonts: 麗しい和風フォントと洗練されたゴシック/明朝 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,7 +21,7 @@
     <!-- ヘッダー / 季節・分類フィルター -->
     <header class="app-header">
       <div class="logo">
-        <span class="eng">Gear</span><span class="jp">和歌禅</span>
+        <span class="eng">Waka-Junkai</span><span class="jp">百人一首</span>
       </div>
       <nav class="filter-tabs" id="filterTabs">
         <button class="tab-btn active" data-filter="all">すべて</button>
@@ -76,19 +76,15 @@
 
     <!-- 親指操作用トリガーゾーン (画面上に重ねる透明なレイヤー) -->
     <div id="triggerOverlay">
-      <div id="triggerPrev" class="trigger-zone" data-action="PREV">
-        <span class="trigger-label">戻る</span>
-      </div>
-      <div id="triggerNext" class="trigger-zone" data-action="NEXT">
-        <span class="trigger-label">進む (長押し自動)</span>
-      </div>
+      <div id="triggerPrev" class="trigger-zone" data-action="PREV"></div>
+      <div id="triggerNext" class="trigger-zone" data-action="NEXT"></div>
     </div>
   </div>
 
   <!-- 初回ヘルプ/ウェルカムモーダル -->
   <div id="helpModal" class="modal">
     <div class="modal-content">
-      <h2>「和歌禅」へようこそ</h2>
+      <h2>「Waka-Junkai 百人一首」へようこそ</h2>
       <p class="modal-lead">指先で百人一首を爆速で巡る、極上の禅体験。</p>
       
       <div class="help-sections">
