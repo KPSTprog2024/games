@@ -636,27 +636,10 @@ body.fast-mode .waka-card {
 
 #triggerPrev {
   width: 25%;
-  border-right: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
 #triggerNext {
   width: 25%;
-  border-left: 1px dashed rgba(255, 255, 255, 0.05);
-}
-
-/* 操作ガイド用ラベル（薄く表示） */
-.trigger-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  color: var(--color-text-muted);
-  opacity: 0; /* 通常は見えないようにし、画面をスッキリ見せる */
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-/* ホバーまたは長押しガイド表示用（該当するゾーンのみ表示） */
-.trigger-zone:hover .trigger-label {
-  opacity: 0.4;
 }
 
 /* タップ・クリックした瞬間の波紋アニメーション */
