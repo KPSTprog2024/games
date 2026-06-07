@@ -21,16 +21,6 @@
       <div class="card-face card-front">
         <div class="front-hud">
           <span class="color-hint" id="hud-index-display">0 / 0</span>
-          <span class="color-hint" id="hud-tag-display">ALL COLORS</span>
-        </div>
-        
-        <!-- Animated tap prompt to help users understand -->
-        <div class="front-center-prompt">
-          <p>TAP CENTER TO REVEAL TRIVIA</p>
-        </div>
-
-        <div class="front-hud" style="justify-content: flex-end;">
-          <span class="color-hint" id="hud-region-display">伝統色</span>
         </div>
       </div>
 
@@ -55,7 +45,6 @@
           </div>
           <div class="back-hud-info">
             <span class="color-hint" id="trivia-index-display">000 / 000</span>
-            <span class="color-hint" style="letter-spacing: 0.1em;" id="trivia-category-info">WESTERN TRADITIONAL</span>
           </div>
         </div>
       </div>
@@ -69,25 +58,13 @@
       <div class="tap-zone zone-next" id="zone-next"></div>
     </div>
 
-    <!-- Floating HUD Controls (Top Left: Menu/Filter, Top Right: Like, Center Bottom: Auto-play) -->
+    <!-- Floating HUD Controls (Bottom Left: Menu/Filter) -->
     <button class="hud-btn" id="btn-menu" aria-label="Menu and Settings">
       <svg viewBox="0 0 24 24">
         <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
       </svg>
     </button>
 
-    <button class="hud-btn" id="btn-like-toggle" aria-label="Like this Color">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-      </svg>
-    </button>
-
-    <button class="hud-btn" id="btn-autoplay" aria-label="Autoplay mode">
-      <svg viewBox="0 0 24 24" style="width: 14px; height: 14px;">
-        <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm-6.8 5.2L3.74 7.74C2.9 9.17 2.5 10.63 2.5 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8z"/>
-      </svg>
-      <span id="autoplay-text">AUTO</span>
-    </button>
 
     <!-- Overlay Panel: Menu & Settings -->
     <div class="glass-panel" id="panel-menu">
@@ -97,9 +74,9 @@
       </div>
       <div class="panel-content">
         
-        <!-- Autoplay FPS Setting -->
+        <!-- Long-press speed setting -->
         <div class="setting-row">
-          <label class="setting-label">Autoplay Frame Rate (FPS)</label>
+          <label class="setting-label">Long-Press Speed (FPS)</label>
           <div class="segment-control" id="fps-control">
             <button class="segment-btn" data-fps="1">1</button>
             <button class="segment-btn" data-fps="5">5</button>
