@@ -11,6 +11,8 @@
 // Application State
 const state = {
   allData: [],          // Original full dataset from colors.js
+  allTitles: [],        // Internal full title list used for duplicate diagnostics
+  titleDiagnostics: null, // Internal duplicate-check result for tests and console inspection
   dataSource: [],       // Filtered dataset currently being cycled
   currentIndex: 0,      // Active index in dataSource
   targetFPS: 24,        // Frames per second for auto-scroll (default: 24)
@@ -83,6 +85,60 @@ function loadLikes() {
 function saveLikes() {
   localStorage.setItem('color_gear_likes', JSON.stringify(state.likedIds));
   renderLikesPanel();
+}
+
+function buildTitleDiagnostics(cards) {
+  const titles = cards.map(card => card.title);
+  const titleMap = titles.reduce((map, title, index) => {
+    if (!map.has(title)) {
+      map.set(title, []);
+    }
+
+    const card = cards[index];
+    map.get(title).push({
+      index: index + 1,
+      id: card.id,
+      hex: card.hex
+    });
+
+    return map;
+  }, new Map());
+
+  const duplicateGroups = [...titleMap.entries()]
+    .filter(([, entries]) => entries.length > 1)
+    .map(([title, entries]) => ({
+      title,
+      count: entries.length,
+      entries
+    }));
+
+  return {
+    titles,
+    totalCount: titles.length,
+    uniqueCount: titleMap.size,
+    duplicateGroupCount: duplicateGroups.length,
+    duplicateEntryCount: duplicateGroups.reduce((sum, group) => sum + group.count, 0),
+    duplicateExtraCount: duplicateGroups.reduce((sum, group) => sum + group.count - 1, 0),
+    duplicateGroups
+  };
+}
+
+function reportTitleDiagnostics(diagnostics) {
+  console.info('[Colors] Title diagnostics', {
+    totalCount: diagnostics.totalCount,
+    uniqueCount: diagnostics.uniqueCount,
+    duplicateGroupCount: diagnostics.duplicateGroupCount,
+    duplicateEntryCount: diagnostics.duplicateEntryCount,
+    duplicateExtraCount: diagnostics.duplicateExtraCount
+  });
+
+  if (diagnostics.duplicateGroupCount > 0) {
+    console.table(diagnostics.duplicateGroups.map(group => ({
+      title: group.title,
+      count: group.count,
+      entries: group.entries.map(entry => `${entry.index}:${entry.id}:${entry.hex}`).join(', ')
+    })));
+  }
 }
 
 function toggleLike(id) {
@@ -565,6 +621,11 @@ function initEventListeners() {
 function init() {
   // Load data from window namespace (defined in colors.js)
   state.allData = window.COLOR_DATABASE || [];
+  state.titleDiagnostics = buildTitleDiagnostics(state.allData);
+  state.allTitles = state.titleDiagnostics.titles;
+  window.COLOR_TITLE_DIAGNOSTICS = state.titleDiagnostics;
+  reportTitleDiagnostics(state.titleDiagnostics);
+
   state.dataSource = [...state.allData];
   
   // Shuffle on start for dynamic palette sequence
