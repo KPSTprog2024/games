@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>逆上がりチャレンジ・アナリティクス Pro</title>
+  <style>
+    /* -------------------------------------------------------------
+       iOS Safari向けリセット & 基本デザイン
+       ------------------------------------------------------------- */
+    :root {
+      --color-bg: #f8fafc;
+      --color-card: #ffffff;
+      --color-text-main: #0f172a;
+      --color-text-sub: #475569;
+      --color-primary: #0284c7;
+      --color-success: #16a34a;
+      --color-success-bg: #dcfce7;
+      --color-fail: #64748b; /* 親指優先のため、失敗は引き締まったグレー */
+      --color-fail-bg: #f1f5f9;
+      --color-accent-red: #e11d48;
+      --color-accent-red-bg: #ffe4e6;
+      --color-border: #e2e8f0;
+      --color-accent-blue-bg: #e0f2fe;
+      --color-accent-blue: #0369a1;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-bg);
+      color: var(--color-text-main);
+      line-height: 1.5;
+      padding-top: 12px;
+      padding-left: 16px;
+      padding-right: 16px;
+      /* iPhoneホームインジケータ対策 */
+      padding-bottom: calc(32px + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* -------------------------------------------------------------
+       カードスタイル
+       ------------------------------------------------------------- */
+    .card {
+      background-color: var(--color-card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--color-border);
+    }
+
+    /* -------------------------------------------------------------
+       ヘッダー
+       ------------------------------------------------------------- */
+    header {
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-text-main);
+      margin-bottom: 2px;
+    }
+
+    .session-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .main-stats {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--color-text-main);
+      margin-top: 6px;
+      padding: 8px;
+      background-color: #f1f5f9;
+      border-radius: 10px;
+      border: 1px dashed var(--color-border);
+      text-align: center;
+    }
+
+    /* -------------------------------------------------------------
+       最近の傾向
+       ------------------------------------------------------------- */
+    .trends-title {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: var(--color-text-sub);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .trends-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .trend-card {
+      background-color: #f8fafc;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .trend-label {
+      font-size: 0.75rem;
+      color: var(--color-text-sub);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .trend-value {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    /* -------------------------------------------------------------
+       タイムライン (SVG)
+       ------------------------------------------------------------- */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--color-text-sub);
+    }
+
+    .timeline-svg-wrapper {
+      width: 100%;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px 6px;
+      border: 1px solid var(--color-border);
+    }
+
+    svg.timeline-svg {
+      display: block;
+      width: 100%;
+      height: 60px;
+    }
+
+    .timeline-svg line.connection-line {
+      stroke: #cbd5e1;
+      stroke-width: 1.5;
+      stroke-dasharray: 2 2;
+    }
+
+    .timeline-svg .success-node {
+      fill: var(--color-success);
+    }
+
+    /* エラー有無でビジュアルを変える */
+    .timeline-svg .fail-node {
+      stroke: var(--color-fail);
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .timeline-svg .fail-node-detailed {
+      stroke: var(--color-accent-red);
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .timeline-info-msg {
+      font-size: 0.8rem;
+      text-align: center;
+      color: var(--color-text-sub);
+      padding: 12px 0;
+    }
+
+    .alert-banner {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      color: #b45309;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* -------------------------------------------------------------
+       失敗時の要因チェックボックス（クイック選択UI）
+       ------------------------------------------------------------- */
+    .failure-reasons-card {
+      background-color: #ffe4e6;
+      border: 1px solid #fecdd3;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: slide-down 0.25s ease-out;
+    }
+
+    @keyframes slide-down {
+      from { transform: translateY(-10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .failure-reasons-header {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #9f1239;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .failure-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* 押しやすいトグル型の大きなラベル */
+    .reason-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: #ffffff;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1.5px solid #fda4af;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #4c0519;
+      touch-action: manipulation;
+    }
+
+    .reason-option input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--color-accent-red);
+    }
+
+    .reason-option.selected {
+      background-color: #fff1f2;
+      border-color: var(--color-accent-red);
+    }
+
+    .reason-submit-btn {
+      background-color: #e11d48;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      touch-action: manipulation;
+    }
+
+    .reason-submit-btn:active {
+      background-color: #be123c;
+    }
+
+    /* -------------------------------------------------------------
+       メインアクションエリア
+       ------------------------------------------------------------- */
+    .action-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .main-buttons {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1;
+      height: 68px;
+      border-radius: 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.05s ease;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-fail {
+      background-color: var(--color-fail);
+      color: #ffffff;
+    }
+
+    .btn-success {
+      background-color: var(--color-success);
+      color: #ffffff;
+    }
+
+    .btn-undo {
+      background: none;
+      border: none;
+      color: var(--color-text-sub);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px;
+      width: 100%;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      touch-action: manipulation;
+    }
+
+    .btn-undo:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* -------------------------------------------------------------
+       トースト通知
+       ------------------------------------------------------------- */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      width: 90%;
+      max-width: 320px;
+    }
+
+    .toast {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      animation: toast-in-out 1.8s forwards;
+    }
+
+    @keyframes toast-in-out {
+      0% { transform: translateY(-20px); opacity: 0; }
+      15% { transform: translateY(0); opacity: 1; }
+      85% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(-20px); opacity: 0; }
+    }
+
+    /* -------------------------------------------------------------
+       履歴（セッション・個別データ）
+       ------------------------------------------------------------- */
+    .history-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title-sub {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--color-text-main);
+      border-left: 4px solid var(--color-primary);
+      padding-left: 8px;
+    }
+
+    .session-group {
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #f1f5f9;
+    }
+
+    .session-group-header {
+      padding: 12px;
+      background-color: #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .session-group-title {
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .session-group-meta {
+      font-size: 0.75rem;
+      color: var(--color-text-sub);
+      margin-top: 2px;
+    }
+
+    .session-record-list {
+      list-style: none;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .session-record-item {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-border);
+      background-color: #ffffff;
+    }
+
+    .session-record-item:last-child {
+      border-bottom: none;
+    }
+
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .record-index {
+      font-weight: bold;
+      color: var(--color-text-sub);
+      width: 35px;
+    }
+
+    .record-time {
+      color: var(--color-text-sub);
+      flex: 1;
+    }
+
+    .record-badge {
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+
+    .badge-success {
+      background-color: var(--color-success-bg);
+      color: var(--color-success);
+    }
+
+    .badge-fail {
+      background-color: var(--color-fail-bg);
+      color: var(--color-text-sub);
+    }
+
+    .record-reasons-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+      padding-left: 35px;
+    }
+
+    .chip {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background-color: #ffe4e6;
+      color: #be123c;
+      padding: 1px 6px;
+      border-radius: 6px;
+      border: 1px solid #fecdd3;
+    }
+
+    /* 過去アコーディオン */
+    details.past-session-details {
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      background-color: #ffffff;
+      overflow: hidden;
+    }
+
+    details.past-session-details summary {
+      padding: 12px;
+      background-color: #f8fafc;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    details.past-session-details summary::after {
+      content: "▼";
+      font-size: 0.65rem;
+      color: var(--color-text-sub);
+    }
+
+    details.past-session-details[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .past-session-summary-info {
+      font-size: 0.75rem;
+      font-weight: normal;
+      color: var(--color-text-sub);
+      margin-top: 2px;
+    }
+
+    /* -------------------------------------------------------------
+       データ出力
+       ------------------------------------------------------------- */
+    .export-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .export-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background-color: #f1f5f9;
+      color: var(--color-text-main);
+      border: 1px solid var(--color-border);
+      touch-action: manipulation;
+    }
+
+    .export-btn:active {
+      background-color: #e2e8f0;
+    }
+
+    .export-btn-primary {
+      background-color: var(--color-accent-blue-bg);
+      color: var(--color-accent-blue);
+      border: 1px solid #bae6fd;
+    }
+
+    .export-btn-primary:active {
+      background-color: #bae6fd;
+    }
+
+    .fallback-textarea-container {
+      margin-top: 6px;
+      padding: 12px;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+    }
+
+    .fallback-msg {
+      font-size: 0.75rem;
+      color: #991b1b;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .fallback-textarea {
+      width: 100%;
+      height: 120px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #fca5a5;
+      resize: vertical;
+    }
+
+    .danger-zone {
+      margin-top: 6px;
+      border-top: 1px solid var(--color-border);
+      padding-top: 12px;
+    }
+
+    .btn-delete-today {
+      background: none;
+      border: 1px solid #fee2e2;
+      color: var(--color-accent-red);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+      cursor: pointer;
+      background-color: #fff5f5;
+      touch-action: manipulation;
+    }
+
+    .btn-delete-today:active {
+      background-color: #fee2e2;
+    }
+
+    .error-banner {
+      background-color: #fef2f2;
+      border: 1px solid #fee2e2;
+      color: var(--color-accent-red);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div class="container">
+
+    <div id="saveErrorBanner" class="error-banner hidden">
+      端末にデータを保存できませんでした。
+    </div>
+
+    <!-- 1. ヘッダー -->
+    <header class="card">
+      <h1>逆上がりチャレンジ Pro</h1>
+      <div id="activeSessionName" class="session-title">―</div>
+      <div id="mainStatsDisplay" class="main-stats">
+        まだ記録がありません
+      </div>
+    </header>
+
+    <!-- 2. 最近の傾向 -->
+    <section id="trendsSection" class="card hidden">
+      <div class="trends-title">最近の傾向</div>
+      <div id="trendsGrid" class="trends-grid"></div>
+    </section>
+
+    <!-- 3. タイムライン -->
+    <section class="card timeline-container">
+      <div class="timeline-header">
+        <span>タイムライン</span>
+        <span id="timelineCountLabel" class="hidden">最新20回を表示</span>
+      </div>
+      
+      <div id="timelineSvgWrapper" class="timeline-svg-wrapper">
+        <div id="timelineInitialMsg" class="timeline-info-msg">
+          成功または失敗を押すと、ここに記録が表示されます。
+        </div>
+      </div>
+
+      <div id="safetyAlertBanner" class="alert-banner hidden"></div>
+    </section>
+
+    <!-- 3.5 失敗原因クイック選択トグルUI -->
+    <section id="failureReasonsCard" class="failure-reasons-card hidden">
+      <div class="failure-reasons-header">
+        <span>❌ 失敗の主な原因（あてはまるものをタップ）</span>
+        <span style="font-size: 0.75rem; font-weight: normal; color: #be123c;">スクップ可</span>
+      </div>
+      <div class="failure-options">
+        <label id="optKickBackLabel" class="reason-option">
+          <input type="checkbox" id="optKickBack">
+          <span>① 踏み切りが後ろすぎた (鉄棒の手前)</span>
+        </label>
+        <label id="optArmStretchLabel" class="reason-option">
+          <input type="checkbox" id="optArmStretch">
+          <span>② ひじが伸び、お腹が離れた</span>
+        </label>
+      </div>
+      <button id="btnSubmitReasons" class="reason-submit-btn">確定して次へ</button>
+    </section>
+
+    <!-- 4. メインアクション -->
+    <section class="action-area">
+      <div class="main-buttons">
+        <button id="btnFail" class="btn btn-fail" aria-label="失敗を記録">
+          × 失敗
+        </button>
+        <button id="btnSuccess" class="btn btn-success" aria-label="成功を記録">
+          ○ 成功
+        </button>
+      </div>
+
+      <button id="btnUndo" class="btn-undo" disabled aria-label="直前の1件を消す">
+        ↩ 直前の1件を消す
+      </button>
+    </section>
+
+    <!-- 5. 履歴表示 -->
+    <section class="card history-card">
+      <div class="section-title-sub">履歴</div>
+      <div id="historyListContainer" class="timeline-info-msg" style="text-align: left; padding: 0;">
+        履歴はありません。
+      </div>
+    </section>
+
+    <!-- 6. 外部連携 -->
+    <section class="card export-card">
+      <div class="section-title-sub">データの保存・AI分析</div>
+      
+      <button id="btnCopyMemo" class="export-btn" disabled>
+        📄 メモ帳用データをコピー
+      </button>
+      
+      <button id="btnCopyAI" class="export-btn export-btn-primary" disabled>
+        🤖 AI分析用プロンプトをコピー
+      </button>
+
+      <div id="fallbackCopyContainer" class="fallback-textarea-container hidden">
+        <div class="fallback-msg">自動コピーできませんでした。下の文章を長押ししてコピーしてください。</div>
+        <textarea id="fallbackTextarea" class="fallback-textarea" readonly></textarea>
+      </div>
+
+      <div class="danger-zone">
+        <button id="btnDeleteToday" class="btn-delete-today">
+          今日の記録を削除
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 定数・データモデル
+    // -------------------------------------------------------------
+    const STORAGE_KEY = 'ironBarSuccessTrackerProData';
+    const SESSION_TIMEOUT_MS = 60 * 60 * 1000; 
+
+    let state = {
+      version: 2, 
+      sessions: []
+    };
+
+    let lastFailedRecordRef = null;
+    let autoCloseTimer = null;
+
+    // -------------------------------------------------------------
+    // 起動処理
+    // -------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromLocalStorage();
+      renderApp();
+      setupEventListeners();
+    });
+
+    function loadFromLocalStorage() {
+      try {
+        const rawData = localStorage.getItem(STORAGE_KEY);
+        if (!rawData) {
+          initEmptyState();
+          return;
+        }
+
+        const parsed = JSON.parse(rawData);
+        if (!parsed || !Array.isArray(parsed.sessions)) {
+          initEmptyState();
+          return;
+        }
+
+        state = parsed;
+      } catch (e) {
+        initEmptyState();
+      }
+    }
+
+    function initEmptyState() {
+      state = {
+        version: 2,
+        sessions: []
+      };
+      saveToLocalStorage();
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        document.getElementById('saveErrorBanner').classList.add('hidden');
+      } catch (e) {
+        document.getElementById('saveErrorBanner').classList.remove('hidden');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // セッション自動管理
+    // -------------------------------------------------------------
+    function getActiveSessionOrCreate(nowDate) {
+      const nowIso = nowDate.toISOString();
+      const localDateStr = getLocalDateString(nowDate);
+
+      const lastSession = state.sessions[state.sessions.length - 1];
+
+      if (!lastSession) {
+        return createNewSession(nowDate);
+      }
+
+      const lastRec = lastSession.records[lastSession.records.length - 1];
+      const lastTime = lastRec ? new Date(lastRec.timestamp) : new Date(lastSession.startedAt);
+      const timeDiff = nowDate.getTime() - lastTime.getTime();
+      const isDateChanged = getLocalDateString(lastTime) !== localDateStr;
+
+      if (timeDiff >= SESSION_TIMEOUT_MS || isDateChanged) {
+        return createNewSession(nowDate);
+      }
+
+      return lastSession;
+    }
+
+    function createNewSession(nowDate) {
+      const localDateStr = getLocalDateString(nowDate);
+      const todaySessionsCount = state.sessions.filter(s => {
+        return getLocalDateString(new Date(s.startedAt)) === localDateStr;
+      }).length;
+
+      const sessionNum = todaySessionsCount + 1;
+      const hours = String(nowDate.getHours()).padStart(2, '0');
+      const minutes = String(nowDate.getMinutes()).padStart(2, '0');
+      const seconds = String(nowDate.getSeconds()).padStart(2, '0');
+
+      const sessionId = `session-${nowDate.getFullYear()}${String(nowDate.getMonth()+1).padStart(2,'0')}${String(nowDate.getDate()).padStart(2,'0')}-${hours}${minutes}${seconds}`;
+
+      const newSession = {
+        id: sessionId,
+        startedAt: nowDate.toISOString(),
+        records: [],
+        tempSessionNumber: sessionNum
+      };
+
+      state.sessions.push(newSession);
+      return newSession;
+    }
+
+    // -------------------------------------------------------------
+    // アクションコア
+    // -------------------------------------------------------------
+    function addRecord(result) {
+      closeFailureReasonsCard();
+
+      const now = new Date();
+      const session = getActiveSessionOrCreate(now);
+      
+      const newRecord = {
+        timestamp: now.toISOString(),
+        result: result,
+        reasons: [] 
+      };
+
+      session.records.push(newRecord);
+      saveToLocalStorage();
+      renderApp();
+
+      if (result) {
+        showToast("成功を記録しました！");
+      } else {
+        showToast("失敗を記録しました");
+        openFailureReasonsCard(newRecord);
+      }
+    }
+
+    function openFailureReasonsCard(recordRef) {
+      lastFailedRecordRef = recordRef;
+      
+      document.getElementById('optKickBack').checked = false;
+      document.getElementById('optArmStretch').checked = false;
+      updateReasonOptionStyling();
+
+      const card = document.getElementById('failureReasonsCard');
+      card.classList.remove('hidden');
+
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
+      autoCloseTimer = setTimeout(() => {
+        closeFailureReasonsCard();
+      }, 7000); 
+    }
+
+    function closeFailureReasonsCard() {
+      if (autoCloseTimer) clearTimeout(autoCloseTimer);
+      
+      if (lastFailedRecordRef) {
+        const isKickBack = document.getElementById('optKickBack').checked;
+        const isArmStretch = document.getElementById('optArmStretch').checked;
+
+        const reasons = [];
+        if (isKickBack) reasons.push('kick_back');
+        if (isArmStretch) reasons.push('arm_stretch');
+
+        lastFailedRecordRef.reasons = reasons;
+        lastFailedRecordRef = null;
+
+        saveToLocalStorage();
+        renderApp();
+      }
+
+      document.getElementById('failureReasonsCard').classList.add('hidden');
+    }
+
+    function updateReasonOptionStyling() {
+      const isKickBack = document.getElementById('optKickBack').checked;
+      const isArmStretch = document.getElementById('optArmStretch').checked;
+
+      const labelKick = document.getElementById('optKickBackLabel');
+      const labelArm = document.getElementById('optArmStretchLabel');
+
+      if (isKickBack) labelKick.classList.add('selected');
+      else labelKick.classList.remove('selected');
+
+      if (isArmStretch) labelArm.classList.add('selected');
+      else labelArm.classList.remove('selected');
+    }
+
+    function performUndo() {
+      closeFailureReasonsCard();
+      if (state.sessions.length === 0) return;
+
+      const lastSession = state.sessions[state.sessions.length - 1];
+      if (lastSession.records.length > 0) {
+        lastSession.records.pop();
+      }
+
+      if (lastSession.records.length === 0) {
+        state.sessions.pop();
+      }
+
+      saveToLocalStorage();
+      renderApp();
+      showToast("直前の記録を取り消しました");
+    }
+
+    function deleteTodayRecords() {
+      closeFailureReasonsCard();
+      const confirmMsg = "今日の記録をすべて削除します。この操作は元に戻せません。";
+      if (!window.confirm(confirmMsg)) {
+        return;
+      }
+
+      const todayStr = getLocalDateString(new Date());
+      state.sessions = state.sessions.filter(s => {
+        return getLocalDateString(new Date(s.startedAt)) !== todayStr;
+      });
+
+      saveToLocalStorage();
+      renderApp();
+      showToast("今日の記録を削除しました");
+    }
+
+    // -------------------------------------------------------------
+    // メイン描画コントロール (Render)
+    // -------------------------------------------------------------
+    function renderApp() {
+      const activeSession = state.sessions[state.sessions.length - 1];
+      const hasActiveSessionRecords = activeSession && activeSession.records.length > 0;
+
+      const activeSessionNameEl = document.getElementById('activeSessionName');
+      const mainStatsDisplayEl = document.getElementById('mainStatsDisplay');
+      const trendsSectionEl = document.getElementById('trendsSection');
+      const timelineCountLabelEl = document.getElementById('timelineCountLabel');
+      const timelineInitialMsgEl = document.getElementById('timelineInitialMsg');
+      const safetyAlertBannerEl = document.getElementById('safetyAlertBanner');
+      const btnUndoEl = document.getElementById('btnUndo');
+      
+      const btnCopyMemoEl = document.getElementById('btnCopyMemo');
+      const btnCopyAIEl = document.getElementById('btnCopyAI');
+      const fallbackCopyContainerEl = document.getElementById('fallbackCopyContainer');
+
+      fallbackCopyContainerEl.classList.add('hidden');
+
+      if (!hasActiveSessionRecords) {
+        activeSessionNameEl.textContent = "";
+        mainStatsDisplayEl.textContent = "まだ記録がありません";
+        trendsSectionEl.classList.add('hidden');
+        timelineCountLabelEl.classList.add('hidden');
+        timelineInitialMsgEl.classList.remove('hidden');
+        safetyAlertBannerEl.classList.add('hidden');
+        
+        const svgWrapper = document.getElementById('timelineSvgWrapper');
+        const existingSvg = svgWrapper.querySelector('svg');
+        if (existingSvg) existingSvg.remove();
+
+        btnUndoEl.disabled = true;
+        btnCopyMemoEl.disabled = true;
+        btnCopyAIEl.disabled = true;
+      } else {
+        const sessionName = formatSessionName(activeSession);
+        activeSessionNameEl.textContent = sessionName;
+
+        const totalCount = activeSession.records.length;
+        const successCount = activeSession.records.filter(r => r.result).length;
+        const successRate = Math.round((successCount / totalCount) * 100);
+        mainStatsDisplayEl.textContent = `${totalCount}回中${successCount}回成功・成功率${successRate}%`;
+
+        renderTrends(activeSession.records);
+        renderTimeline(activeSession.records);
+
+        if (totalCount >= 10) {
+          safetyAlertBannerEl.textContent = `このセッションで${totalCount}回記録しています。必要に応じて休憩も取りましょう。`;
+          safetyAlertBannerEl.classList.remove('hidden');
+        } else {
+          safetyAlertBannerEl.classList.add('hidden');
+        }
+
+        btnUndoEl.disabled = false;
+        btnCopyMemoEl.disabled = false;
+        btnCopyAIEl.disabled = false;
+      }
+
+      renderHistory();
+    }
+
+    // -------------------------------------------------------------
+    // 最近の傾向 レンダリング
+    // -------------------------------------------------------------
+    function renderTrends(records) {
+      const N = records.length;
+      const trendsGrid = document.getElementById('trendsGrid');
+      trendsGrid.innerHTML = '';
+
+      const getRateData = (count) => {
+        const targetRecords = records.slice(-count);
+        const successes = targetRecords.filter(r => r.result).length;
+        const total = targetRecords.length;
+        const rate = Math.round((successes / total) * 100);
+        return { successes, total, rate };
+      };
+
+      const sizeA = Math.min(N, 7);
+      const sizeB = Math.ceil(N / 2);
+      const sizeC = Math.ceil(N / 3);
+
+      const candidates = [
+        { key: 'A', size: sizeA, label: `直近${sizeA === 7 ? '最大' : ''}7回` },
+        { key: 'B', size: sizeB, label: `直近1/2（${sizeB}回）` },
+        { key: 'C', size: sizeC, label: `直近1/3（${sizeC}回）` }
+      ];
+
+      const visibleCards = [];
+      const usedSizes = new Set();
+
+      for (const candidate of candidates) {
+        if (!usedSizes.has(candidate.size) && candidate.size > 0) {
+          visibleCards.push(candidate);
+          usedSizes.add(candidate.size);
+        }
+      }
+
+      visibleCards.forEach(card => {
+        const data = getRateData(card.size);
+        const cardEl = document.createElement('div');
+        cardEl.className = 'trend-card';
+        
+        let colorStyle = "color: var(--color-text-main);";
+        if (card.key === 'A' && data.rate >= 60) colorStyle = "color: var(--color-success);";
+
+        cardEl.innerHTML = `
+          <div class="trend-label">${card.label}</div>
+          <div class="trend-value" style="${colorStyle}">${data.successes}/${data.total}成功 (${data.rate}%)</div>
+        `;
+        trendsGrid.appendChild(cardEl);
+      });
+
+      const trendsSection = document.getElementById('trendsSection');
+      if (visibleCards.length > 0) {
+        trendsSection.classList.remove('hidden');
+      } else {
+        trendsSection.classList.add('hidden');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // タイムライン SVG描画
+    // -------------------------------------------------------------
+    function renderTimeline(records) {
+      const timelineInitialMsgEl = document.getElementById('timelineInitialMsg');
+      const timelineCountLabelEl = document.getElementById('timelineCountLabel');
+      const svgWrapper = document.getElementById('timelineSvgWrapper');
+
+      timelineInitialMsgEl.classList.add('hidden');
+
+      const existingSvg = svgWrapper.querySelector('svg');
+      if (existingSvg) existingSvg.remove();
+
+      const displayRecords = records.slice(-20);
+      const isOver20 = records.length > 20;
+
+      if (isOver20) {
+        timelineCountLabelEl.classList.remove('hidden');
+      } else {
+        timelineCountLabelEl.classList.add('hidden');
+      }
+
+      if (displayRecords.length === 0) return;
+
+      const wrapperWidth = svgWrapper.clientWidth || 360;
+      const paddingX = 20;
+      const height = 60;
+      
+      const svgNamespace = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNamespace, "svg");
+      svg.setAttribute("class", "timeline-svg");
+      svg.setAttribute("viewBox", `0 0 ${wrapperWidth} ${height}`);
+
+      const count = displayRecords.length;
+      const getX = (idx) => {
+        if (count === 1) return wrapperWidth / 2;
+        const step = (wrapperWidth - paddingX * 2) / (count - 1);
+        return paddingX + idx * step;
+      };
+
+      const ySuccess = 18;
+      const yFail = 42;
+      const getY = (result) => result ? ySuccess : yFail;
+
+      if (count > 1) {
+        let pointsStr = "";
+        for (let i = 0; i < count; i++) {
+          pointsStr += `${getX(i)},${getY(displayRecords[i].result)} `;
+        }
+        const polyline = document.createElementNS(svgNamespace, "polyline");
+        polyline.setAttribute("class", "connection-line");
+        polyline.setAttribute("points", pointsStr.trim());
+        svg.appendChild(polyline);
+      }
+
+      displayRecords.forEach((rec, idx) => {
+        const cx = getX(idx);
+        const cy = getY(rec.result);
+
+        if (rec.result) {
+          const circle = document.createElementNS(svgNamespace, "circle");
+          circle.setAttribute("class", "success-node");
+          circle.setAttribute("cx", cx);
+          circle.setAttribute("cy", cy);
+          circle.setAttribute("r", "7");
+          svg.appendChild(circle);
+        } else {
+          const hasDetails = rec.reasons && rec.reasons.length > 0;
+          const nodeClass = hasDetails ? "fail-node-detailed" : "fail-node";
+          const size = hasDetails ? 6 : 5;
+          
+          const crossG = document.createElementNS(svgNamespace, "g");
+          
+          const line1 = document.createElementNS(svgNamespace, "line");
+          line1.setAttribute("class", nodeClass);
+          line1.setAttribute("x1", cx - size);
+          line1.setAttribute("y1", cy - size);
+          line1.setAttribute("x2", cx + size);
+          line1.setAttribute("y2", cy + size);
+
+          const line2 = document.createElementNS(svgNamespace, "line");
+          line2.setAttribute("class", nodeClass);
+          line2.setAttribute("x1", cx + size);
+          line2.setAttribute("y1", cy - size);
+          line2.setAttribute("x2", cx - size);
+          line2.setAttribute("y2", cy + size);
+
+          crossG.appendChild(line1);
+          crossG.appendChild(line2);
+          svg.appendChild(crossG);
+        }
+      });
+
+      svgWrapper.appendChild(svg);
+    }
+
+    // -------------------------------------------------------------
+    // 履歴 レンダリング
+    // -------------------------------------------------------------
+    function renderHistory() {
+      const container = document.getElementById('historyListContainer');
+      container.innerHTML = '';
+
+      if (state.sessions.length === 0) {
+        container.innerHTML = `<div class="timeline-info-msg" style="text-align: left; padding: 0;">履歴はありません。最初の記録を行ってください。</div>`;
+        return;
+      }
+
+      const reversedSessions = [...state.sessions].reverse();
+
+      reversedSessions.forEach((session, sIdx) => {
+        const isLatest = sIdx === 0;
+        const total = session.records.length;
+        if (total === 0) return;
+
+        const successes = session.records.filter(r => r.result).length;
+        const rate = Math.round((successes / total) * 100);
+        const sName = formatSessionName(session);
+        const startTimeStr = formatLocalTime(new Date(session.startedAt));
+        
+        let endTimeStr = startTimeStr;
+        if (session.records.length > 0) {
+          endTimeStr = formatLocalTime(new Date(session.records[session.records.length - 1].timestamp));
+        }
+
+        const durationStr = total === 1 ? `${startTimeStr}開始` : `${startTimeStr}～${endTimeStr}`;
+        const summaryText = `${total}回中${successes}回成功 (${rate}%)`;
+
+        const buildRecordItemsHtml = (recs) => {
+          return recs.map((rec, rIdx) => {
+            const displayId = total - rIdx;
+            const localTimeStr = formatLocalTime(new Date(rec.timestamp));
+            const badgeClass = rec.result ? 'badge-success' : 'badge-fail';
+            const badgeLabel = rec.result ? '○ 成功' : '× 失敗';
+
+            let chipsHtml = "";
+            if (rec.reasons && rec.reasons.length > 0) {
+              chipsHtml = `<div class="record-reasons-chips">`;
+              rec.reasons.forEach(r => {
+                if (r === 'kick_back') chipsHtml += `<span class="chip">① 踏み切りが後ろすぎ</span>`;
+                if (r === 'arm_stretch') chipsHtml += `<span class="chip">② ひじ伸び・お腹離れ</span>`;
+              });
+              chipsHtml += `</div>`;
+            }
+
+            return `
+              <li class="session-record-item">
+                <div class="record-row">
+                  <span class="record-index">#${displayId}</span>
+                  <span class="record-time">${localTimeStr}</span>
+                  <span class="record-badge ${badgeClass}">${badgeLabel}</span>
+                </div>
+                ${chipsHtml}
+              </li>
+            `;
+          }).join('');
+        };
+
+        if (isLatest) {
+          const groupDiv = document.createElement('div');
+          groupDiv.className = 'session-group';
+          groupDiv.style.style = 'margin-bottom: 12px;';
+
+          groupDiv.innerHTML = `
+            <div class="session-group-header">
+              <div class="session-group-title">${sName}（${durationStr}）</div>
+              <div class="session-group-meta">${summaryText}</div>
+            </div>
+            <ul class="session-record-list">
+              ${buildRecordItemsHtml([...session.records].reverse())}
+            </ul>
+          `;
+          container.appendChild(groupDiv);
+        } else {
+          const details = document.createElement('details');
+          details.className = 'past-session-details';
+          details.style.marginBottom = '12px';
+
+          details.innerHTML = `
+            <summary>
+              <div>
+                <div>${sName}</div>
+                <div class="past-session-summary-info">${durationStr} | ${summaryText}</div>
+              </div>
+            </summary>
+            <ul class="session-record-list">
+              ${buildRecordItemsHtml([...session.records].reverse())}
+            </ul>
+          `;
+          container.appendChild(details);
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // メモ帳用 & AIプロンプト生成（体操の先生＆科学分析2つの管理モード搭載、仕様書13項改修）
+    // -------------------------------------------------------------
+    function getTodaySessionsData() {
+      const todayStr = getLocalDateString(new Date());
+      const todaySessions = state.sessions.filter(s => {
+        return getLocalDateString(new Date(s.startedAt)) === todayStr;
+      });
+
+      let totalAttempts = 0;
+      let totalSuccesses = 0;
+
+      todaySessions.forEach(s => {
+        totalAttempts += s.records.length;
+        totalSuccesses += s.records.filter(r => r.result).length;
+      });
+
+      const overallRate = totalAttempts > 0 ? Math.round((totalSuccesses / totalAttempts) * 100) : 0;
+
+      return {
+        sessions: todaySessions,
+        totalAttempts,
+        totalSuccesses,
+        overallRate,
+        dateFormatted: todayStr.replace(/-/g, '/')
+      };
+    }
+
+    function buildMemoText() {
+      const data = getTodaySessionsData();
+      if (data.sessions.length === 0) return "今日の記録はありません。";
+
+      let text = `# 逆上がり練習記録\n`;
+      text += `日付：${data.dateFormatted}\n`;
+      text += `合計：${data.totalAttempts}回中${data.totalSuccesses}回成功\n`;
+      text += `全体成功率：${data.overallRate}%\n`;
+
+      data.sessions.forEach(s => {
+        const sName = formatSessionName(s);
+        const startTimeStr = formatLocalTime(new Date(s.startedAt));
+        let endTimeStr = startTimeStr;
+        if (s.records.length > 0) {
+          endTimeStr = formatLocalTime(new Date(s.records[s.records.length - 1].timestamp));
+        }
+        const sAttempts = s.records.length;
+        const sSuccesses = s.records.filter(r => r.result).length;
+        const sRate = Math.round((sSuccesses / sAttempts) * 100);
+
+        const sizeA = Math.min(sAttempts, 7);
+        const sizeB = Math.ceil(sAttempts / 2);
+        const sizeC = Math.ceil(sAttempts / 3);
+
+        const getRateStr = (count) => {
+          const subset = s.records.slice(-count);
+          const succ = subset.filter(r => r.result).length;
+          const rate = Math.round((succ / subset.length) * 100);
+          return `${succ}/${subset.length}成功（${rate}%）`;
+        };
+
+        text += `\n## ${sName}（${startTimeStr}〜${endTimeStr}）\n`;
+        text += `${sAttempts}回中${sSuccesses}回成功\n`;
+        text += `成功率：${sRate}%\n`;
+        
+        if (sAttempts > 0) {
+          text += `直近7回：${getRateStr(sizeA)}\n`;
+          if (sizeB > 0 && sizeB !== sizeA) {
+            text += `直近1/2（${sizeB}回）：${getRateStr(sizeB)}\n`;
+          }
+          if (sizeC > 0 && sizeC !== sizeB && sizeC !== sizeA) {
+            text += `直近1/3（${sizeC}回）：${getRateStr(sizeC)}\n`;
+          }
+
+          text += `記録：\n`;
+          s.records.forEach((r, idx) => {
+            const rTime = formatLocalTime(new Date(r.timestamp));
+            let detailStr = r.result ? '成功' : '失敗';
+            
+            if (!r.result && r.reasons && r.reasons.length > 0) {
+              const reasonLabels = [];
+              if (r.reasons.includes('kick_back')) reasonLabels.push('踏み切りが後ろすぎ');
+              if (r.reasons.includes('arm_stretch')) reasonLabels.push('ひじ伸びお腹離れ');
+              detailStr += `（要因: ${reasonLabels.join(' ＋ ')}）`;
+            }
+            
+            text += `${idx + 1}. ${rTime} - ${detailStr}\n`;
+          });
+        }
+      });
+
+      return text.trim();
+    }
+
+    function buildAIPromptText() {
+      const practiceData = buildMemoText();
+      const template = `以下は、逆上がりの練習記録です。
+この記録をもとに、成功と失敗の傾向を整理してください。
+
+特に、失敗データには以下の動作要因（エラー情報）が記録されています：
+- 「踏み切りが後ろすぎ」＝地上局面での蹴り出し位置エラー
+- 「ひじ伸びお腹離れ」＝空中局面での引き付け不足エラー
+
+分析結果は、必ず以下の「2つの異なる管理モード（役割）」に明確に分けて出力してください。1つの回答の中に両方を必ず含めてください。
+
+■ 1. たいそうのせんせいからのメッセージ（子ども向け）
+- ひらがなやカタカナを多く交え、小学校低学年以下の子どもが読んでも（あるいは大人が読み聞かせても）直感的に嬉しくなり、明日もやりたくなるような、明るく元気いっぱいの「体操教室の先生（体育会系のお兄さん・お姉さん）」の親しみやすい言葉遣いで書いてください。
+- 今日の頑張り、挑戦した姿勢そのものをとにかく全力で褒め、次も挑戦したくなるようにポジティブに励ましてください。
+
+■ 2. 保護者向け科学的分析レポート（大人向け）
+- データ（成功率、失敗要因の比率、時間経過によるエラーの変化、セッション時間）から、科学的・運動力学的に何が起きているかを客観的に分析してください。
+- 「地上での踏み切り位置（kick_back）」と「空中の引き付け・密着（arm_stretch）」のどちらが本質的なボトルネックになっているか、物理的な観点から整理してください。
+- 疲労の兆候（後半に向けたエラー率や内容の変化）を評価し、適切な練習ボリュームや休憩のタイミングについてのアドバイスを記載してください。
+- 次回の練習で大人がサポートする際に意識するべきポイントを、具体的かつ論理的に最大3つ提案してください。
+
+※姿勢、筋力、痛み、疲労、技術上の原因など、記録に存在しない情報を「事実」として補わないよう注意し、推測と確定情報を分けてください。
+
+以下が練習記録です。
+---
+${practiceData}
+---`;
+      return template;
+    }
+
+    // -------------------------------------------------------------
+    // クリップボード処理
+    // -------------------------------------------------------------
+    async function handleCopyToClipboard(text, type) {
+      const fallbackContainer = document.getElementById('fallbackCopyContainer');
+      const fallbackTextarea = document.getElementById('fallbackTextarea');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        fallbackContainer.classList.add('hidden');
+
+        if (type === 'memo') {
+          showToast("メモ帳用データをコピーしました");
+        } else {
+          showToast("AI分析用プロンプトをコピーしました");
+        }
+      } catch (err) {
+        fallbackTextarea.value = text;
+        fallbackContainer.classList.remove('hidden');
+        fallbackTextarea.select();
+        showToast("コピー失敗。下の枠内を長押ししてコピーしてください");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // イベントリスナー設定
+    // -------------------------------------------------------------
+    function setupEventListeners() {
+      const btnSuccess = document.getElementById('btnSuccess');
+      const btnFail = document.getElementById('btnFail');
+      const btnUndo = document.getElementById('btnUndo');
+      
+      const btnCopyMemo = document.getElementById('btnCopyMemo');
+      const btnCopyAI = document.getElementById('btnCopyAI');
+      const btnDeleteToday = document.getElementById('btnDeleteToday');
+
+      const btnSubmitReasons = document.getElementById('btnSubmitReasons');
+      const optKickBack = document.getElementById('optKickBack');
+      const optArmStretch = document.getElementById('optArmStretch');
+
+      // 記録アクション
+      btnSuccess.addEventListener('click', () => addRecord(true));
+      btnFail.addEventListener('click', () => addRecord(false));
+
+      // 失敗要因選択
+      optKickBack.addEventListener('change', updateReasonOptionStyling);
+      optArmStretch.addEventListener('change', updateReasonOptionStyling);
+      
+      btnSubmitReasons.addEventListener('click', () => {
+        closeFailureReasonsCard();
+      });
+
+      // Undo
+      btnUndo.addEventListener('click', performUndo);
+
+      // コピー
+      btnCopyMemo.addEventListener('click', () => {
+        const text = buildMemoText();
+        handleCopyToClipboard(text, 'memo');
+      });
+
+      btnCopyAI.addEventListener('click', () => {
+        const text = buildAIPromptText();
+        handleCopyToClipboard(text, 'ai');
+      });
+
+      // 削除
+      btnDeleteToday.addEventListener('click', deleteTodayRecords);
+    }
+
+    // -------------------------------------------------------------
+    // ユーティリティ
+    // -------------------------------------------------------------
+    function getLocalDateString(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatLocalTime(date) {
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function formatSessionName(session) {
+      if (!session) return "";
+      
+      const date = new Date(session.startedAt);
+      const startTimeStr = formatLocalTime(date);
+      const sessionNum = session.tempSessionNumber || 1;
+
+      if (session.records.length <= 1) {
+        return `セッション${sessionNum}（${startTimeStr}開始）`;
+      }
+
+      const lastRec = session.records[session.records.length - 1];
+      const endTimeStr = formatLocalTime(new Date(lastRec.timestamp));
+
+      return `セッション${sessionNum}（${startTimeStr}〜${endTimeStr}）`;
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
