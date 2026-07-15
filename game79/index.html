@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ひろがるエコーお絵描き</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app-shell">
+        <canvas id="drawingCanvas" aria-label="ひろがるエコーを描くキャンバス"></canvas>
+
+        <section class="hud" aria-live="polite">
+            <strong>ひろがるエコー</strong>
+            <span id="branchStatus">1方向</span>
+            <span id="fpsStatus">60 FPS</span>
+        </section>
+
+        <aside id="settingsPanel" class="settings-panel" aria-label="描画設定">
+            <header class="panel-header">
+                <div>
+                    <p class="eyebrow">game79</p>
+                    <h1>ひろがるエコー</h1>
+                </div>
+                <button id="togglePanel" class="icon-button" type="button" aria-expanded="true" aria-controls="panelBody">▼</button>
+            </header>
+
+            <div id="panelBody" class="panel-body">
+                <div class="button-row">
+                    <button id="clearCanvas" class="primary-button" type="button">ぜんぶ消す</button>
+                </div>
+
+                <section class="control-group">
+                    <h2>プリセット</h2>
+                    <div class="preset-grid">
+                        <button class="preset-button active" type="button" data-preset="softFan">ソフトファン</button>
+                        <button class="preset-button" type="button" data-preset="sparkler">てもち花火</button>
+                        <button class="preset-button" type="button" data-preset="spiralRibbon">うずまき</button>
+                        <button class="preset-button" type="button" data-preset="tornado">たつまき</button>
+                        <button class="preset-button" type="button" data-preset="ripple">はもん</button>
+                        <button class="preset-button" type="button" data-preset="starShower">スター</button>
+                    </div>
+                </section>
+
+                <section class="control-group">
+                    <h2>ブラシ</h2>
+                    <label>色 <input id="strokeColor" type="color" value="#00c8ff"></label>
+                    <label>終点色 <input id="gradientEndColor" type="color" value="#ff4fd8"></label>
+                    <label>色モード
+                        <select id="colorMode">
+                            <option value="gradient">グラデーション</option>
+                            <option value="rainbow">レインボー</option>
+                            <option value="solid">単色</option>
+                        </select>
+                    </label>
+                    <label>太さ <span id="strokeWidthValue">4</span>px<input id="strokeWidth" type="range" min="1" max="16" step="0.5" value="4"></label>
+                    <label>不透明度 <span id="strokeAlphaValue">85</span>%<input id="strokeAlpha" type="range" min="10" max="100" step="5" value="85"></label>
+                </section>
+
+                <section class="control-group">
+                    <h2>広がり</h2>
+                    <label>基準角度 <span id="baseAngleDegValue">225</span>°<input id="baseAngleDeg" type="range" min="0" max="360" step="1" value="225"></label>
+                    <label>移動量 <span id="echoDistanceValue">3</span>px<input id="echoDistance" type="range" min="0" max="12" step="0.5" value="3"></label>
+                    <label>最大拡散角 <span id="spreadAngleDegValue">50</span>°<input id="spreadAngleDeg" type="range" min="0" max="140" step="1" value="50"></label>
+                    <label>3方向開始 <span id="branch3StartValue">12</span><input id="branch3Start" type="range" min="1" max="60" step="1" value="12"></label>
+                    <label>5方向開始 <span id="branch5StartValue">32</span><input id="branch5Start" type="range" min="2" max="90" step="1" value="32"></label>
+                    <label>モード
+                        <select id="spreadMode">
+                            <option value="growing">グローイング</option>
+                            <option value="pulse">パルス</option>
+                            <option value="spiral">スパイラル</option>
+                            <option value="mirror">ミラー</option>
+                        </select>
+                    </label>
+                </section>
+
+                <section class="control-group">
+                    <h2>エコーと装飾</h2>
+                    <label>エコー間隔 <span id="echoIntervalMsValue">70</span>ms<input id="echoIntervalMs" type="range" min="30" max="180" step="10" value="70"></label>
+                    <label>最大数 <span id="echoCountMaxValue">90</span><input id="echoCountMax" type="range" min="12" max="180" step="2" value="90"></label>
+                    <label>装飾
+                        <select id="decorationTheme">
+                            <option value="spark">火花</option>
+                            <option value="bloom">ブルーム</option>
+                            <option value="spiralRibbon">螺旋リボン</option>
+                            <option value="tornado">たつまき</option>
+                            <option value="ripple">波紋</option>
+                            <option value="stamp">星スタンプ</option>
+                            <option value="none">なし</option>
+                        </select>
+                    </label>
+                    <label>装飾量 <span id="sparkAmountValue">45</span>%<input id="sparkAmount" type="range" min="0" max="100" step="5" value="45"></label>
+                </section>
+            </div>
+        </aside>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
