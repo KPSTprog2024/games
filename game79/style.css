@@ -4,9 +4,8 @@ body {
     font-family: ui-rounded, "Hiragino Maru Gothic ProN", "Yu Gothic", system-ui, sans-serif;
     color: #f8fbff;
     background:
-        radial-gradient(circle at 20% 20%, rgba(0, 200, 255, 0.28), transparent 34%),
-        radial-gradient(circle at 80% 15%, rgba(255, 79, 216, 0.2), transparent 28%),
-        linear-gradient(135deg, #07111f 0%, #130c27 45%, #061923 100%);
+        radial-gradient(circle at 50% 45%, rgba(158, 231, 255, 0.12), transparent 38%),
+        linear-gradient(135deg, #07111f 0%, #0a1320 55%, #050b12 100%);
 }
 .app-shell { position: relative; width: 100vw; height: 100vh; isolation: isolate; }
 .app-shell::before {
@@ -17,7 +16,7 @@ body {
     background-image:
         linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 42px 42px;
+    background-size: 56px 56px;
     mask-image: radial-gradient(circle at center, black, transparent 75%);
 }
 #drawingCanvas {
@@ -75,14 +74,11 @@ h2 { margin: 0 0 12px; color: #e7f8ff; font-size: 14px; }
     font-weight: 700;
 }
 .icon-button { width: 34px; height: 34px; }
-.primary-button { width: 100%; padding: 12px; background: linear-gradient(135deg, #00c8ff, #ff4fd8); }
+.primary-button { width: 100%; padding: 12px; background: linear-gradient(135deg, #5fcceb, #9ee7ff); }
 .panel-body { max-height: calc(100vh - 104px); overflow: auto; padding: 0 18px 18px; transition: max-height 180ms ease, opacity 180ms ease; }
 .settings-panel.collapsed .panel-body { max-height: 0; opacity: 0; padding-bottom: 0; }
 .control-group { padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.12); }
 .button-row { padding: 4px 0 14px; }
-.preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.preset-button { padding: 10px 8px; font-size: 13px; }
-.preset-button.active { background: rgba(0,200,255,0.32); box-shadow: inset 0 0 0 1px rgba(121,232,255,0.7); }
 label { display: grid; gap: 6px; margin: 11px 0; color: #d8eef8; font-size: 13px; }
 input[type="range"] { width: 100%; accent-color: #00c8ff; }
 input[type="color"] { width: 100%; height: 34px; border: 0; border-radius: 10px; background: transparent; }
