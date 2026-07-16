@@ -1,50 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>儚いエコーお絵描き</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Echo Later Drawing - game79</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main class="app-shell">
-        <canvas id="drawingCanvas" aria-label="儚いエコーを描くキャンバス"></canvas>
+  <main class="app-shell">
+    <canvas id="drawingCanvas" aria-label="線を複数描いて、Echoボタンで残響を開始するキャンバス"></canvas>
 
-        <section class="hud" aria-live="polite">
-            <strong>儚いエコー</strong>
-            <span id="branchStatus">次の線で消える</span>
-            <span id="fpsStatus">60 FPS</span>
+    <section class="status-card" aria-live="polite">
+      <span class="status-card__label">game79</span>
+      <strong>Echo Later Drawing</strong>
+      <span id="strokeStatus">0本の線 / Echo待機中</span>
+      <span id="fpsStatus">60 FPS</span>
+    </section>
+
+    <aside id="settingsPanel" class="settings-panel" aria-label="描画とエコーの設定">
+      <header class="panel-header">
+        <div>
+          <p class="eyebrow">draw first, echo later</p>
+          <h1>あとからエコー</h1>
+        </div>
+        <button id="togglePanel" class="icon-button" type="button" aria-expanded="true" aria-controls="panelBody">▼</button>
+      </header>
+
+      <div id="panelBody" class="panel-body">
+        <p class="hint">線はいくつでも追加できます。描いている間はエコーせず、<b>Echo</b>を押した瞬間から全ての線が残響します。</p>
+
+        <div class="button-grid">
+          <button id="echoButton" class="primary-button" type="button">Echo</button>
+          <button id="clearEchoButton" class="secondary-button" type="button">エコーだけ消す</button>
+          <button id="undoButton" class="secondary-button" type="button">1本戻す</button>
+          <button id="clearCanvas" class="danger-button" type="button">全て消す</button>
+        </div>
+
+        <section class="control-group">
+          <h2>線</h2>
+          <label>色 <input id="strokeColor" type="color" value="#7de3ff"></label>
+          <label>太さ <span id="strokeWidthValue">4</span>px<input id="strokeWidth" type="range" min="1" max="18" step="0.5" value="4"></label>
+          <label>不透明度 <span id="strokeAlphaValue">85</span>%<input id="strokeAlpha" type="range" min="15" max="100" step="5" value="85"></label>
         </section>
 
-        <aside id="settingsPanel" class="settings-panel" aria-label="描画設定">
-            <header class="panel-header">
-                <div>
-                    <p class="eyebrow">game79</p>
-                    <h1>儚いエコー</h1>
-                </div>
-                <button id="togglePanel" class="icon-button" type="button" aria-expanded="true" aria-controls="panelBody">▼</button>
-            </header>
-
-            <div id="panelBody" class="panel-body">
-                <div class="button-row">
-                    <button id="clearCanvas" class="primary-button" type="button">消す</button>
-                </div>
-
-                <section class="control-group">
-                    <h2>線</h2>
-                    <label>色 <input id="strokeColor" type="color" value="#9ee7ff"></label>
-                    <label>太さ <span id="strokeWidthValue">3</span>px<input id="strokeWidth" type="range" min="1" max="10" step="0.5" value="3"></label>
-                    <label>不透明度 <span id="strokeAlphaValue">75</span>%<input id="strokeAlpha" type="range" min="15" max="100" step="5" value="75"></label>
-                </section>
-
-                <section class="control-group">
-                    <h2>余韻</h2>
-                    <label>間隔 <span id="echoIntervalMsValue">70</span>ms<input id="echoIntervalMs" type="range" min="35" max="180" step="5" value="70"></label>
-                    <label>残像数 <span id="echoCountMaxValue">80</span><input id="echoCountMax" type="range" min="10" max="140" step="5" value="80"></label>
-                </section>
-            </div>
-        </aside>
-    </main>
-    <script src="app.js"></script>
+        <section class="control-group">
+          <h2>Echo</h2>
+          <label>間隔 <span id="echoIntervalMsValue">65</span>ms<input id="echoIntervalMs" type="range" min="25" max="180" step="5" value="65"></label>
+          <label>残像数 <span id="echoCountMaxValue">70</span><input id="echoCountMax" type="range" min="5" max="160" step="5" value="70"></label>
+          <label>X移動 <span id="shiftXValue">-2</span>px<input id="shiftX" type="range" min="-20" max="20" step="1" value="-2"></label>
+          <label>Y移動 <span id="shiftYValue">-2</span>px<input id="shiftY" type="range" min="-20" max="20" step="1" value="-2"></label>
+          <label>縮尺 <span id="scalePerEchoValue">0.99</span><input id="scalePerEcho" type="range" min="0.90" max="1.03" step="0.005" value="0.99"></label>
+          <label>透明度減衰 <span id="alphaPerEchoValue">0.96</span><input id="alphaPerEcho" type="range" min="0.82" max="0.99" step="0.01" value="0.96"></label>
+        </section>
+      </div>
+    </aside>
+  </main>
+  <script src="app.js"></script>
 </body>
 </html>
