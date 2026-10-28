@@ -841,25 +841,59 @@ class RopeJumpGame {
     };
   }
 
-  drawRopeStrand(ctx, handX, handY, tipX, tipY, pivotY, color, width, alpha = 1) {
+  drawRopeArc(ctx, points, startIdx, hand, color, width, alpha = 1) {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
 
-    // Control point arches outward so the rope forms a natural curved loop from handle to tip
-    const ctrlX = handX + (tipX - handX) * 0.68;
-    const ctrlY = pivotY + (tipY - pivotY) * 1.08;
-
+    // Smooth closed loop arc (Catmull-Rom / midpoint quadratic through P0 -> P1 -> P2 -> P3 -> P0)
+    const k = (Math.SQRT2 - 1) * 0.5;
+    const first = points[startIdx % 4];
     ctx.beginPath();
-    ctx.moveTo(handX, handY);
-    ctx.quadraticCurveTo(ctrlX, ctrlY, tipX, tipY);
+    ctx.moveTo(first.x, first.y);
+
+    for (let s = 0; s < 2; s += 1) {
+      const i = (startIdx + s) % 4;
+      const prev = points[(i + 3) % 4];
+      const curr = points[i];
+      const next = points[(i + 1) % 4];
+      const next2 = points[(i + 2) % 4];
+
+      const q1x = curr.x + (next.x - prev.x) * k;
+      const q1y = curr.y + (next.y - prev.y) * k;
+      const q2x = next.x - (next2.x - curr.x) * k;
+      const q2y = next.y - (next2.y - curr.y) * k;
+      const midX = (q1x + q2x) * 0.5;
+      const midY = (q1y + q2y) * 0.5;
+
+      ctx.quadraticCurveTo(q1x, q1y, midX, midY);
+      ctx.quadraticCurveTo(q2x, q2y, next.x, next.y);
+    }
     ctx.stroke();
+
+    // Short connecting segment from hand to near the middle anchor of this arc (P1 for back, P3 for front)
+    if (hand) {
+      const midAnchor = points[(startIdx + 1) % 4];
+      const targetX = hand.x + (midAnchor.x - hand.x) * 0.88;
+      const targetY = hand.y + (midAnchor.y - hand.y) * 0.88;
+      const ctrlX = (hand.x + targetX) * 0.5;
+      const ctrlY = (hand.y + targetY) * 0.5 + 3;
+
+      ctx.globalAlpha = alpha * 0.8;
+      ctx.lineWidth = Math.max(2, width * 0.82);
+      ctx.beginPath();
+      ctx.moveTo(hand.x, hand.y);
+      ctx.quadraticCurveTo(ctrlX, ctrlY, targetX, targetY);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 
-  drawRopeOrbitAndGhosts(ctx, centerX, pivotY, rx, ry, handFar, handNear, phase) {
+  drawRopeOrbitAndGhosts(ctx, centerX, pivotY, anchorCenterX, anchorPivotY, rx, ry, phase) {
     // Subtle orbit guide showing overhead vs feet trajectory
     ctx.save();
     ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
@@ -879,18 +913,16 @@ class RopeJumpGame {
 
     if (this.state === "ready" || this.missEffectTimer > 0 || this.state === "gameover") return;
 
-    // Ghost / afterimage trails (emphasized near the feet pass)
+    // Ghost / afterimage trails: bead-only afterimages at past P0 positions
     const nearFeet = Math.min(phase, 1 - phase) < 0.2;
     const ghostSteps = nearFeet ? [0.025, 0.05, 0.08, 0.115] : [0.03, 0.065, 0.1];
 
     ghostSteps.forEach((step, idx) => {
       const gp = ((phase - step) % 1 + 1) % 1;
-      const pt = this.getRopePoint(centerX, pivotY, rx, ry, gp);
+      const pt = this.getRopePoint(anchorCenterX, anchorPivotY, rx, ry, gp);
       const baseAlpha = nearFeet ? 0.36 - idx * 0.075 : 0.22 - idx * 0.06;
       const ghostColor = nearFeet ? "#ffd166" : "#89f8de";
 
-      // Draw ghost loop arc and tip bead
-      this.drawRopeStrand(ctx, handNear.x, handNear.y, pt.x, pt.y, pivotY, ghostColor, 3 - idx * 0.4, Math.max(0.05, baseAlpha));
       ctx.save();
       ctx.globalAlpha = Math.max(0.06, baseAlpha * 1.2);
       ctx.fillStyle = ghostColor;
@@ -954,7 +986,8 @@ class RopeJumpGame {
       : 0;
 
     // Wrist circular motion in sync with phase
-    const wristAngle = phase * Math.PI * 2;
+    const activePhase = this.state === "ready" ? 0.15 : phase;
+    const wristAngle = activePhase * Math.PI * 2;
     const wristOffsetX = -Math.sin(wristAngle) * 5;
     const wristOffsetY = Math.cos(wristAngle) * 5;
 
@@ -967,9 +1000,14 @@ class RopeJumpGame {
       y: charY - 48 * scaleY + wristOffsetY
     };
 
-    // Current rope tip position
-    const activePhase = this.state === "ready" ? 0.15 : phase;
-    const ropeTip = this.getRopePoint(centerX, pivotY, rx, ry, activePhase);
+    // 4 anchor points on the ellipse orbit (with wrist circular offset applied so hands and rope move together)
+    const anchorCenterX = centerX + wristOffsetX * 0.45;
+    const anchorPivotY = pivotY + wristOffsetY * 0.45;
+    const p0 = this.getRopePoint(anchorCenterX, anchorPivotY, rx, ry, activePhase);
+    const p1 = this.getRopePoint(anchorCenterX, anchorPivotY, rx, ry, activePhase + 0.25);
+    const p2 = this.getRopePoint(anchorCenterX, anchorPivotY, rx, ry, activePhase + 0.5);
+    const p3 = this.getRopePoint(anchorCenterX, anchorPivotY, rx, ry, activePhase + 0.75);
+    const loopPoints = [p0, p1, p2, p3];
 
     // 1. Ground shadow under character
     const shadowScale = Math.max(0.45, 1 + this.jumpY / 180);
@@ -978,12 +1016,12 @@ class RopeJumpGame {
     ctx.ellipse(centerX, groundY + 3, 26 * shadowScale, 7 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Orbit guide and ghost trails
-    this.drawRopeOrbitAndGhosts(ctx, centerX, pivotY, rx, ry, handFar, handNear, activePhase);
+    // 2. Orbit guide and bead-only ghost trails
+    this.drawRopeOrbitAndGhosts(ctx, centerX, pivotY, anchorCenterX, anchorPivotY, rx, ry, activePhase);
 
-    // 3. Far strand of rope (drawn behind the character)
+    // 3. Back arc of rope loop (P0 -> P1 -> P2) + far handle connection (drawn behind the character)
     if (!isStumbling) {
-      this.drawRopeStrand(ctx, handFar.x, handFar.y, ropeTip.x, ropeTip.y, pivotY, "#d9b458", 3.2, 0.75);
+      this.drawRopeArc(ctx, loopPoints, 0, handFar, "#d9b458", 3.2, 0.78);
     }
 
     // 4. Character (Side-view profile facing right)
@@ -1111,21 +1149,21 @@ class RopeJumpGame {
 
     ctx.restore();
 
-    // 5. Near strand of rope & bright loop tip (drawn in front of character)
+    // 5. Front arc of rope loop (P2 -> P3 -> P0), near handle connection & glowing bead at P0 (in front of character)
     if (isStumbling) {
       this.drawTangledRope(ctx, centerX, groundY, handFar, handNear);
     } else {
       const distToFeet = Math.min(activePhase, 1 - activePhase);
       const ropeColor = distToFeet < 0.08 ? "#ffffff" : "#ffd166";
-      this.drawRopeStrand(ctx, handNear.x, handNear.y, ropeTip.x, ropeTip.y, pivotY, ropeColor, 4.2, 1);
+      this.drawRopeArc(ctx, loopPoints, 2, handNear, ropeColor, 4.2, 1);
 
-      // Highlighted rope tip bead so the player can clearly see overhead vs feet position
+      // Highlighted rope bead at P0 so the player can clearly see overhead vs feet position
       ctx.save();
       ctx.fillStyle = ropeColor;
       ctx.shadowColor = "#ffd166";
       ctx.shadowBlur = 10;
       ctx.beginPath();
-      ctx.arc(ropeTip.x, ropeTip.y, 6, 0, Math.PI * 2);
+      ctx.arc(p0.x, p0.y, 6, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
