@@ -1,5 +1,6 @@
 const LS_BEST = "jump16_best_score_v4";
 const LS_SOUND = "jump16_sound_on_v1";
+const LEAD = 170;
 
 const DIFFICULTY = {
   easy: { hitWindow: 130, scoreMul: 1 },
@@ -143,13 +144,15 @@ class RopeJumpGame {
     this.lastCountLabel = "";
     this.goOverlayVisible = false;
 
-    // Character physics & squash/stretch
+    // Character parametric jump & squash/stretch
     this.jumpY = 0;
     this.jumpV = 0;
-    this.gravity = 2500;
-    this.jumpPower = -650;
+    this.jumpActive = false;
+    this.jumpElapsed = 0;
+    this.jumpAirTime = 0.34;
     this.squashTimer = 0;
     this.idleTime = 0;
+    this.targetFlashTimer = 0;
 
     // Visual effects
     this.floatingTexts = [];
@@ -231,7 +234,11 @@ class RopeJumpGame {
     this.goOverlayVisible = false;
     this.jumpY = 0;
     this.jumpV = 0;
+    this.jumpActive = false;
+    this.jumpElapsed = 0;
+    this.jumpAirTime = Math.min(0.34, 0.8 * (this.periodMs / 1000));
     this.squashTimer = 0;
+    this.targetFlashTimer = 0;
     this.floatingTexts = [];
     this.particles = [];
     this.expandingRings = [];
@@ -315,16 +322,22 @@ class RopeJumpGame {
     await this.audio.ensure();
     const now = performance.now();
     const elapsed = this.getElapsed(now);
-    const beatFloat = elapsed / this.periodMs;
 
-    // Ignore presses during the first half of the "GO" beat before the rope passes overhead for beat 1
-    if (beatFloat < 0.5) return;
+    let beatIndex = Math.round((elapsed + LEAD) / this.periodMs);
+    if (beatIndex < 1) return;
 
-    const beatIndex = Math.max(1, Math.round(beatFloat));
-    if (beatIndex <= this.lastResolvedBeat) return;
+    if (beatIndex <= this.lastResolvedBeat) {
+      const nextBeat = this.lastResolvedBeat + 1;
+      const nextTarget = nextBeat * this.periodMs - LEAD;
+      if (Math.abs(elapsed - nextTarget) <= this.periodMs * 0.75) {
+        beatIndex = nextBeat;
+      } else {
+        return;
+      }
+    }
 
-    const beatTime = beatIndex * this.periodMs;
-    const signedDelta = elapsed - beatTime;
+    const targetTime = beatIndex * this.periodMs - LEAD;
+    const signedDelta = elapsed - targetTime;
     const absDelta = Math.abs(signedDelta);
 
     this.totalAttempts += 1;
@@ -349,12 +362,17 @@ class RopeJumpGame {
       else if (judge === "GREAT") this.judgmentStats.great += 1;
       else this.judgmentStats.good += 1;
 
-      // Jump physics
-      this.jumpV = this.jumpPower;
-      this.jumpY = Math.min(this.jumpY, -2);
+      // Parametric jump: airTime = min(0.34s, 0.8 * T_sec), height 70px
+      this.jumpAirTime = Math.min(0.34, 0.8 * (this.periodMs / 1000));
+      this.jumpElapsed = 0;
+      this.jumpActive = true;
+      this.jumpY = 0;
+      this.jumpV = -(70 * Math.PI) / this.jumpAirTime;
 
       // Visual & audio feedback
-      this.spawnFloatingJudge(judge, JUDGE_COLORS[judge]);
+      const subDir = signedDelta < 0 ? "EARLY" : "LATE";
+      const displayJudge = judge === "GOOD" ? `GOOD (${subDir})` : judge;
+      this.spawnFloatingJudge(displayJudge, JUDGE_COLORS[judge]);
       if (judge === "PERFECT") {
         this.spawnPerfectEffects();
       }
@@ -489,7 +507,7 @@ class RopeJumpGame {
   showReadyOverlay() {
     ui.overlay.classList.remove("countdown-mode");
     ui.overlayTitle.textContent = "タップ / Space で開始";
-    ui.overlayText.textContent = "縄が足元に来る瞬間にタップ";
+    ui.overlayText.textContent = "リングが閉じる瞬間にタップ（縄が足元に来る直前が目安）";
     ui.overlayMeta.hidden = true;
     ui.overlayActions.hidden = false;
     ui.startBtn.hidden = false;
@@ -518,7 +536,7 @@ class RopeJumpGame {
   showGameOverOverlay() {
     ui.overlay.classList.remove("countdown-mode");
     ui.overlayTitle.textContent = "GAME OVER";
-    ui.overlayText.textContent = "縄が足元に来る瞬間にタップ";
+    ui.overlayText.textContent = "リングが閉じる瞬間にタップ（縄が足元に来る直前が目安）";
     ui.overlayMeta.hidden = false;
     ui.overlayMeta.innerHTML = `
       <div class="stats-score-row">
@@ -565,6 +583,9 @@ class RopeJumpGame {
     if (this.squashTimer > 0) {
       this.squashTimer = Math.max(0, this.squashTimer - dt);
     }
+    if (this.targetFlashTimer > 0) {
+      this.targetFlashTimer = Math.max(0, this.targetFlashTimer - dt);
+    }
     if (this.missEffectTimer > 0) {
       this.missEffectTimer = Math.max(0, this.missEffectTimer - dt);
     }
@@ -579,14 +600,19 @@ class RopeJumpGame {
       }
     }
 
-    // Character jump physics
-    if (this.jumpY < 0 || this.jumpV !== 0) {
-      this.jumpV += this.gravity * dt;
-      this.jumpY += this.jumpV * dt;
-      if (this.jumpY >= 0) {
+    // Parametric character jump: airTime = min(0.34s, 0.8 * T_sec), height 70px, jumpY = -70 * sin(pi * t / airTime)
+    if (this.jumpActive) {
+      this.jumpElapsed += dt;
+      if (this.jumpElapsed >= this.jumpAirTime) {
+        this.jumpActive = false;
+        this.jumpElapsed = 0;
         this.jumpY = 0;
         this.jumpV = 0;
         this.squashTimer = 0.16;
+      } else {
+        const progress = this.jumpElapsed / this.jumpAirTime;
+        this.jumpY = -70 * Math.sin(Math.PI * progress);
+        this.jumpV = -((70 * Math.PI) / this.jumpAirTime) * Math.cos(Math.PI * progress);
       }
     }
 
@@ -637,11 +663,21 @@ class RopeJumpGame {
     const beatFloat = elapsed / this.periodMs;
     const currentBeat = Math.floor(beatFloat);
 
-    // Trigger beat tick sound on each beat (-3, -2, -1, 0, 1, 2, ...)
-    if (currentBeat > this.lastTickBeat) {
-      this.lastTickBeat = currentBeat;
-      if (currentBeat >= -3) {
-        this.audio.tick(currentBeat === 0);
+    // Count-in ticks at k * T (-3, -2, -1, 0); running ticks at target_k = k * T - LEAD (k >= 1)
+    const tickBeat =
+      elapsed < 0
+        ? currentBeat
+        : elapsed < this.periodMs - LEAD
+          ? 0
+          : Math.floor((elapsed + LEAD) / this.periodMs);
+
+    if (tickBeat > this.lastTickBeat) {
+      this.lastTickBeat = tickBeat;
+      if (tickBeat >= -3) {
+        this.audio.tick(tickBeat === 0);
+      }
+      if (tickBeat >= 1) {
+        this.targetFlashTimer = 0.14;
       }
     }
 
@@ -665,15 +701,15 @@ class RopeJumpGame {
       this.announce("GO");
     }
 
-    // Hide "GO" overlay cleanly before the first target beat arrives at beatFloat = 1.0
-    if (this.goOverlayVisible && beatFloat >= 0.62) {
+    // Hide "GO" overlay cleanly before the first target arrives
+    if (this.goOverlayVisible && elapsed >= Math.min(this.periodMs * 0.55, (this.periodMs - LEAD) * 0.85)) {
       this.goOverlayVisible = false;
       this.hideOverlay();
     }
 
-    // Check if an unresolved target beat (k >= 1) passed its hitWindow without input
+    // Auto-miss an unresolved beat k when elapsed > pass_k + 30ms
     const nextUnresolvedBeat = Math.max(1, this.lastResolvedBeat + 1);
-    if (elapsed > nextUnresolvedBeat * this.periodMs + this.hitWindow) {
+    if (elapsed > nextUnresolvedBeat * this.periodMs + 30) {
       this.totalAttempts += 1;
       this.registerMiss("MISS", nextUnresolvedBeat);
     }
@@ -716,21 +752,25 @@ class RopeJumpGame {
     ctx.stroke();
   }
 
-  drawShrinkingGuideRing(ctx, centerX, groundY, phase) {
-    // Shrinking ring at the character's feet:
-    // phase is in [0, 1). Rope passes the feet at phase = 0 (and phase -> 1).
-    // remaining = 1 - phase goes from 1 -> 0, coinciding with the feet point at the exact pass instant.
+  drawShrinkingGuideRing(ctx, centerX, groundY, elapsed) {
+    // Shrinking ring at the character's feet closes at the next press target time:
+    // rem = (target_next - elapsed) / T in (0, 1], coinciding with the feet point as rem -> 0.
     const isRunningOrCount = this.state === "running" || this.state === "countdown" || this.state === "paused";
-    const remaining = isRunningOrCount ? 1 - phase : 0.5 + 0.35 * Math.sin(this.idleTime * 3);
+    const nextTargetBeat = Math.floor((elapsed + LEAD) / this.periodMs) + 1;
+    const targetNext = nextTargetBeat * this.periodMs - LEAD;
+    const rem = (targetNext - elapsed) / this.periodMs;
+    const remaining = isRunningOrCount ? rem : 0.5 + 0.35 * Math.sin(this.idleTime * 3);
 
     const maxRingR = 54;
     const dotR = 6;
     const currentR = dotR + remaining * (maxRingR - dotR);
 
-    // Check if we are currently inside the hit window around the beat (phase near 0 or 1)
-    const distToBeatRatio = Math.min(phase, 1 - phase);
-    const hitWindowRatio = this.hitWindow / this.periodMs;
-    const inHitZone = isRunningOrCount && distToBeatRatio <= hitWindowRatio;
+    // Check if we are currently inside the hit window around the nearest target_k
+    const nearestTargetBeat = Math.max(1, Math.round((elapsed + LEAD) / this.periodMs));
+    const distToTargetMs = Math.abs(elapsed - (nearestTargetBeat * this.periodMs - LEAD));
+    const inHitZone = isRunningOrCount && distToTargetMs <= this.hitWindow;
+    const isTargetFlash =
+      this.targetFlashTimer > 0 || (this.state === "running" && distToTargetMs <= 32);
 
     ctx.save();
     // Guide perspective: slightly flattened ellipse centered right on the feet point (centerX, groundY)
@@ -744,6 +784,25 @@ class RopeJumpGame {
     ctx.arc(0, 0, maxRingR, 0, Math.PI * 2);
     ctx.stroke();
 
+    // Brief gold flash at the feet at the target instant
+    if (isTargetFlash) {
+      const flashAlpha =
+        this.targetFlashTimer > 0 ? Math.min(1, this.targetFlashTimer / 0.14) : 0.85;
+      ctx.save();
+      ctx.globalAlpha = flashAlpha * 0.55;
+      ctx.fillStyle = "#ffd166";
+      ctx.beginPath();
+      ctx.arc(0, 0, dotR + 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = flashAlpha;
+      ctx.strokeStyle = "#fff1a8";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, dotR + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Shrinking timing ring
     ctx.strokeStyle = inHitZone ? "#ffd166" : "#4df2c3";
     ctx.lineWidth = inHitZone ? 4.5 : 3;
@@ -754,9 +813,9 @@ class RopeJumpGame {
 
     // Target feet point (center dot + crisp ring)
     ctx.globalAlpha = 1;
-    ctx.fillStyle = inHitZone ? "#ffd166" : "#ffffff";
+    ctx.fillStyle = isTargetFlash || inHitZone ? "#ffd166" : "#ffffff";
     ctx.beginPath();
-    ctx.arc(0, 0, dotR, 0, Math.PI * 2);
+    ctx.arc(0, 0, isTargetFlash ? dotR + 2 : dotR, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = "#ffd166";
@@ -1181,7 +1240,7 @@ class RopeJumpGame {
     const phase = ((beatFloat % 1) + 1) % 1;
 
     this.drawBackground(ctx, w, h, groundY);
-    this.drawShrinkingGuideRing(ctx, centerX, groundY, phase);
+    this.drawShrinkingGuideRing(ctx, centerX, groundY, elapsed);
     this.drawCharacterAndRope(ctx, centerX, groundY, phase);
     this.drawEffectsAndHUDCanvas(ctx, w, h, centerX, groundY);
   }
