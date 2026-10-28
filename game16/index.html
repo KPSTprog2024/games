@@ -2,25 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>なわとびジャンプマスター</title>
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
   <div class="app">
     <header class="topbar">
-      <div>
+      <div class="brand">
         <h1>なわとびジャンプマスター</h1>
-        <p>縄が足元を通る瞬間にジャンプ。短時間で上達を実感しよう。</p>
       </div>
       <div class="control-group">
-        <div class="control">
-          <label for="bpm">BPM <span id="bpmValue">96</span></label>
+        <div class="control bpm-control">
+          <label for="bpm">BPM <strong id="bpmValue">96</strong></label>
           <input id="bpm" type="range" min="70" max="150" step="1" value="96" />
         </div>
-        <div class="control">
-          <span>難易度</span>
-          <div class="seg" role="tablist" aria-label="難易度選択">
+        <div class="control diff-control">
+          <span class="control-label">難易度</span>
+          <div class="seg" role="group" aria-label="難易度選択">
             <button id="easyBtn" class="active" type="button">EASY</button>
             <button id="normalBtn" type="button">NORMAL</button>
             <button id="hardBtn" type="button">HARD</button>
@@ -30,44 +29,23 @@
     </header>
 
     <section class="hud" aria-live="polite">
-      <div class="chip">Score: <b id="score">0</b></div>
-      <div class="chip">Combo: <b id="combo">0</b></div>
-      <div class="chip">Best: <b id="best">0</b></div>
-      <div class="chip">Life: <b id="life">❤❤❤</b></div>
-      <div class="chip">Rate: <b id="rate">0%</b></div>
-      <div class="chip">Streak: <b id="streak">0</b></div>
-      <div class="chip judge" id="judge">READY</div>
-      <button id="soundBtn" class="chip-btn" type="button" aria-pressed="true">🔊 Sound ON</button>
-      <button id="hapticBtn" class="chip-btn" type="button" aria-pressed="true">📳 Haptic: STRONG</button>
+      <div class="chip">Score <b id="score">0</b></div>
+      <div class="chip">Combo <b id="combo">0</b></div>
+      <div class="chip">Best <b id="best">0</b></div>
+      <div class="chip life-chip">Life <b id="life" class="life-hearts" aria-label="残りライフ3">❤❤❤</b></div>
+      <div class="chip">Rate <b id="rate">0%</b></div>
     </section>
 
-    <section class="rhythm-wrap" aria-label="リズムインジケーター">
-      <div class="rhythm-bar"><div id="rhythmFill"></div></div>
-      <div class="rhythm-help">バーが中央に来る瞬間がジャンプ目安</div>
-    </section>
-
-    <section id="tutorial" class="tutorial" hidden>
-      <strong>ヒント</strong>
-      <p id="tutorialText">黄色ラインを縄が通る瞬間に押そう！</p>
-      <button id="tutorialNext" type="button">OK</button>
-    </section>
-
-    <section class="history-wrap" aria-label="判定履歴">
-      <div class="history-head">直近10回の判定</div>
-      <div id="historyChart" class="history-chart"></div>
-    </section>
-
-    <main class="stageWrap">
+    <main class="stageWrap" id="stageWrap">
       <canvas id="game" aria-label="なわとびゲーム画面"></canvas>
       <div class="overlay" id="overlay">
-        <div class="card">
-          <h2 id="overlayTitle">Tap / Space で開始</h2>
-          <p id="overlayText">縄が足元(黄色ライン)を通る瞬間に押そう。</p>
-          <p class="mini">操作: 画面タップ / JUMPボタン / Space / Enter</p>
-          <div id="overlayMeta" class="overlay-meta"></div>
-          <div class="actions">
-            <button id="startBtn" type="button">プレイ開始</button>
-            <button id="retryBtn" type="button" hidden>もう一回</button>
+        <div class="card" id="overlayCard">
+          <h2 id="overlayTitle">タップ / Space で開始</h2>
+          <p id="overlayText">リングが閉じる瞬間にタップ（縄が足元に来る直前が目安）</p>
+          <div id="overlayMeta" class="overlay-meta" hidden></div>
+          <div class="actions" id="overlayActions">
+            <button id="startBtn" class="primary-btn" type="button">スタート</button>
+            <button id="retryBtn" class="primary-btn" type="button" hidden>もう一回</button>
           </div>
         </div>
       </div>
@@ -75,8 +53,11 @@
 
     <footer class="bottom">
       <button id="jumpBtn" class="jump" type="button">JUMP</button>
-      <button id="pauseBtn" type="button">一時停止</button>
-      <button id="resetBtn" type="button">リセット</button>
+      <div class="sub-actions">
+        <button id="pauseBtn" type="button">一時停止</button>
+        <button id="resetBtn" type="button">リセット</button>
+        <button id="soundBtn" type="button" aria-pressed="true">🔊 Sound ON</button>
+      </div>
     </footer>
 
     <p id="srStatus" class="sr-only" aria-live="assertive"></p>
